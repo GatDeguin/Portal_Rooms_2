@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#080b10">
+  <meta name="description" content="Guiá un cubo rojo por 22 salas cambiando la gravedad. Teclado, control táctil e inclinación, con récords y progreso local.">
+  <title>Portal Room — Dominá la gravedad</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="./styles/game.css">
+</head>
+<body>
+<main class="app" id="app" data-phase="loading">
+  <canvas id="gl" tabindex="0" aria-label="Sala tridimensional de Portal Room" aria-describedby="objective controlGuide"></canvas>
+  <div class="edge-depth" aria-hidden="true"></div><div class="glass-reflection" aria-hidden="true"></div>
+  <div class="loading" id="loading" role="status">Cargando el experimento…</div>
+  <section class="hud" aria-label="Estado de la sala">
+    <div class="mission">
+      <div class="mission-top"><span id="levelPill" class="eyebrow">SALA 01 / 22</span><span id="sequenceLabel" class="sequence"></span></div>
+      <h1 id="levelTitle">Placa verde</h1>
+      <p id="objective">Llevá el cubo rojo a la placa verde.</p>
+      <div class="run-stats"><span><span class="sr-only">Tiempo de sala </span><time id="roomTime">00:00.00</time></span><span class="best-stat">RÉCORD <b id="bestTime">—</b></span><span class="extra-stat">INTENTO <b id="attempts">0</b></span></div>
+      <div class="campaign"><progress id="campaignProgress" max="22" value="0" aria-label="Salas completadas"></progress><span id="campaignText">0 / 22</span></div>
+    </div>
+    <nav class="actions" aria-label="Controles de partida">
+      <button class="icon-btn" id="pauseBtn" data-action="pause" aria-label="Pausar o reanudar (Escape)" title="Pausa · Escape"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14"/></svg></button>
+      <button class="icon-btn" id="hintBtn" data-action="hint" aria-label="Mostrar pista (H)" title="Pista · H"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6m-5 3h4M8.5 14.5C4 11 6 3 12 3s8 8 3.5 11.5L15 16H9z"/></svg></button>
+      <button class="icon-btn" id="levelsBtn" data-action="levels" aria-label="Elegir sala" title="Salas"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg></button>
+      <button class="icon-btn" id="settingsBtn" data-action="settings" aria-label="Abrir ajustes" title="Ajustes"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 17h16"/><circle cx="8" cy="7" r="3"/><circle cx="16" cy="17" r="3"/></svg></button>
+    </nav>
+  </section>
+  <section class="bottom" aria-label="Gravedad y control táctil">
+    <div class="gravity-cluster">
+      <svg class="compass" viewBox="0 0 64 64" role="img" aria-label="Dirección de gravedad" id="gravityCompass"><circle class="compass-ring" cx="32" cy="32" r="28"/><path class="compass-axis" d="M32 10v44M10 32h44"/><g id="gravityArrow"><path class="gravity-needle" d="M32 44V19m-7 7 7-8 7 8"/></g><circle class="compass-center" cx="32" cy="32" r="2"/></svg>
+      <div class="gravity-info"><b id="surfaceTag">Madera</b><span id="controlMode">Control manual</span><span id="gravityValues" class="extra-stat">X 0.00 · Z 0.00</span></div>
+    </div>
+    <div id="stickWrap" class="stick-wrap" role="group" aria-label="Joystick de gravedad: arrastrá para inclinar"><div class="stick-guides" aria-hidden="true"></div><div class="stick" id="stick" aria-hidden="true"></div></div>
+  </section>
+  <div class="goal-hold" id="goalHold" hidden><span>Estabilizando</span><progress id="holdProgress" max="1" value="0" aria-label="Estabilidad del cubo"></progress></div>
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+  <div class="graphics-error" id="graphicsError" hidden role="alert">
+    <div class="error-card"><span class="eyebrow">RENDER NO DISPONIBLE</span><h2>No pudimos abrir la sala.</h2><p>WebGL no está disponible o el contexto gráfico se interrumpió. Probá activar la aceleración gráfica o usar otro navegador.</p><div class="menu-grid"><button class="primary" data-action="reload">Reintentar</button><button class="secondary" data-action="safe-quality">Reintentar en calidad baja</button></div><details><summary>Detalle técnico</summary><pre id="errorDetail"></pre></details></div>
+  </div>
+
+  <dialog id="startDialog" aria-labelledby="startTitle">
+    <div class="eyebrow">EXPERIMENTO DE GRAVEDAD · <span class="room-count">22</span> SALAS</div>
+    <h2 class="hero-title" id="startTitle">Portal<br><span>Room.</span></h2>
+    <p class="intro">No movés el cubo.<br><strong>Cambiás su gravedad.</strong></p>
+    <p>Guiá el cubo rojo entre hielo, rampas y portales. Acelerá con suavidad, anticipá el freno y encontrá la salida.</p>
+    <div class="intro-meta"><span class="pill">FÍSICA 3D</span><span class="pill">RÉCORDS LOCALES</span><span class="pill" id="startProgress">0 / 22 RESUELTAS</span></div>
+    <div class="menu-grid"><button class="primary" id="startBtn" data-action="start">Entrar a la sala 01 <span aria-hidden="true">→</span></button><button class="secondary" id="startGyroBtn" data-action="start-gyro">Jugar con inclinación</button><div class="button-row"><button class="text-btn" id="startLevelsBtn" data-action="levels">Elegir sala</button><button class="text-btn" id="startSettingsBtn" data-action="settings">Ajustes</button></div></div>
+    <p class="control-guide" id="controlGuide"><kbd>WASD</kbd> o <kbd>↑ ↓ ← →</kbd> para inclinar. Arrastrá la sala o usá el stick en pantallas táctiles. <kbd>Esc</kbd> pausa · <kbd>R</kbd> reinicia · <kbd>H</kbd> pista.</p>
+  </dialog>
+  <dialog id="pauseDialog" aria-labelledby="pauseTitle">
+    <div class="eyebrow">EL TIEMPO ESTÁ DETENIDO</div><h2 id="pauseTitle">Pausa.</h2><p id="pauseInfo"></p>
+    <div class="menu-grid"><button class="primary" id="resumeBtn" data-action="resume">Seguir jugando →</button><button class="secondary" data-action="restart">Reiniciar esta sala</button><div class="button-row"><button class="secondary" data-action="levels">Salas</button><button class="secondary" data-action="settings">Ajustes</button></div><button class="text-btn" data-action="menu">Volver al inicio</button></div>
+  </dialog>
+  <dialog id="settingsDialog" aria-labelledby="settingsTitle">
+    <div class="dialog-heading"><div><div class="eyebrow">TU FORMA DE JUGAR</div><h2 id="settingsTitle">Ajustes.</h2></div><button class="close-btn" data-action="back" aria-label="Cerrar ajustes">×</button></div>
+    <p>Los cambios se guardan en este navegador. Los sensores se pueden desactivar en cualquier momento.</p>
+    <fieldset><legend>Inclinación</legend>
+      <label class="range-setting" for="sensitivity"><span>Sensibilidad <output id="sensitivityValue" for="sensitivity">1.0×</output></span><input id="sensitivity" data-setting="sensitivity" type="range" min=".4" max="2.5" step=".1" value="1"></label>
+      <label class="range-setting" for="deadZone"><span>Zona muerta <output id="deadZoneValue" for="deadZone">5.5%</output></span><input id="deadZone" data-setting="deadZone" type="range" min="0" max=".25" step=".005" value=".055"></label>
+      <label class="range-setting" for="smoothing"><span>Suavizado <output id="smoothingValue" for="smoothing">90 ms</output></span><input id="smoothing" data-setting="smoothing" type="range" min="0" max=".3" step=".01" value=".09"></label>
+      <label class="setting" for="invertX"><span>Invertir inclinación horizontal</span><input id="invertX" data-setting="invertX" type="checkbox"></label>
+      <label class="setting" for="invertZ"><span>Invertir inclinación vertical</span><input id="invertZ" data-setting="invertZ" type="checkbox"></label>
+      <div class="button-row"><button class="secondary" id="enableGyroBtn" data-action="gyro">Activar / recalibrar</button><button class="secondary" id="manualBtn" data-action="manual">Control manual</button></div>
+      <p class="note" id="sensorStatus" role="status">Sensores desactivados. Teclado, arrastre y stick disponibles.</p>
+    </fieldset>
+    <fieldset><legend>Escena y respuesta</legend>
+      <label class="setting" for="quality"><span>Calidad gráfica</span><select id="quality" data-setting="quality"><option value="auto">Automática</option><option value="low">Baja</option><option value="medium">Media</option><option value="high">Alta</option></select></label>
+      <p class="note" id="qualityActual">Automática adapta efectos y resolución; la física no cambia.</p>
+      <label class="setting" for="strongGravity"><span>Gravedad intensa</span><input id="strongGravity" data-setting="strongGravity" type="checkbox" checked></label>
+      <label class="setting" for="dynamicCamera"><span>Cámara dinámica<small>Desactivá el movimiento de cámara y las sacudidas.</small></span><input id="dynamicCamera" data-setting="dynamicCamera" type="checkbox" checked></label>
+      <label class="setting" for="compactHUD"><span>Interfaz compacta<small>Oculta estadísticas secundarias durante el juego.</small></span><input id="compactHUD" data-setting="compactHUD" type="checkbox" checked></label>
+      <label class="setting" for="sound"><span>Sonido</span><input id="sound" data-setting="sound" type="checkbox" checked></label>
+      <label class="setting" for="haptic"><span>Vibración<small>Disponible en dispositivos compatibles.</small></span><input id="haptic" data-setting="haptic" type="checkbox" checked></label>
+    </fieldset>
+    <div class="menu-grid"><button class="secondary" id="fullscreenBtn" data-action="fullscreen">Pantalla completa</button><button class="text-btn danger" data-action="confirm-reset">Borrar progreso y récords</button><button class="primary" id="closeSettingsBtn" data-action="back">Volver</button></div>
+  </dialog>
+  <dialog id="levelsDialog" class="wide-dialog" aria-labelledby="levelsTitle">
+    <div class="dialog-heading"><div><div class="eyebrow">TU RECORRIDO</div><h2 id="levelsTitle">Las salas.</h2></div><button class="close-btn" data-action="back" aria-label="Cerrar selector de salas">×</button></div>
+    <p id="levelsSummary"></p><p class="note">Elegir sala inicia un nuevo intento. Completá la anterior para desbloquear la siguiente.</p><div class="level-grid" id="levelGrid"></div><button class="primary full-width" data-action="back">Volver</button>
+  </dialog>
+  <dialog id="victoryDialog" aria-labelledby="victoryTitle">
+    <div class="eyebrow" id="victoryEyebrow">EXPERIMENTO RESUELTO</div><div class="victory-mark" aria-hidden="true">✓</div><h2 id="victoryTitle">Sala superada.</h2><p id="victoryRoom"></p>
+    <dl class="result-stats"><div><dt>Tu tiempo</dt><dd id="victoryTime">—</dd></div><div><dt>Mejor marca</dt><dd id="victoryBest">—</dd></div><div><dt>Intentos</dt><dd id="victoryAttempts">—</dd></div><div><dt>Reinicios</dt><dd id="victoryRestarts">—</dd></div></dl>
+    <div class="menu-grid"><button class="primary" id="nextBtn" data-action="next">Siguiente sala →</button><button class="secondary" data-action="retry">Mejorar mi tiempo</button><button class="text-btn" data-action="levels">Ver todas las salas</button></div>
+  </dialog>
+  <dialog id="finalDialog" aria-labelledby="finalTitle">
+    <div class="eyebrow">EL CIRCUITO ESTÁ COMPLETO</div><div class="final-count">22 <span>/ 22</span></div><h2 id="finalTitle">Gravedad<br>dominada.</h2><p>Superaste todas las salas. Tus récords y las salas desbloqueadas se conservan: ahora el desafío es mejorar tus tiempos.</p><p class="note" id="finalSummary"></p>
+    <div class="menu-grid"><button class="primary" data-action="levels">Elegir una sala →</button><button class="secondary" data-action="retry">Repetir el último desafío</button><button class="text-btn" data-action="menu">Volver al inicio</button></div>
+  </dialog>
+  <dialog id="confirmDialog" aria-labelledby="confirmTitle">
+    <div class="eyebrow">CONFIRMAR REINICIO</div><h2 id="confirmTitle">¿Empezar de cero?</h2><p>Se borrarán las salas desbloqueadas, los mejores tiempos y los intentos de este navegador. Tus ajustes se conservan.</p><div class="menu-grid"><button class="secondary" data-action="back">Conservar mi progreso</button><button class="primary danger-fill" id="confirmResetBtn" data-action="reset-all">Borrar progreso y récords</button></div>
+  </dialog>
+</main>
+<noscript><div class="graphics-error"><p>Portal Room necesita JavaScript para funcionar.</p></div></noscript>
+<script type="module" src="./src/app.js"></script>
+</body>
+</html>

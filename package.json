@@ -1,0 +1,1 @@
+{"name":"portal-room","version":"2.0.0","private":true,"type":"module","description":"22 salas de gravedad, WebGL y física determinista","scripts":{"test":"node --test tests/*.test.js","check":"node scripts/check.mjs","serve":"python3 -m http.server 8080","test:browser":"python3 tests/browser.py"},"engines":{"node":">=22"}}

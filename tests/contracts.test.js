@@ -1,0 +1,11 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+const load = name => import(`../src/${name}.js`).catch(e => {if (e.code === 'ERR_MODULE_NOT_FOUND') return {};throw e;});
+test('keyboard maintains simultaneous held keys without increasing diagonal strength', async () => {const {keyboardVector}=await load('input');assert.equal(typeof keyboardVector,'function');const v=keyboardVector(new Set(['KeyW','KeyD']));assert.ok(v.x>0&&v.z<0);assert.ok(Math.abs(Math.hypot(v.x,v.z)-1)<1e-9);});
+test('neutral sensor input is removed by a configurable dead zone',async()=>{const {tiltVector}=await load('input');assert.deepEqual(tiltVector({beta:1,gamma:1},{beta:0,gamma:0},0,{deadZone:.1,sensitivity:1}),{x:0,z:0});});
+test('ramp reaches both declared end heights',async()=>{const {rampHeight}=await load('geometry');const r={x:0,z:0,w:2,d:1,h:.7,base:.2,dx:1,dz:0};assert.equal(rampHeight(r,-1,0),.2);assert.equal(rampHeight(r,1,0),.7);});
+test('swept collision catches a thin wall even at extreme displacement',async()=>{const {sweepBox}=await load('geometry');const hit=sweepBox({x:-2,z:0},{x:4,z:0},{x:0,z:0,w:.1,d:2},.24);assert.ok(hit&&hit.t>0&&hit.t<.5);assert.equal(hit.nx,-1);});
+test('simulation never advances while paused',async()=>{const {GameEngine}=await load('physics');const e=new GameEngine([{start:[0,0],target:{pos:[2,2],type:1}}]);const before=JSON.stringify(e.state);e.advance(1,{x:1,z:1});assert.equal(JSON.stringify(e.state),before);});
+test('save completion unlocks next room and keeps the fastest record',async()=>{const {SaveStore}=await load('storage');const s=new SaveStore(null,22);s.complete(0,10);s.complete(0,12);s.complete(0,9);assert.equal(s.progress.unlocked,2);assert.equal(s.progress.bestTimes[0],9);});
+test('render size cannot exceed high-quality pixel budget',async()=>{const {drawingSize,TIERS}=await load('quality');const s=drawingSize(7680,4320,3,'high',1);assert.ok(s.width*s.height<=TIERS.high.pixels);});
+test('quality auto policy ignores hidden-tab frame gaps',async()=>{const {AdaptiveQuality}=await load('quality');const q=new AdaptiveQuality('auto');const before=q.tier;q.sample(60000,false);assert.equal(q.tier,before);});
