@@ -1,0 +1,19 @@
+{
+  "index.html": "d9f66aadc1509be3d871479c38c198d8838b09e18894f4702df555ed8f919e12",
+  "package.json": "80f354d3127099d4992551912093252fd6a23889fb96a9c9fa24d2fea09b126a",
+  "src/math.js": "da9b31ad53a4fa32ca6673af86b7674ecb40e50da7ec716b967491cb581cfae4",
+  "src/shaders.js": "15c9a61b5e3a2b7b0d96426511cdc12b6b3c3f405d988eeeba34744f4a5dff4b",
+  "src/quality.js": "fef8f3cebb4a4943c68a9eddbdcbd07d52f8c746427dd346babafc8b6d20a93f",
+  "src/presentation.js": "98174f9cce4eb0aaff8964714d46a0fca2c4fc39d05c80d2ed03d35ee77dd6a9",
+  "src/app.js": "4feed9025f76043d27fc7f6863ed9569bc78d557776660a50bb01442775fc62f",
+  "src/physics.js": "2b39ea34f5209ed00d9b09ad411f91ef66c1bf5da31b674b97e5bdf550642c3a",
+  "src/audio.js": "832754d02aeb23e70136c2c552483bf23c11115736bd23912ce4445310e61bf3",
+  "src/ui.js": "ad323a09c141cc5a7702ecd035a08fe9ae44c1e3934c414e1c32c7e16cac0dc7",
+  "src/storage.js": "fbafd3f793b1abaa2edd5bab74421def68c6b97486500437e5a75a2f76de9e18",
+  "src/levels.js": "6cf53969f08a59efd88b665b483ce6a1903be338fc0214302ebcba65a559b0ea",
+  "src/geometry.js": "c863e85b21e1553ec140ddd8919ffb555364eedfb1a442ee0facfb68592158cb",
+  "src/renderer.js": "91f98d9a4ed5fcfec931d6908a010bebfa830e1d24c7db8ae9492fa7cd158ae3",
+  "src/input.js": "e2cdd10846a8bca78a8eed52471a2287f6a8dc5b2ed6721c69cd8a4379d1a07e",
+  "src/feedback.js": "c1c247ce4ce4981e31d3374531558f4ab088ec6a2cbc834f5e7bdf81fb3134d6",
+  "styles/game.css": "70ed0b7b6f7f362bfef1876a83fa35b181f0e6a5f3a02579e064e772c4cc63b4"
+}

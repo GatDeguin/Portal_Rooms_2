@@ -1,0 +1,6 @@
+Portal Room V.03 — circuito y experiencia revisados.
+Base: Portal_Room_40_mejoras.zip entregado anteriormente.
+No se publicó esta revisión en GitHub.
+Arranque: python -m http.server 8080 desde la carpeta Portal_Room.
+Publicación: index.html + src/ + styles/.
+Ver README.md y docs/VALIDACION.md.
