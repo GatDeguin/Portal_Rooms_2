@@ -13,6 +13,8 @@ try{adapter=window.localStorage;}catch{storageProblem=true;}
 const store=new SaveStore(adapter,LEVELS.length,motion.matches,()=>{storageProblem=true;ui.toast('El guardado está bloqueado. Tu progreso se conserva solo durante esta sesión.');});
 const engine=new GameEngine(LEVELS,store.settings);engine.reset(store.progress.current);
 const audio=new AudioFeedback(()=>store.settings);
+function visualPreferences(){app.classList.toggle('reduced-effects',motion.matches||store.settings.effects===false);}
+visualPreferences();
 let phase='loading',renderer=null,input=null,raf=0,last=0,transitionTimer=null,panelStack=[],dirty=true;
 const DIALOGS={menu:'startDialog',paused:'pauseDialog',settings:'settingsDialog',selector:'levelsDialog',victory:'victoryDialog',final:'finalDialog',confirm:'confirmDialog'};
 
@@ -107,6 +109,7 @@ input=new InputController({canvas,stick:ui.el('stickWrap'),thumb:ui.el('stick'),
   onAction:dispatch,onSensor:status=>{ui.sensor(status);if(status!=='manual')ui.toast(SENSOR_MESSAGES[status]);}});
 for(const dialog of ui.dialogs)dialog.addEventListener('cancel',e=>{e.preventDefault();if(phase==='paused')resume();else back();});
 document.addEventListener('click',e=>{
+  const tab=e.target.closest('[data-settings-tab]');if(tab){ui.settingsTab(tab.dataset.settingsTab);return;}
   const roomButton=e.target.closest('[data-room]');
   if(roomButton&&phase==='selector'&&!roomButton.disabled){begin(Number(roomButton.dataset.room));return;}
   const button=e.target.closest('[data-action]');if(button&&!button.disabled)dispatch(button.dataset.action);
@@ -114,10 +117,18 @@ document.addEventListener('click',e=>{
 document.addEventListener('input',e=>{
   const element=e.target,key=element.dataset.setting;if(!key)return;
   const value=element.type==='checkbox'?element.checked:element.type==='range'?Number(element.value):element.value;
-  store.setSettings({[key]:value});engine.settings=store.settings;
-  if(key==='quality')renderer?.setQuality(store.settings.quality);
+  if(key==='quality'){
+    try{renderer?.setQuality(value);}catch(error){ui.toast(error.message??'No se pudo cambiar la calidad. Se conserva la anterior.');ui.settings(store.settings,renderer);return;}
+  }
+  store.setSettings({[key]:value});engine.settings=store.settings;visualPreferences();
   if(key==='sound'){audio.refresh();if(value){audio.unlock();audio.tone(520);}}
   ui.settings(store.settings,renderer);ui.update(engine,store);invalidate();
+});
+document.addEventListener('keydown',e=>{
+  const tab=e.target.closest?.('[data-settings-tab]');if(!tab)return;
+  const tabs=[...document.querySelectorAll('[data-settings-tab]')],index=tabs.indexOf(tab);
+  const next=e.key==='ArrowRight'?(index+1)%tabs.length:e.key==='ArrowLeft'?(index+tabs.length-1)%tabs.length:e.key==='Home'?0:e.key==='End'?tabs.length-1:-1;
+  if(next>=0){e.preventDefault();e.stopPropagation();ui.settingsTab(tabs[next].dataset.settingsTab,true);}
 });
 window.addEventListener('resize',()=>{if(renderer&&!renderer.lost){renderer.resize();invalidate();}});
 window.addEventListener('blur',()=>{input.clear();pauseGame();});
@@ -127,7 +138,7 @@ document.addEventListener('visibilitychange',()=>{
 });
 window.addEventListener('pagehide',()=>{pauseGame();if(raf)cancelAnimationFrame(raf);raf=0;audio.suspend();});
 window.addEventListener('pageshow',()=>{if(phase!=='loading')invalidate();});
-motion.addEventListener?.('change',e=>{if(e.matches){store.setSettings({dynamicCamera:false});engine.settings=store.settings;ui.settings(store.settings,renderer);invalidate();}});
+motion.addEventListener?.('change',e=>{if(e.matches){store.setSettings({dynamicCamera:false});engine.settings=store.settings;}visualPreferences();ui.settings(store.settings,renderer);invalidate();});
 canvas.addEventListener('contextmenu',e=>e.preventDefault());
 try{
   renderer=new Renderer(canvas,{quality:store.settings.quality,onContextLost:()=>fail(new Error('Se perdió el contexto WebGL. El progreso guardado no se elimina al recargar.'))});

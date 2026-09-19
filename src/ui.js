@@ -36,6 +36,16 @@ export class UI {
     this.text('startBtn',`${p.current?'Continuar en':'Entrar a'} la sala ${String(p.current+1).padStart(2,'0')} →`);
     this.text('pauseInfo',`${l.name} · ${formatTime(s.elapsed)} · Intento ${p.attempts[i]} · ${p.restarts[i]} reinicios`);
   }
+  settingsTab(key,focus=false){
+    const tabs=[...document.querySelectorAll('[data-settings-tab]')];
+    if(!tabs.some(tab=>tab.dataset.settingsTab===key))return;
+    for(const tab of tabs){
+      const selected=tab.dataset.settingsTab===key;
+      tab.setAttribute('aria-selected',String(selected));tab.tabIndex=selected?0:-1;
+      const panel=this.el(tab.getAttribute('aria-controls'));if(panel)panel.hidden=!selected;
+      if(selected&&focus)tab.focus();
+    }
+  }
   settings(settings,renderer){
     for(const input of document.querySelectorAll('[data-setting]')){
       const value=settings[input.dataset.setting];if(input.type==='checkbox')input.checked=value;else input.value=value;

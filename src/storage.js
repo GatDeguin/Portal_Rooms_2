@@ -1,14 +1,14 @@
 import {clamp,finite} from './math.js';
 const ROOT='roomTiltGame.';
-export const DEFAULT_SETTINGS=Object.freeze({strongGravity:true,dynamicCamera:true,sound:true,haptic:true,smoothing:.09,deadZone:.055,sensitivity:1,invertX:false,invertZ:false,quality:'auto',compactHUD:true});
+export const DEFAULT_SETTINGS=Object.freeze({strongGravity:true,dynamicCamera:true,sound:true,haptic:true,smoothing:.09,deadZone:.055,sensitivity:1,invertX:false,invertZ:false,quality:'auto',compactHUD:true,effects:true});
 export function normalizeSettings(value={},reducedMotion=false) {
   const out={...DEFAULT_SETTINGS,dynamicCamera:!reducedMotion};
   if(!value||typeof value!=='object')return out;
-  for(const key of ['strongGravity','dynamicCamera','sound','haptic','invertX','invertZ','compactHUD'])if(typeof value[key]==='boolean')out[key]=value[key];
+  for(const key of ['strongGravity','dynamicCamera','sound','haptic','invertX','invertZ','compactHUD','effects'])if(typeof value[key]==='boolean')out[key]=value[key];
   for(const [key,min,max] of [['smoothing',0,.3],['deadZone',0,.25],['sensitivity',.4,2.5]]){
     if(typeof value[key]==='number'&&Number.isFinite(value[key]))out[key]=clamp(value[key],min,max);
   }
-  if(['auto','low','medium','high'].includes(value.quality))out.quality=value.quality;
+  if(['auto','low','medium','high','cinematic'].includes(value.quality))out.quality=value.quality;
   return out;
 }
 export function normalizeProgress(value,count=22) {
