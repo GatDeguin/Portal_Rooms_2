@@ -234,24 +234,62 @@ void materialCoordinates(float m,vec3 p,out vec3 q,out vec3 extent,out float see
   }
 }
 
-void woodMaterial(MAT_ARGS){
-  vec2 uv=faceUV(p,n);
+// Wood V3: a lightweight virtual log cut, not a scan or a subsurface-fibre BSDF.
+// All coordinates are attached to the timber; frequency is cycles per world unit.
+float woodRingFilter(float phase,float frequency,float duty){
+  float span=max(gFootprint*frequency,.002);
+  if(span>=1.)return duty;
+  float x=phase+duty*.5;
+  return clamp((stripeIntegral(x+span*.5,duty)-stripeIntegral(x-span*.5,duty))/span,0.,1.);
+}
+void woodBoardCoordinates(vec2 uv,out vec2 local,out vec2 boardId){
   float row=floor((uv.x+3.25)/.54),offset=hash(vec2(row,2.7));
-  float board=floor((uv.y+3.25)/1.8+offset),identity=hash(vec2(row,board))-.5;
-  float joint=max(filteredStripe(uv.x+3.25,.54,.006),filteredStripe(uv.y+3.25+offset*1.8,1.8,.005));
-  float warp=materialNoise(uv*vec2(1.9,.65),1.9).x-.5;
-  float growth=sin(uv.x*74.+warp*2.4+sin(uv.y*1.9+row)*.35)*detailWeight(12.5);
-  float grain=materialNoise(vec2(uv.x*19.+warp*.6,uv.y*1.8)+vec2(identity*7.,0.),19.).x-.5;
-  albedo=vec3(.61,.425,.245)*(1.+identity*.10+grain*.13+growth*.022-joint*.24);
-  rough=.53+identity*.025-grain*.045+joint*.10;spec=.21;
+  float along=(uv.y+3.25)/1.8+offset;
+  boardId=vec2(row,floor(along));
+  local=vec2(fract((uv.x+3.25)/.54)*.54-.27,(fract(along)-.5)*1.8);
+  // End-for-end orientation and a log offset vary at REAL board joints only.
+  local.y*=mix(-1.,1.,step(.5,hash(boardId+vec2(7.,3.))));
+}
+vec4 woodAnatomy(vec2 uv,float identity,out vec2 slope){
+  vec2 offset=vec2(identity*13.7,identity*5.3);
+  vec3 warp=materialNoise(uv*vec2(2.2,.72)+offset,2.2);
+  float crossGrain=uv.x+(warp.x-.5)*.045+(identity-.5)*.36;
+  float taper=.085+.16*identity+.13*(uv.y+.55-identity)*(uv.y+.55-identity);
+  float radius=sqrt(crossGrain*crossGrain+taper*taper);
+  float frequency=24.+identity*12.;
+  float phase=radius*frequency+identity*7.+(warp.x-.5)*.35;
+  float latewood=woodRingFilter(phase,frequency*1.6,.19);
+  // Unequal early/late growth plus a slow cambium field, rather than parallel sine stripes.
+  float broad=materialNoise(uv*vec2(3.1,.85)+offset+4.7,3.1).x-.5;
+  float fibre=0.,pores=0.;slope=vec2(0);
+#if DETAIL_LEVEL > 0
+  vec3 fibres=materialNoise(vec2(crossGrain*83.,uv.y*5.5)+offset,88.);
+  fibre=fibres.x-.5;slope=fibres.yz*vec2(.013,.004);
 #if DETAIL_LEVEL >= 2
-  float pores=materialNoise(uv*vec2(92.,11.),92.).x-.5;
-  albedo*=1.-pores*.025;rough+=abs(pores)*.035;
+  vec3 poreNoise=materialNoise(vec2(crossGrain*137.,uv.y*18.)+offset+2.3,145.);
+  // Sparse elongated vessel marks, preferentially near the darker growth bands.
+  float resolved=detailWeight(145.);
+  pores=smoothstep(.64,.87,poreNoise.x)*(.30+.70*latewood)*resolved;
+  slope-=poreNoise.yz*vec2(.010,.003)*pores;
 #endif
-  relief=microRelief(uv,vec2(31.,3.5),.030);relief.x*=.5;
-  // Satin varnish, not wet wood; no second reflection march is introduced.
+#endif
+  return vec4(latewood,fibre,pores,broad);
+}
+void woodMaterial(MAT_ARGS){
+  vec2 uv=faceUV(p,n),local,id;woodBoardCoordinates(uv,local,id);
+  float identity=hash(id+vec2(11.,4.));
+  vec2 slope;vec4 tissue=woodAnatomy(local,identity,slope);
+  float row=id.x,offset=hash(vec2(row,2.7));
+  float joint=max(filteredStripe(uv.x+3.25,.54,.005),filteredStripe(uv.y+3.25+offset*1.8,1.8,.004));
+  // Keep a warm, dry satin finish. Per-board hue is restrained, not checkerboard parquet.
+  vec3 pigment=mix(vec3(.57,.383,.213),vec3(.66,.456,.267),identity);
+  albedo=pigment*(1.-(tissue.x-.19)*.26+tissue.y*.085+tissue.w*.16-tissue.z*.20-joint*.25);
+  rough=.545+(identity-.5)*.034+tissue.x*.035-tissue.y*.022+tissue.z*.085+joint*.08;
+  spec=.20;
+  relief=microRelief(local,vec2(27.,3.2),.017);relief.xy+=slope;
+  relief.y*=mix(-1.,1.,step(.5,hash(id+vec2(7.,3.))));
 #if DETAIL_LEVEL >= 2
-  layers.y=.10;layers.z=.36;
+  layers.y=.09*(1.-joint*.8);layers.z=.38+tissue.x*.025;
 #endif
 }
 void carpetMaterial(MAT_ARGS){
@@ -383,12 +421,22 @@ void boostMaterial(MAT_ARGS){
   relief=microRelief(p.xz,vec2(19.,19.),.012);
 }
 void platformMaterial(MAT_ARGS){
-  vec2 uv=faceUV(p,n);float grain=materialNoise(uv*vec2(16.,2.)+vec2(seed,0.),16.).x-.5;
-  float endGrain=1.-smoothstep(.4,.9,abs(n.y));
-  float lamination=filteredStripe(p.y+extent.y,.09,.004)*endGrain;
-  albedo=vec3(.57,.372,.197)*(1.+grain*.14-lamination*.12+(hash(vec2(seed,3.2))-.5)*.07);
-  rough=.59-grain*.04;spec=.20;
-  relief=microRelief(uv,vec2(27.,4.5),.028);
+  // Grain follows the longest timber axis, and remains object-local on transports.
+  bool alongZ=extent.z>=extent.x;
+  vec2 uv=faceUV(p,n);if(abs(n.y)>.5&&!alongZ)uv=uv.yx;
+  float identity=hash(vec2(seed,3.2));vec2 slope;
+  vec4 tissue=woodAnatomy(uv+vec2(identity*.21,0.),identity,slope);
+  float side=1.-smoothstep(.4,.9,abs(n.y));
+  float endGrain=side*(alongZ?abs(n.z):abs(n.x));
+  vec2 endUV=alongZ?p.xy:p.zy;
+  float cut=woodRingFilter(length(endUV*vec2(1.,1.8))*25.+identity*3.,45.,.24);
+  float growth=mix(tissue.x,cut,endGrain);
+  float lamination=filteredStripe(p.y+extent.y,.09,.004)*side;
+  albedo=mix(vec3(.55,.355,.188),vec3(.63,.418,.236),identity)*
+    (1.-(growth-.19)*.23+tissue.y*.07+tissue.w*.12-tissue.z*.16-lamination*.10);
+  rough=.585+growth*.025+tissue.z*.055+endGrain*.035;spec=.20;
+  relief=microRelief(uv,vec2(25.,4.),.018);relief.xy+=slope*(1.-endGrain);
+  if(abs(n.y)>.5&&!alongZ)relief.xy=relief.yx;
 }
 void jumpMaterial(MAT_ARGS){
   float ring=filteredStripe(length(p.xz)-effectTime()*.065,.145,.013);
