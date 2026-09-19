@@ -1,0 +1,42 @@
+name: Runtime checks
+
+on:
+  push:
+    branches:
+      - main
+      - 'visual/**'
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: runtime-checks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tests:
+    name: Unit tests and static checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out the exact revision
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run the full unit test suite
+        run: npm test
+      - name: Check syntax, imports, and HTML
+        run: npm run check
+      - name: Record validation scope
+        if: always()
+        run: |
+          echo 'These checks cover the unit suite and static validation only.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Browser WebGL/GPU, mobile, mediump rendering, and the previously missing course/experience suites remain outside this workflow.' >> "$GITHUB_STEP_SUMMARY"
