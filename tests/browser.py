@@ -62,18 +62,23 @@ def main():
     def shot(page,name):page.screenshot(path=str(OUT/f'{name}.png'),animations='disabled');shots.append(name+'.png')
     def phase(page,value):page.wait_for_function('(p)=>document.getElementById("app").dataset.phase===p',arg=value,timeout=12000)
     def observe(page):page.on('pageerror',lambda error:errors.append(str(error)))
-    report={'mode':'ui-only' if args.ui_only else 'webgl','checks':checks,'screenshots':shots,'errors':errors,'transport':'offline import map','storage':'in-memory adapter','sensors':'synthetic orientation and permissions'}
+    report={'mode':'ui-only' if args.ui_only else 'webgl','checks':checks,'screenshots':shots,'errors':errors,'transport':'offline import map','storage':'in-memory adapter','sensors':'synthetic orientation and permissions','goal_checks':'UI state fixtures, not route completion evidence'}
     try:
       with sync_playwright() as p:
         browser=p.chromium.launch(executable_path=args.chromium,headless=True,args=['--no-sandbox','--disable-dev-shm-usage','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader'])
         probe=browser.new_page();report['browser_webgl_available']=probe.evaluate("() => Boolean(document.createElement('canvas').getContext('webgl'))");probe.close()
         if not args.ui_only and not report['browser_webgl_available']:raise RuntimeError('WebGL unavailable. Run --ui-only explicitly; do not count it as renderer validation.')
         context=browser.new_context(viewport={'width':1100,'height':760});page=context.new_page();observe(page);load_page(page,args.ui_only);phase(page,'menu');page.evaluate(INSTRUMENT)
-        check('start screen is actionable and contains 22-room progress',page.locator('#startBtn').is_visible() and '22' in page.locator('#startProgress').inner_text());shot(page,'desktop-start')
+        check('start screen is actionable and contains 42-room progress',page.locator('#startBtn').is_visible() and '42' in page.locator('#startProgress').inner_text());shot(page,'desktop-start')
         for _ in range(12):
             page.keyboard.press('Tab');assert page.evaluate('document.getElementById("startDialog").contains(document.activeElement)')
         check('native start dialog contains keyboard focus')
-        page.locator('#startLevelsBtn').click();phase(page,'selector');check('selector lists 22 rooms and only the earned room is enabled',page.locator('#levelGrid button').count()==22 and page.locator('#levelGrid button:not(:disabled)').count()==1)
+        page.locator('#startLevelsBtn').click();phase(page,'selector');check('selector previews 42 rooms but keeps 41 locked',page.locator('#levelGrid button').count()==42 and page.locator('#levelGrid .locked').count()==41)
+        saved=page.evaluate("localStorage.getItem('roomTiltGame.progress.v2')")
+        page.locator('[data-chapter="5"]').click();check('chapter V filters five expansion rooms',page.locator('#levelGrid button').count()==5)
+        page.locator('[data-preview-room="26"]').click();check('locked preview does not start a run or mutate progress',page.locator('#previewPlayBtn').is_disabled() and page.locator('#previewTitle').inner_text()=='Tríptico de inercia' and saved==page.evaluate("localStorage.getItem('roomTiltGame.progress.v2')"))
+        shot(page,'expansion-selector-desktop');page.locator('[data-chapter="0"]').click()
+        page.locator('[data-preview-room="0"]').click();check('unlocked room has explicit play action',not page.locator('#previewPlayBtn').is_disabled())
         page.locator('#levelsDialog [data-action=back]').first.click();phase(page,'menu');page.locator('#startBtn').click();phase(page,'playing');page.wait_for_function('Boolean(window.__engine)')
         initial=page.evaluate('__engine.state.cube.x');page.keyboard.down('ArrowRight');page.wait_for_timeout(250);page.keyboard.up('ArrowRight');page.wait_for_timeout(250)
         check('holding a movement key moves the cube',page.evaluate('__engine.state.cube.x')>initial);check('keyup releases gravity without requiring a pointer event',abs(page.evaluate('__engine.state.gravity.x'))<.03);shot(page,'desktop-playing')
@@ -107,12 +112,22 @@ def main():
             page.locator('#startSettingsBtn').scroll_into_view_if_needed();page.locator('#startSettingsBtn').click();phase(page,'settings');page.locator('#closeSettingsBtn').scroll_into_view_if_needed();box=page.locator('#closeSettingsBtn').bounding_box();assert 0<=box['y'] and box['y']+box['height']<=height
             page.locator('#closeSettingsBtn').click();phase(page,'menu');page.locator('#startDialog').evaluate('e=>e.scrollTop=0');shot(page,f'menu-{width}x{height}');check(f'menu and settings remain reachable at {width}x{height}')
         page.locator('#startLevelsBtn').click();phase(page,'selector');shot(page,'room-selector');page.locator('#levelsDialog [data-action=back]').first.click();phase(page,'menu')
-        page.evaluate("""async()=>{const {SaveStore}=await import('portal/storage.js');const s=new SaveStore(localStorage,22);for(let i=0;i<22;i++)s.complete(i,20+i);s.select(21);}""");load_page(page,args.ui_only,reload=True);phase(page,'menu');page.evaluate(INSTRUMENT);page.locator('#startBtn').click();phase(page,'playing');page.wait_for_function('Boolean(window.__engine)')
+        page.evaluate("""async()=>{const {SaveStore}=await import('portal/storage.js');const s=new SaveStore(localStorage,22);for(let i=0;i<22;i++)s.complete(i,20+i);s.select(21);}""");load_page(page,args.ui_only,reload=True);phase(page,'menu');page.evaluate(INSTRUMENT)
+        check('legacy 22/22 save offers expansion without changing current selection',page.locator('#startExpansionBtn').is_visible() and page.evaluate("JSON.parse(localStorage.getItem('roomTiltGame.progress.v2')).current===21"))
+        page.locator('#startBtn').click();phase(page,'playing');page.wait_for_function('Boolean(window.__engine)')
         for step in range(4):
             page.evaluate("() => {const e=window.__engine,t=e.target;Object.assign(e.state.cube,{x:t.pos[0],z:t.pos[1],y:t.y??0,vx:0,vz:0,vy:0,grounded:true,hold:0});}")
             if step<3:page.wait_for_function('(step)=>__engine.state.seq>step',arg=step,timeout=12000)
-        phase(page,'final');shot(page,'campaign-complete');check('final screen preserves all rooms and records',page.evaluate("JSON.parse(localStorage.getItem('roomTiltGame.progress.v2')).completed.length===22 && JSON.parse(localStorage.getItem('roomTiltGame.progress.v2')).unlocked===22"))
-        page.locator('#finalDialog [data-action=menu]').click();phase(page,'menu');page.locator('#startSettingsBtn').click();phase(page,'settings');page.locator('#settingsDialog [data-action=confirm-reset]').click();phase(page,'confirm');page.locator('#confirmDialog [data-action=back]').click();phase(page,'settings');check('reset confirmation can be cancelled without losing progress',page.evaluate("JSON.parse(localStorage.getItem('roomTiltGame.progress.v2')).unlocked")==22)
+        phase(page,'victory');check('room 22 is an original-circuit milestone, not the campaign ending','ORIGINAL' in page.locator('#victoryEyebrow').inner_text() and '23' in page.locator('#nextBtn').inner_text());shot(page,'original-circuit-complete')
+        page.locator('#nextBtn').click();phase(page,'playing');check('original circuit continues into expansion room 23',page.evaluate('__engine.state.level')==22)
+        page.keyboard.press('Escape');phase(page,'paused');page.locator('#pauseDialog [data-action=menu]').click();phase(page,'menu')
+        page.evaluate("""async()=>{const {SaveStore}=await import('portal/storage.js');const s=new SaveStore(localStorage,42);for(let i=0;i<42;i++)s.complete(i,20+i);s.select(41);}""");load_page(page,args.ui_only,reload=True);phase(page,'menu');page.evaluate(INSTRUMENT);page.locator('#startBtn').click();phase(page,'playing');page.wait_for_function('Boolean(window.__engine)')
+        # These assignments isolate UI transitions. Actual routes are independently validated by recorded inputs.
+        for step in range(4):
+            page.evaluate("() => {const e=window.__engine,t=e.target;Object.assign(e.state.cube,{x:t.pos[0],z:t.pos[1],y:t.y??0,vx:0,vz:0,vy:0,grounded:true,hold:0});}")
+            if step<3:page.wait_for_function('(step)=>__engine.state.seq>step',arg=step,timeout=12000)
+        phase(page,'final');shot(page,'campaign-complete');check('final screen reflects 42 rooms and preserves all records',page.evaluate("JSON.parse(localStorage.getItem('roomTiltGame.progress.v2')).completed.length===42 && JSON.parse(localStorage.getItem('roomTiltGame.progress.v2')).unlocked===42") and '42' in page.locator('#finalCount').inner_text())
+        page.locator('#finalDialog [data-action=menu]').click();phase(page,'menu');page.locator('#startSettingsBtn').click();phase(page,'settings');page.locator('#settingsDialog [data-action=confirm-reset]').click();phase(page,'confirm');page.locator('#confirmDialog [data-action=back]').click();phase(page,'settings');check('reset confirmation can be cancelled without losing progress',page.evaluate("JSON.parse(localStorage.getItem('roomTiltGame.progress.v2')).unlocked")==42)
         page.locator('#settingsDialog [data-action=confirm-reset]').click();phase(page,'confirm');page.locator('#confirmResetBtn').click();phase(page,'menu');check('confirmed reset keeps preferences but removes progress',page.evaluate("JSON.parse(localStorage.getItem('roomTiltGame.progress.v2')).unlocked===1 && JSON.parse(localStorage.getItem('roomTiltGame.settings.v2')).quality==='low'"))
         page.locator('#startBtn').click();phase(page,'playing');page.wait_for_function('Boolean(window.__engine)');page.evaluate("window.dispatchEvent(new Event('blur'))");phase(page,'paused');check('losing focus pauses instead of continuing unseen');page.locator('#resumeBtn').click();phase(page,'playing');page.evaluate("document.getElementById('gl').dispatchEvent(new Event('webglcontextlost',{cancelable:true}))");phase(page,'error');check('context loss stops the game and exposes recovery',page.locator('#graphicsError').is_visible());shot(page,'context-loss');context.close()
         mobile=browser.new_context(viewport={'width':390,'height':844},has_touch=True,is_mobile=True);touch=mobile.new_page();observe(touch);load_page(touch,args.ui_only);phase(touch,'menu');touch.locator('#startBtn').click();phase(touch,'playing')

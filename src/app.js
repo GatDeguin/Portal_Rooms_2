@@ -1,4 +1,4 @@
-import {LEVELS} from './levels.js';
+import {CAMPAIGN_LEVELS as LEVELS,ORIGINAL_COUNT} from './campaign.js';
 import {GameEngine} from './physics.js';
 import {InputController} from './input.js';
 import {SaveStore} from './storage.js';
@@ -16,7 +16,7 @@ const audio=new AudioFeedback(()=>store.settings);
 function visualPreferences(){app.classList.toggle('reduced-effects',motion.matches||store.settings.effects===false);}
 visualPreferences();
 let phase='loading',renderer=null,input=null,raf=0,last=0,transitionTimer=null,panelStack=[],dirty=true;
-const DIALOGS={menu:'startDialog',paused:'pauseDialog',settings:'settingsDialog',selector:'levelsDialog',victory:'victoryDialog',final:'finalDialog',confirm:'confirmDialog'};
+const DIALOGS={menu:'startDialog',paused:'pauseDialog',settings:'settingsDialog',selector:'levelsDialog',victory:'victoryDialog',final:'finalDialog',confirm:'confirmDialog',help:'helpDialog'};
 
 function fail(error){
   phase='error';app.dataset.phase=phase;engine.pause();input?.clear();audio.suspend();clearTimeout(transitionTimer);
@@ -29,7 +29,7 @@ function showPhase(next){
   if(next!=='playing'){engine.pause();input?.clear();}
   if(next==='selector')ui.levelsGrid(store);
   if(next==='settings')ui.settings(store.settings,renderer);
-  ui.update(engine,store);ui.dialog(DIALOGS[next]??null);invalidate();
+  ui.update(engine,store);renderer?.resize();ui.dialog(DIALOGS[next]??null);invalidate();
 }
 function pauseGame(){
   if(phase!=='playing'&&phase!=='transition')return;
@@ -44,7 +44,7 @@ function openPanel(panel){
   const previous=phase==='playing'?'paused':phase;panelStack.push(previous);audio.suspend();showPhase(panel);
 }
 function back(){
-  if(!['settings','selector','confirm'].includes(phase))return;
+  if(!['settings','selector','confirm','help'].includes(phase))return;
   showPhase(panelStack.pop()??'menu');
 }
 function begin(index,restart=false){
@@ -81,6 +81,9 @@ function frame(now){
 async function action(name){
   switch(name){
     case 'start':if(phase==='menu')begin(store.progress.current);break;
+    case 'start-expansion':if(phase==='menu'&&store.progress.unlocked>ORIGINAL_COUNT)begin(ORIGINAL_COUNT);break;
+    case 'play-preview':if(phase==='selector'&&ui.previewIndex<store.progress.unlocked)begin(ui.previewIndex);break;
+    case 'help':openPanel('help');break;
     case 'start-gyro':if(phase==='menu'){const permission=input.enableSensors();begin(store.progress.current);await permission;}break;
     case 'pause':if(phase==='playing'||phase==='transition')pauseGame();else if(phase==='paused')resume();else back();break;
     case 'resume':resume();break;
@@ -110,8 +113,10 @@ input=new InputController({canvas,stick:ui.el('stickWrap'),thumb:ui.el('stick'),
 for(const dialog of ui.dialogs)dialog.addEventListener('cancel',e=>{e.preventDefault();if(phase==='paused')resume();else back();});
 document.addEventListener('click',e=>{
   const tab=e.target.closest('[data-settings-tab]');if(tab){ui.settingsTab(tab.dataset.settingsTab);return;}
-  const roomButton=e.target.closest('[data-room]');
-  if(roomButton&&phase==='selector'&&!roomButton.disabled){begin(Number(roomButton.dataset.room));return;}
+  const chapter=e.target.closest('[data-chapter]');
+  if(chapter&&phase==='selector'){ui.chapterFilter=Number(chapter.dataset.chapter);ui.levelsGrid(store);return;}
+  const roomButton=e.target.closest('[data-preview-room]');
+  if(roomButton&&phase==='selector'){ui.previewRoom(Number(roomButton.dataset.previewRoom),store);return;}
   const button=e.target.closest('[data-action]');if(button&&!button.disabled)dispatch(button.dataset.action);
 });
 document.addEventListener('input',e=>{

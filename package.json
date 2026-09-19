@@ -1,9 +1,9 @@
 {
   "name": "portal-room",
-  "version": "3.0.0",
+  "version": "4.0.0",
   "private": true,
   "type": "module",
-  "description": "22 salas revisadas, recorrido verificable y presentaci\u00f3n interactiva",
+  "description": "42 salas: Dominio de la gravedad y presentación Cinemática",
   "scripts": {
     "test": "node --test tests/*.test.js",
     "check": "node scripts/check.mjs",
