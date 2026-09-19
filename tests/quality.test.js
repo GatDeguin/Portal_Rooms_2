@@ -5,4 +5,4 @@ test('malformed resize arguments never produce NaN',()=>{const s=drawingSize({},
 test('automatic quality degrades under sustained pressure',()=>{const q=new AdaptiveQuality('auto');for(let i=0;i<1200;i++)q.sample(40);assert.equal(q.tier,'low');assert.ok(q.scale<1);});
 test('automatic quality does not bounce after a single fast frame',()=>{const q=new AdaptiveQuality('auto');q.sample(8);assert.equal(q.tier,'medium');assert.equal(q.scale,1);});
 test('fast quality recovery requires sustained headroom',()=>{const q=new AdaptiveQuality('auto');for(let i=0;i<500;i++)q.sample(16);assert.equal(q.tier,'high');});
-test('explicit quality choice remains stable',()=>{for(const tier of ['low','medium','high']){const q=new AdaptiveQuality(tier);for(let i=0;i<1000;i++)q.sample(40);assert.equal(q.tier,tier);assert.equal(q.scale,1);}});
+test('explicit quality choice remains stable',()=>{for(const tier of ['low','medium','high','cinematic']){const q=new AdaptiveQuality(tier);for(let i=0;i<1000;i++)q.sample(40);assert.equal(q.tier,tier);assert.equal(q.scale,1);}});
