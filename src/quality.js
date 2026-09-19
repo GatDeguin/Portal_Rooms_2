@@ -2,7 +2,8 @@ import {clamp,finite} from './math.js';
 export const TIERS=Object.freeze({
   low:{pixels:360000,dpr:1,steps:88,shadows:16,ao:3,reflections:12,fog:3,octaves:3},
   medium:{pixels:760000,dpr:1.4,steps:112,shadows:28,ao:4,reflections:24,fog:5,octaves:4},
-  high:{pixels:1500000,dpr:1.8,steps:136,shadows:44,ao:6,reflections:36,fog:8,octaves:6}
+  high:{pixels:1500000,dpr:1.8,steps:136,shadows:44,ao:6,reflections:36,fog:8,octaves:6},
+  cinematic:{pixels:3400000,dpr:2.15,steps:184,shadows:68,ao:8,reflections:64,fog:14,octaves:7}
 });
 export function drawingSize(width,height,dpr=1,tier='medium',scale=1){
   const q=TIERS[tier]??TIERS.medium,w=Math.max(2,finite(width,2)),h=Math.max(2,finite(height,2));
@@ -14,7 +15,7 @@ export function drawingSize(width,height,dpr=1,tier='medium',scale=1){
 }
 export class AdaptiveQuality {
   constructor(mode='auto'){this.setMode(mode);}
-  setMode(mode){this.mode=['auto','low','medium','high'].includes(mode)?mode:'auto';this.tier=this.mode==='auto'?'medium':this.mode;this.scale=1;this.resetSamples();}
+  setMode(mode){this.mode=['auto','low','medium','high','cinematic'].includes(mode)?mode:'auto';this.tier=this.mode==='auto'?'medium':this.mode;this.scale=1;this.resetSamples();}
   resetSamples(){this.total=0;this.frames=0;this.slowWindows=0;this.fastWindows=0;this.average=16.7;}
   sample(ms,active=true){
     if(!active||!Number.isFinite(ms)||ms<=0||ms>250)return false;
