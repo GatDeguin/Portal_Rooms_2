@@ -2,7 +2,7 @@ import {CAMPAIGN_LEVELS as LEVELS,ORIGINAL_COUNT} from './campaign.js';
 import {GameEngine} from './physics.js';
 import {InputController} from './input.js';
 import {SaveStore} from './storage.js';
-import {Renderer} from './renderer.js';
+import {createRenderer} from './renderer-client.js';
 import {UI,SENSOR_MESSAGES} from './ui.js';
 import {AudioFeedback} from './audio.js';
 
@@ -15,16 +15,19 @@ const engine=new GameEngine(LEVELS,store.settings);engine.reset(store.progress.c
 const audio=new AudioFeedback(()=>store.settings);
 function visualPreferences(){app.classList.toggle('reduced-effects',motion.matches||store.settings.effects===false);}
 visualPreferences();
-let phase='loading',renderer=null,input=null,raf=0,last=0,transitionTimer=null,panelStack=[],dirty=true;
+let phase='loading',renderer=null,input=null,raf=0,last=0,transitionTimer=null,panelStack=[],dirty=true,sceneDrawn=false,qualityRequest=null;
 const DIALOGS={menu:'startDialog',paused:'pauseDialog',settings:'settingsDialog',selector:'levelsDialog',victory:'victoryDialog',final:'finalDialog',confirm:'confirmDialog',help:'helpDialog'};
 
 function fail(error){
+  cancelQuality();renderer?.destroy();
   phase='error';app.dataset.phase=phase;engine.pause();input?.clear();audio.suspend();clearTimeout(transitionTimer);
   if(raf)cancelAnimationFrame(raf);raf=0;app.classList.remove('switching');ui.error(error);console.error(error);
 }
 function requestFrame(){if(!raf&&!document.hidden&&phase!=='error')raf=requestAnimationFrame(frame);}
 function invalidate(){dirty=true;requestFrame();}
 function showPhase(next){
+  if(next!=='settings')cancelQuality();
+  if(next!=='playing')renderer?.pause?.();
   phase=next;app.dataset.phase=next;
   if(next!=='playing'){engine.pause();input?.clear();}
   if(next==='selector')ui.levelsGrid(store);
@@ -74,7 +77,10 @@ function frame(now){
       }
       dirty=true;
     }
-    if(dirty){renderer.draw(engine,store.settings);ui.update(engine,store);dirty=false;}
+    if(dirty){
+      if(!sceneDrawn||phase==='playing'||phase==='transition'){renderer.draw(engine,store.settings);sceneDrawn=true;}
+      ui.update(engine,store);dirty=false;
+    }
     if(phase==='playing')requestFrame();
   }catch(error){fail(error);}
 }
@@ -119,12 +125,35 @@ document.addEventListener('click',e=>{
   if(roomButton&&phase==='selector'){ui.previewRoom(Number(roomButton.dataset.previewRoom),store);return;}
   const button=e.target.closest('[data-action]');if(button&&!button.disabled)dispatch(button.dataset.action);
 });
-document.addEventListener('input',e=>{
-  const element=e.target,key=element.dataset.setting;if(!key)return;
-  const value=element.type==='checkbox'?element.checked:element.type==='range'?Number(element.value):element.value;
-  if(key==='quality'){
-    try{renderer?.setQuality(value);}catch(error){ui.toast(error.message??'No se pudo cambiar la calidad. Se conserva la anterior.');ui.settings(store.settings,renderer);return;}
+function cancelQuality(){
+  if(!qualityRequest)return;
+  qualityRequest.abort();qualityRequest=null;
+  ui.qualityStatus(null,'Cambio cancelado. Se conserva la calidad anterior.');ui.settings(store.settings,renderer);
+}
+async function applyQuality(value){
+  if(!renderer||phase!=='settings')return;
+  cancelQuality();const controller=new AbortController();qualityRequest=controller;
+  ui.qualityStatus(value,'Preparando la calidad gráfica… Podés cancelar o volver sin esperar.');
+  ui.settings(store.settings,renderer);
+  try{
+    await renderer.requestQuality(value,{signal:controller.signal});
+    if(qualityRequest!==controller||controller.signal.aborted)return;
+    store.setSettings({quality:value});engine.settings=store.settings;
+    renderer.quality.resetSamples();last=performance.now();
+    ui.qualityStatus(null,'Calidad lista. Se mostrará al volver a la partida.');
+  }catch(error){
+    if(qualityRequest!==controller)return;
+    ui.qualityStatus(null,error.name==='AbortError'?'Cambio cancelado. Se conserva la calidad anterior.':`${error.message} La selección guardada no cambió.`);
+  }finally{
+    if(qualityRequest===controller){qualityRequest=null;ui.settings(store.settings,renderer);invalidate();}
   }
+}
+// A native select fires input while navigating options. Compile only the committed change.
+document.addEventListener('change',e=>{if(e.target.dataset.setting==='quality')void applyQuality(e.target.value);});
+ui.el('cancelQualityBtn').addEventListener('click',cancelQuality);
+document.addEventListener('input',e=>{
+  const element=e.target,key=element.dataset.setting;if(!key||key==='quality')return;
+  const value=element.type==='checkbox'?element.checked:element.type==='range'?Number(element.value):element.value;
   store.setSettings({[key]:value});engine.settings=store.settings;visualPreferences();
   if(key==='sound'){audio.refresh();if(value){audio.unlock();audio.tone(520);}}
   ui.settings(store.settings,renderer);ui.update(engine,store);invalidate();
@@ -138,15 +167,17 @@ document.addEventListener('keydown',e=>{
 window.addEventListener('resize',()=>{if(renderer&&!renderer.lost){renderer.resize();invalidate();}});
 window.addEventListener('blur',()=>{input.clear();pauseGame();});
 document.addEventListener('visibilitychange',()=>{
-  if(document.hidden){pauseGame();engine.pause();input.clear();audio.suspend();if(raf)cancelAnimationFrame(raf);raf=0;}
+  if(document.hidden){cancelQuality();renderer?.pause?.();pauseGame();engine.pause();input.clear();audio.suspend();if(raf)cancelAnimationFrame(raf);raf=0;}
   else{last=performance.now();renderer?.quality.resetSamples();invalidate();}
 });
-window.addEventListener('pagehide',()=>{pauseGame();if(raf)cancelAnimationFrame(raf);raf=0;audio.suspend();});
+window.addEventListener('pagehide',()=>{cancelQuality();renderer?.pause?.();pauseGame();if(raf)cancelAnimationFrame(raf);raf=0;audio.suspend();});
 window.addEventListener('pageshow',()=>{if(phase!=='loading')invalidate();});
 motion.addEventListener?.('change',e=>{if(e.matches){store.setSettings({dynamicCamera:false});engine.settings=store.settings;}visualPreferences();ui.settings(store.settings,renderer);invalidate();});
 canvas.addEventListener('contextmenu',e=>e.preventDefault());
 try{
-  renderer=new Renderer(canvas,{quality:store.settings.quality,onContextLost:()=>fail(new Error('Se perdió el contexto WebGL. El progreso guardado no se elimina al recargar.'))});
+  renderer=await createRenderer(canvas,{quality:store.settings.quality,engine,settings:store.settings,onContextLost:error=>fail(error??new Error('Se perdió el contexto WebGL. El progreso guardado no se elimina al recargar.'))});
+  if(renderer.quality.mode!==store.settings.quality){store.setSettings({quality:renderer.quality.mode});engine.settings=store.settings;}
   ui.el('loading').hidden=true;ui.sensor('manual');showPhase('menu');
+  if(renderer.warning){ui.qualityStatus(null,renderer.warning);ui.toast(renderer.warning);}
   if(storageProblem)ui.toast('No se puede guardar en este navegador. Esta sesión funciona en memoria.');
 }catch(error){fail(error);}

@@ -55,10 +55,16 @@ export class UI {
   }
   settings(settings,renderer){
     for(const input of document.querySelectorAll('[data-setting]')){
-      const value=settings[input.dataset.setting];if(input.type==='checkbox')input.checked=value;else input.value=value;
+      const value=input.dataset.setting==='quality'&&this.pendingQuality?this.pendingQuality:settings[input.dataset.setting];if(input.type==='checkbox')input.checked=value;else input.value=value;
     }
     this.text('sensitivityValue',`${settings.sensitivity.toFixed(1)}×`);this.text('deadZoneValue',`${(settings.deadZone*100).toFixed(1)}%`);this.text('smoothingValue',`${Math.round(settings.smoothing*1000)} ms`);
     this.text('qualityActual',`Render: ${renderer?.description()??'No disponible'}. Automática adapta efectos y resolución; la física no cambia.`);
+  }
+  qualityStatus(mode,message){
+    this.pendingQuality=mode;
+    this.el('quality').setAttribute('aria-busy',String(mode!==null));
+    this.el('cancelQualityBtn').hidden=mode===null;
+    this.text('qualityState',message);
   }
   sensor(status){this.text('sensorStatus',SENSOR_MESSAGES[status]??SENSOR_MESSAGES.manual);this.text('controlMode',status==='active'?'Inclinación activa':status==='calibrating'?'Calibrando…':'Control manual');}
   campaignUpdate(engine,store){

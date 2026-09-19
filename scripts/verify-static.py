@@ -25,9 +25,12 @@ try:
         if path.endswith('.css'):assert mime=='text/css',(path,mime)
         text=body.decode();seen.add(path)
         refs=re.findall(r"from\s+['\"](\./[^'\"]+)['\"]",text) if path.endswith('.js') else re.findall(r'(?:src|href)="(\./[^"?#]+)"',text) if path.endswith('.html') else []
+        if path.endswith('.js'):
+            refs+=re.findall(r"new\s+URL\(\s*['\"](\./[^'\"]+)['\"]\s*,\s*import\.meta\.url\s*\)",text)
         for ref in refs:
             child=(Path(path).parent/ref).as_posix();assert (ROOT/child).is_file(),child;pending.append(child)
     assert 'src/campaign.js' in seen and 'src/levels-expansion.js' in seen
+    assert 'src/renderer-worker.js' in seen, 'Worker entrypoint was not checked over HTTP'
     report={'status':'passed','transport':'actual HTTP server, original relative ES module URLs','files':sorted(seen)}
     out=ROOT/'test-results'/'static';out.mkdir(parents=True,exist_ok=True);(out/'report.json').write_text(json.dumps(report,indent=2))
     print(f'PASS: {len(seen)} served files, module graph, MIME types and byte equality.')
