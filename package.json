@@ -14,7 +14,8 @@
     "test:experience": "python3 tests/experience-browser.py --offline",
     "test:render": "python3 tests/shaders_egl.py",
     "test:static": "python3 scripts/verify-static.py",
-    "test:quality": "python3 tests/quality-browser.py"
+    "test:quality": "python3 tests/quality-browser.py",
+    "test:materials": "python3 tests/materials_egl.py"
   },
   "engines": {
     "node": ">=22"
