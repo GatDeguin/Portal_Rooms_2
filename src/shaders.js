@@ -147,92 +147,310 @@ vec3 portalEnergy(vec3 p,vec3 rd){
   }
   return vec3(.025,.85,.34)*(.10+energy*1.85)+vec3(.08,1.3,.66)*rim*.75;
 }
-void material(float m,vec3 p,vec3 n,out vec3 albedo,out float rough,out float spec,out vec3 emit){
-  rough=.65;spec=.08;emit=vec3(0);albedo=vec3(.65);
-  if(m<1.5){
-    float row=floor((p.x+3.25)*1.72),board=fract((p.x+3.25)*1.72);
-    float offset=hash(vec2(row,2.7)),end=fract((p.z+3.25)*.55+offset);
-    float seam=max(aaLine(min(board,1.-board)/1.72,.006),aaLine(min(end,1.-end)/.55,.004));
-    float variation=hash(vec2(row,floor((p.z+3.25)*.55+offset)))-.5;
-    float warp=filteredNoise(p.xz*2.1,2.1),grain=fbm(vec2(p.x*17.+warp*.6,p.z*2.2),17.);
-    float fibers=sin(p.x*155.+warp*4.+p.z*.7)*detailWeight(25.);
-    float pore=filteredNoise(p.xz*110.,110.);
-    albedo=mix(vec3(.47,.30,.17),vec3(.72,.51,.29),.38+grain*.35);
-    albedo*=1.+variation*.10+fibers*.025-seam*.30+(pore-.5)*.025;
-    rough=clamp(.49+(grain-.5)*.10+seam*.14+variation*.04,.40,.70);spec=.18;
-  }else if(m<2.5){
-    float weave=sin(p.x*135.)*sin(p.z*135.)*detailWeight(24.);
-    float f=fbm(p.xz*12.,12.),border=smoothstep(1.21,1.27,abs(p.z-.78))+smoothstep(2.,2.08,abs(p.x));
-    albedo=vec3(.245,.26,.265)+(f-.5)*.06+weave*.017;albedo*=1.-clamp(border,0.,1.)*.20;rough=.94;spec=.025;
-  }else if(m<6.5){
-    vec2 uv=m<3.5?p.xy:(m<5.5?p.zy:p.xz);
-    float plaster=fbm(uv*4.,4.),porosity=filteredNoise(uv*83.,83.);
-    if(m<3.5)albedo=vec3(.67,.45,.22);
-    else if(m<4.5)albedo=vec3(.35,.49,.26);
-    else if(m<5.5)albedo=vec3(.74,.74,.70);
-    else albedo=vec3(.58,.61,.60);
-    float panel=aaLine(abs(fract(uv.x*.63)-.5)/.63,.003);
-    albedo*=1.+(plaster-.5)*.065+(porosity-.5)*.018-panel*.035;
-    rough=.82+(plaster-.5)*.08;spec=.10;
-  }else if(m<7.5){
-    vec3 local=cubeLocal(p);float edge=cubeEdge(local);
-    float micro=fbm(local.xy*25.+local.zy*11.,36.);
-    float scratch=aaLine(abs(fract(local.x*64.+local.y*2.7+local.z*3.1)-.5)/64.,.0006)*detailWeight(64.);
-    scratch*=smoothstep(.58,.84,filteredNoise(local.yz*37.,37.));
-    float wear=edge*smoothstep(.30,.74,filteredNoise(local.xy*34.+local.zy*17.,51.));
-    albedo=mix(vec3(.62,.023,.014),vec3(.76,.044,.022),.42+micro*.20);
-    albedo+=vec3(.055,.018,.009)*wear+scratch*vec3(.020,.008,.004);
-    rough=.29+micro*.055+scratch*.13+wear*.045;spec=.30;
-  }else if(m<8.5){
-    float brush=sin(p.y*130.+p.x*3.)*detailWeight(24.);
-    albedo=vec3(.23,.27,.30)+brush*.012;rough=.48;spec=.26;
-  }else if(m<10.5){
-    float pattern=aaLine(abs(length(p.xz-uTarget)-.31),.013);
-    albedo=vec3(.06,.82,.32);emit=vec3(.035,.95,.25)*(.58+pattern*.45);rough=.34;spec=.22;
-  }else if(m<11.5){
-    vec2 d=abs(p.xz-uTarget);float mark=aaLine(min(d.x,d.y),.030);
-    albedo=vec3(.12,.43,.95);emit=vec3(.045,.28,1.)*(.62+mark*.45);rough=.32;spec=.22;
-  }else if(m<12.5){
-    float angle=atan(p.z-uTarget.y,p.x-uTarget.x)/6.283185+.5;
-    float charged=1.-smoothstep(uHold-.006,uHold+.006,angle);
-    albedo=vec3(.92,.65,.11);emit=vec3(1.,.53,.035)*(.52+charged*.82);rough=.34;spec=.22;
-  }else if(m<13.5){albedo=vec3(.95,.88,.73);emit=vec3(1.,.84,.63)*3.2;rough=.24;spec=.25;
-  }else if(m<14.5){albedo=vec3(.38,.30,.23);rough=.47;spec=.25;
-  }else if(m<15.5){albedo=vec3(.07,.32,.19);emit=vec3(.025,.9,.37);rough=.28;spec=.30;
-  }else if(m<16.5){
-    float facets=sin(p.x*18.+p.z*27.)*detailWeight(6.);
-    albedo=vec3(.27,.65,.85)+facets*.025;emit=vec3(.035,.30,.65)*.28;rough=.20;spec=.32;
-  }else if(m<17.5){
-    vec2 cells=fract(p.xz*12.)-.5;float dots=aaLine(length(cells)/12.,.010)*detailWeight(12.);
-    albedo=vec3(.54,.18,.70)*(1.-dots*.16);emit=vec3(.50,.06,.82)*.18;rough=.87;spec=.06;
-  }else if(m<18.5){
-    vec2 dir=length(uBoost)<.001?vec2(1,0):normalize(uBoost);float side=dot(p.xz,vec2(-dir.y,dir.x));
-    float arrow=aaLine(abs(fract(dot(p.xz,dir)*3.-effectTime()*.65+abs(fract(side*2.)-.5))-.5)/3.,.037);
-    albedo=vec3(.94,.45,.08);emit=vec3(1.,.25,.02)*(.19+arrow*.44);rough=.44;spec=.20;
-  }else if(m<19.5){
-    float grain=fbm(p.xz*13.+p.xy*2.,15.);albedo=mix(vec3(.48,.30,.14),vec3(.69,.46,.24),grain);rough=.54;spec=.17;
-  }else if(m<20.5){float ring=.5+.5*sin(length(p.xz)*20.-effectTime()*2.);albedo=vec3(.12,.82,.92);emit=vec3(.025,.66,.95)*(.68+ring*.15);rough=.29;spec=.25;
-  }else{albedo=vec3(.82,.065,.032);emit=vec3(.95,.035,.012)*.28;rough=.36;spec=.30;}
-  // Authored pigment values are sRGB-like; all illumination below is linear HDR.
-  albedo=pow(clamp(albedo,vec3(.001),vec3(.95)),vec3(2.2));
+// Authored Materials V2. Microstructure belongs to shading, never to mapScene().
+// A compact response vector: metal coverage, coat weight, coat roughness, cloth sheen.
+#define MAT_ARGS float m,vec3 p,vec3 n,vec3 extent,float seed,inout vec3 albedo,inout float rough,inout float spec,inout vec3 emit,inout vec4 layers,inout vec3 relief
+#define MAT_PASS m,q,ng,extent,seed,albedo,rough,spec,emit,layers,relief
+
+// Box-filter a periodic line analytically. Unresolved lines retain their mean coverage.
+float stripeIntegral(float x,float duty){return floor(x)*duty+min(fract(x),duty);}
+float filteredStripe(float coordinate,float period,float width){
+  float duty=clamp(width/period,0.,1.),span=max(gFootprint/period,.002);
+  if(span>=1.)return duty;
+  float x=coordinate/period+duty*.5;
+  return clamp((stripeIntegral(x+span*.5,duty)-stripeIntegral(x-span*.5,duty))/span,0.,1.);
 }
-vec3 detailNormal(float m,vec3 p,vec3 geometric){
+// Value and analytic derivatives from the SAME four lattice samples. No extra SDF calls.
+vec3 materialNoise(vec2 p,float frequency){
+  vec2 i=floor(p),f=fract(p),u=f*f*f*(f*(f*6.-15.)+10.);
+  vec2 du=30.*f*f*(f-1.)*(f-1.);
+  float a=hash(i),b=hash(i+vec2(1,0)),c=hash(i+vec2(0,1)),d=hash(i+vec2(1,1));
+  float w=detailWeight(frequency);
+  return vec3(.5+(mix(mix(a,b,u.x),mix(c,d,u.x),u.y)-.5)*w,
+    du.x*mix(b-a,d-c,u.y)*w,du.y*mix(c-a,d-b,u.x)*w);
+}
+vec2 faceUV(vec3 p,vec3 n){
+  vec3 a=abs(n);
+  return a.y>=max(a.x,a.z)?p.xz:(a.x>=a.z?p.zy:p.xy);
+}
+// Relief.xy is tangent-space slope; z estimates unresolved normal variance.
+vec3 microRelief(vec2 uv,vec2 frequency,float strength){
+  vec3 r=vec3(0);
 #if DETAIL_LEVEL > 0
-  vec3 q=p,normal=geometric;bool cube=m>6.5&&m<7.5;
-  if(cube){q=cubeLocal(p);normal=qrot(vec4(-uCubeQ.xyz,uCubeQ.w),geometric);}
-  float frequency=cube?48.:(m<1.5?30.:(m<2.5?22.:16.));
-  float amplitude=cube?.027:(m<1.5?.032:(m<2.5?.018:.011));
-  vec3 slope=vec3(noise(q.yz*frequency),noise(q.zx*frequency+3.7),noise(q.xy*frequency+7.1))-.5;
-  slope-=normal*dot(normal,slope);normal=normalize(normal+slope*amplitude*detailWeight(frequency));
-  return cube?qrot(uCubeQ,normal):normal;
-#else
-  return geometric;
+  float f=max(frequency.x,frequency.y),w=detailWeight(f);
+  r=vec3(materialNoise(uv*frequency,f).yz*strength,strength*strength*(1.-w*w));
+#if DETAIL_LEVEL >= 2
+  f*=2.07;w=detailWeight(f);
+  r+=vec3(materialNoise(uv*frequency*2.07+vec2(4.7,1.3),f).yz*strength*.35,strength*strength*.1225*(1.-w*w));
+#endif
+#if DETAIL_LEVEL >= 3
+  f*=1.83;w=detailWeight(f);
+  r+=vec3(materialNoise(uv*frequency*3.79+vec2(9.1,5.2),f).yz*strength*.16,strength*strength*.0256*(1.-w*w));
+#endif
+#endif
+  return r;
+}
+float edgeMask(vec3 p,vec3 extent){
+  vec3 d=abs(p)/max(extent,vec3(.03));
+  float second=d.x+d.y+d.z-min(d.x,min(d.y,d.z))-max(d.x,max(d.y,d.z));
+  return smoothstep(.78,.98,second);
+}
+// Select the existing uniform slot only AFTER a hit. Slot seeds do not change as it moves.
+void materialCoordinates(float m,vec3 p,out vec3 q,out vec3 extent,out float seed){
+  q=p;extent=vec3(1);seed=0.;float best=100.,d;
+  if(m>6.5&&m<7.5){q=cubeLocal(p);extent=vec3(.245);return;}
+  if(m>7.5&&m<8.5){
+    if(uObs0.z>.001){d=abs(obstacle(p,uObs0).x);if(d<best){best=d;q=p-vec3(uObs0.x,.245,uObs0.y);extent=vec3(uObs0.z*.5,.245,uObs0.w*.5);seed=1.;}}
+    if(uObs1.z>.001){d=abs(obstacle(p,uObs1).x);if(d<best){best=d;q=p-vec3(uObs1.x,.245,uObs1.y);extent=vec3(uObs1.z*.5,.245,uObs1.w*.5);seed=2.;}}
+    if(uObs2.z>.001){d=abs(obstacle(p,uObs2).x);if(d<best){best=d;q=p-vec3(uObs2.x,.245,uObs2.y);extent=vec3(uObs2.z*.5,.245,uObs2.w*.5);seed=3.;}}
+    if(uObs3.z>.001){d=abs(obstacle(p,uObs3).x);if(d<best){best=d;q=p-vec3(uObs3.x,.245,uObs3.y);extent=vec3(uObs3.z*.5,.245,uObs3.w*.5);seed=4.;}}
+    if(uObs4.z>.001){d=abs(obstacle(p,uObs4).x);if(d<best){best=d;q=p-vec3(uObs4.x,.245,uObs4.y);extent=vec3(uObs4.z*.5,.245,uObs4.w*.5);seed=5.;}}
+    if(uObs5.z>.001){d=abs(obstacle(p,uObs5).x);if(d<best){best=d;q=p-vec3(uObs5.x,.245,uObs5.y);extent=vec3(uObs5.z*.5,.245,uObs5.w*.5);seed=6.;}}
+  }else if(m>18.5&&m<19.5){
+    if(uPlat0.z>.001){d=abs(platformObj(p,uPlat0,uPlatMeta0).x);if(d<best){best=d;q=p-vec3(uPlat0.x,uPlatMeta0.x*.5,uPlat0.y);extent=vec3(uPlat0.z*.5,uPlatMeta0.x*.5,uPlat0.w*.5);seed=11.;}}
+    if(uPlat1.z>.001){d=abs(platformObj(p,uPlat1,uPlatMeta1).x);if(d<best){best=d;q=p-vec3(uPlat1.x,uPlatMeta1.x*.5,uPlat1.y);extent=vec3(uPlat1.z*.5,uPlatMeta1.x*.5,uPlat1.w*.5);seed=12.;}}
+    if(uPlat2.z>.001){d=abs(platformObj(p,uPlat2,uPlatMeta2).x);if(d<best){best=d;q=p-vec3(uPlat2.x,uPlatMeta2.x*.5,uPlat2.y);extent=vec3(uPlat2.z*.5,uPlatMeta2.x*.5,uPlat2.w*.5);seed=13.;}}
+    if(uPlat3.z>.001){d=abs(platformObj(p,uPlat3,uPlatMeta3).x);if(d<best){best=d;q=p-vec3(uPlat3.x,uPlatMeta3.x*.5,uPlat3.y);extent=vec3(uPlat3.z*.5,uPlatMeta3.x*.5,uPlat3.w*.5);seed=14.;}}
+    if(uRamp0.z>.001){d=abs(rampObj(p,uRamp0,uRampMeta0).x);if(d<best){best=d;q=p-vec3(uRamp0.x,(uRampMeta0.x+uRampMeta0.w)*.5,uRamp0.y);extent=vec3(uRamp0.z*.5,(uRampMeta0.x-uRampMeta0.w)*.5,uRamp0.w*.5);seed=21.;}}
+    if(uRamp1.z>.001){d=abs(rampObj(p,uRamp1,uRampMeta1).x);if(d<best){best=d;q=p-vec3(uRamp1.x,(uRampMeta1.x+uRampMeta1.w)*.5,uRamp1.y);extent=vec3(uRamp1.z*.5,(uRampMeta1.x-uRampMeta1.w)*.5,uRamp1.w*.5);seed=22.;}}
+    if(uRamp2.z>.001){d=abs(rampObj(p,uRamp2,uRampMeta2).x);if(d<best){best=d;q=p-vec3(uRamp2.x,(uRampMeta2.x+uRampMeta2.w)*.5,uRamp2.y);extent=vec3(uRamp2.z*.5,(uRampMeta2.x-uRampMeta2.w)*.5,uRamp2.w*.5);seed=23.;}}
+  }else if((m>15.5&&m<18.5)||(m>19.5&&m<20.5)){
+    if(uZone0.w>.5&&abs(15.+uZone0.w-m)<.25){d=abs(zoneObj(p,uZone0).x);if(d<best){best=d;q=p-vec3(uZone0.x,.016,uZone0.y);extent=vec3(uZone0.z,.012,uZone0.z);seed=31.;}}
+    if(uZone1.w>.5&&abs(15.+uZone1.w-m)<.25){d=abs(zoneObj(p,uZone1).x);if(d<best){best=d;q=p-vec3(uZone1.x,.016,uZone1.y);extent=vec3(uZone1.z,.012,uZone1.z);seed=32.;}}
+    if(uZone2.w>.5&&abs(15.+uZone2.w-m)<.25){d=abs(zoneObj(p,uZone2).x);if(d<best){best=d;q=p-vec3(uZone2.x,.016,uZone2.y);extent=vec3(uZone2.z,.012,uZone2.z);seed=33.;}}
+    if(uZone3.w>.5&&abs(15.+uZone3.w-m)<.25){d=abs(zoneObj(p,uZone3).x);if(d<best){best=d;q=p-vec3(uZone3.x,.016,uZone3.y);extent=vec3(uZone3.z,.012,uZone3.z);seed=34.;}}
+    if(uZone4.w>.5&&abs(15.+uZone4.w-m)<.25){d=abs(zoneObj(p,uZone4).x);if(d<best){best=d;q=p-vec3(uZone4.x,.016,uZone4.y);extent=vec3(uZone4.z,.012,uZone4.z);seed=35.;}}
+    if(uZone5.w>.5&&abs(15.+uZone5.w-m)<.25){d=abs(zoneObj(p,uZone5).x);if(d<best){best=d;q=p-vec3(uZone5.x,.016,uZone5.y);extent=vec3(uZone5.z,.012,uZone5.z);seed=36.;}}
+    if(uZone6.w>.5&&abs(15.+uZone6.w-m)<.25){d=abs(zoneObj(p,uZone6).x);if(d<best){best=d;q=p-vec3(uZone6.x,.016,uZone6.y);extent=vec3(uZone6.z,.012,uZone6.z);seed=37.;}}
+    if(uZone7.w>.5&&abs(15.+uZone7.w-m)<.25){d=abs(zoneObj(p,uZone7).x);if(d<best){best=d;q=p-vec3(uZone7.x,.016,uZone7.y);extent=vec3(uZone7.z,.012,uZone7.z);seed=38.;}}
+  }else if(m>21.5){
+    if(uBump0.z>.01){d=abs(bumperObj(p,uBump0).x);if(d<best){best=d;float h=max(uBump0.w,.34);q=p-vec3(uBump0.x,h*.5,uBump0.y);extent=vec3(uBump0.z,h*.5,uBump0.z);seed=41.;}}
+    if(uBump1.z>.01){d=abs(bumperObj(p,uBump1).x);if(d<best){best=d;float h=max(uBump1.w,.34);q=p-vec3(uBump1.x,h*.5,uBump1.y);extent=vec3(uBump1.z,h*.5,uBump1.z);seed=42.;}}
+    if(uBump2.z>.01){d=abs(bumperObj(p,uBump2).x);if(d<best){best=d;float h=max(uBump2.w,.34);q=p-vec3(uBump2.x,h*.5,uBump2.y);extent=vec3(uBump2.z,h*.5,uBump2.z);seed=43.;}}
+  }else if(m>9.5&&m<12.5){q=p-vec3(uTarget.x,.035+uTargetY,uTarget.y);extent=vec3(.49,.02,.49);}
+  else if(m>14.5&&m<15.5){
+    if(p.z< -3.09){q=p-vec3(uTarget.x,.74+uTargetY,-3.185);extent=vec3(.58,.70,.03);}
+    else{q=p-vec3(uTarget.x,.03+uTargetY,uTarget.y);extent=vec3(.515,.018,.515);}
+  }
+}
+
+void woodMaterial(MAT_ARGS){
+  vec2 uv=faceUV(p,n);
+  float row=floor((uv.x+3.25)/.54),offset=hash(vec2(row,2.7));
+  float board=floor((uv.y+3.25)/1.8+offset),identity=hash(vec2(row,board))-.5;
+  float joint=max(filteredStripe(uv.x+3.25,.54,.006),filteredStripe(uv.y+3.25+offset*1.8,1.8,.005));
+  float warp=materialNoise(uv*vec2(1.9,.65),1.9).x-.5;
+  float growth=sin(uv.x*74.+warp*2.4+sin(uv.y*1.9+row)*.35)*detailWeight(12.5);
+  float grain=materialNoise(vec2(uv.x*19.+warp*.6,uv.y*1.8)+vec2(identity*7.,0.),19.).x-.5;
+  albedo=vec3(.61,.425,.245)*(1.+identity*.10+grain*.13+growth*.022-joint*.24);
+  rough=.53+identity*.025-grain*.045+joint*.10;spec=.21;
+#if DETAIL_LEVEL >= 2
+  float pores=materialNoise(uv*vec2(92.,11.),92.).x-.5;
+  albedo*=1.-pores*.025;rough+=abs(pores)*.035;
+#endif
+  relief=microRelief(uv,vec2(31.,3.5),.030);relief.x*=.5;
+  // Satin varnish, not wet wood; no second reflection march is introduced.
+#if DETAIL_LEVEL >= 2
+  layers.y=.10;layers.z=.36;
 #endif
 }
+void carpetMaterial(MAT_ARGS){
+  vec2 uv=p.xz;
+  float binding=max(smoothstep(2.00,2.075,abs(p.x)),smoothstep(1.19,1.265,abs(p.z-.78)));
+  float nap=materialNoise(uv*vec2(5.,8.),8.).x-.5;
+  albedo=vec3(.245,.262,.269)*(1.+nap*.055-binding*.16);
+#if DETAIL_LEVEL > 0
+  float yarn=sin(uv.x*440.)*sin(uv.y*360.)*detailWeight(70.);
+  albedo*=1.+yarn*.065;
+#endif
+#if DETAIL_LEVEL >= 2
+  float stitch=max(filteredStripe(p.x,.072,.012)*smoothstep(1.17,1.21,abs(p.z-.78)),filteredStripe(p.z,.072,.012)*smoothstep(1.98,2.02,abs(p.x)));
+  albedo*=1.+stitch*binding*.045;
+#endif
+  rough=.96;spec=.07;layers.w=.10;
+  relief=microRelief(uv,vec2(36.,48.),.038);
+}
+void wallMaterial(MAT_ARGS){
+  vec2 uv=faceUV(p,n);
+  float mineral=materialNoise(uv*.85,.85).x-.5;
+  float panel=filteredStripe(uv.x+.8,1.6,.003);
+  if(m<3.5)albedo=vec3(.67,.45,.22);
+  else if(m<4.5)albedo=vec3(.35,.49,.26);
+  else if(m<5.5)albedo=vec3(.74,.74,.70);
+  else albedo=vec3(.58,.61,.60);
+  albedo*=1.+mineral*.028-panel*.018;
+  rough=.86+mineral*.035;spec=.18;
+#if DETAIL_LEVEL >= 2
+  float pore=materialNoise(uv*63.,63.).x-.5;
+  rough+=pore*.025;albedo*=1.+pore*.011;
+#endif
+  relief=microRelief(uv,vec2(21.,26.),.016);
+}
+void cubeMaterial(MAT_ARGS){
+  vec2 uv=faceUV(p,n);float edge=cubeEdge(p),paint=materialNoise(uv*17.+vec2(2.1,5.3),17.).x-.5;
+  float abrasion=0.,scratches=0.;
+#if DETAIL_LEVEL > 0
+  abrasion=edge*.025;
+#endif
+#if DETAIL_LEVEL >= 2
+  float islands=materialNoise(uv*31.+vec2(7.4,2.2),31.).x;
+  abrasion=edge*smoothstep(.68,.91,islands)*.18*detailWeight(31.);
+  scratches=filteredStripe(uv.x+uv.y*.18,.022,.00065)*smoothstep(.52,.80,materialNoise(uv*vec2(12.,37.),37.).x)*detailWeight(45.);
+#endif
+  albedo=vec3(.665,.029,.018)*(1.+paint*.055);
+  albedo=mix(albedo,vec3(.37,.385,.40),abrasion);
+  rough=.31+paint*.04+scratches*.13+abrasion*.12;spec=.28;
+  layers.x=abrasion*.90;
+#if DETAIL_LEVEL > 0
+  layers.y=.30*(1.-abrasion);layers.z=.23;
+#endif
+#if DETAIL_LEVEL >= 2
+  layers.y=.42*(1.-abrasion);layers.z=.205+scratches*.14;
+#endif
+  relief=microRelief(uv,vec2(38.,38.),.026);
+  // Sparse grooves break the base coat; they do not draw bright animated white lines.
+  relief.x+=scratches*.009;
+}
+void obstacleMaterial(MAT_ARGS){
+  vec2 uv=faceUV(p,n);float edge=edgeMask(p,extent);
+  float powder=materialNoise(uv*vec2(12.,19.)+seed,19.).x-.5;
+  float wear=0.;
+#if DETAIL_LEVEL >= 2
+  wear=edge*smoothstep(.48,.83,materialNoise(uv*23.+seed,23.).x)*.40;
+#endif
+  albedo=mix(vec3(.255,.297,.326)*(1.+powder*.03),vec3(.44,.46,.48),wear);
+  rough=.46+powder*.055-wear*.10;spec=.29;layers.x=wear*.88;
+  relief=microRelief(uv,vec2(7.,49.),.021);
+#if DETAIL_LEVEL >= 2
+  layers.y=.12*(1.-wear);layers.z=.32;
+#endif
+}
+void greenGoalMaterial(MAT_ARGS){
+  float rim=filteredStripe(length(p.xz)-.425,2.,.035);
+  float symbol=filteredStripe(length(p.xz)-.29,2.,.020);
+  float top=smoothstep(.25,.75,n.y);
+  albedo=mix(vec3(.085,.20,.145),vec3(.06,.75,.29),top);
+  emit=vec3(.035,.95,.25)*top*(.42+symbol*.35+rim*.16);rough=.37;spec=.25;
+  relief=microRelief(p.xz,vec2(18.,18.),.006);
+}
+void blueGoalMaterial(MAT_ARGS){
+  float crossMark=max(filteredStripe(p.x,2.,.035),filteredStripe(p.z,2.,.035));
+  float top=smoothstep(.25,.75,n.y);
+  albedo=mix(vec3(.10,.16,.235),vec3(.12,.40,.89),top);
+  emit=vec3(.045,.28,1.)*top*(.44+crossMark*.34);rough=.35;spec=.25;
+  relief=microRelief(p.xz,vec2(18.,18.),.006);
+}
+void ringMaterial(MAT_ARGS){
+  float angle=atan(p.z+.00001,p.x+.00001)/6.283185+.5;
+  float charged=1.-smoothstep(uHold-.006,uHold+.006,angle);
+  float ticks=filteredStripe(angle*2.8274,2.8274/24.,.015);
+  albedo=vec3(.88,.63,.12);rough=.39;spec=.25;
+  emit=vec3(1.,.53,.035)*(.45+charged*.77)*(1.-ticks*.14);
+}
+void lightMaterial(MAT_ARGS){albedo=vec3(.95,.88,.73);emit=vec3(1.,.84,.63)*3.2;rough=.30;spec=.23;}
+void trimMaterial(MAT_ARGS){
+  albedo=vec3(.38,.30,.23);rough=.45;spec=.24;layers.x=.75;
+  relief=microRelief(faceUV(p,n),vec2(4.,42.),.017);
+}
+void portalMaterial(MAT_ARGS){
+  float frame=abs(n.y)>.5?0.:smoothstep(.83,.94,max(abs(p.x)/.58,abs(p.y)/.70));
+  albedo=mix(vec3(.025,.11,.065),vec3(.13,.25,.19),frame);
+  rough=mix(.29,.43,frame);spec=.28;layers.x=frame*.65;
+  emit=vec3(.025,.9,.37); // Directional energy is evaluated later, at the actual view ray.
+}
+void iceMaterial(MAT_ARGS){
+  vec2 uv=p.xz;float cloud=materialNoise(uv*vec2(2.4,3.1)+seed,3.1).x-.5;
+  albedo=vec3(.27,.65,.85)*(1.+cloud*.06);rough=.235+cloud*.025;spec=.21;
+#if DETAIL_LEVEL >= 2
+  float stress=filteredStripe(uv.x+sin(uv.y*4.1)*.06,.37,.003)*detailWeight(5.);
+  albedo=mix(albedo,vec3(.52,.77,.88),stress*.14);rough+=stress*.04;
+#endif
+  emit=vec3(.025,.22,.52)*.11;
+  relief=microRelief(uv,vec2(11.,15.),.007);
+}
+void brakeMaterial(MAT_ARGS){
+  vec2 uv=p.xz;float cell=filteredStripe(uv.x,.095,.014)*filteredStripe(uv.y,.095,.014);
+  albedo=vec3(.54,.18,.70)*(1.-cell*.16);rough=.93;spec=.12;
+  emit=vec3(.50,.06,.82)*.085;
+  relief=microRelief(uv,vec2(26.,26.),.032);
+}
+void boostMaterial(MAT_ARGS){
+  vec2 dir=length(uBoost)<.001?vec2(1,0):normalize(uBoost);
+  float side=dot(p.xz,vec2(-dir.y,dir.x)),forward=dot(p.xz,dir);
+  float chevron=filteredStripe(forward-effectTime()*.21+abs(fract(side*2.)-.5)/3.,1./3.,.045);
+  albedo=vec3(.94,.45,.08);rough=.48;spec=.22;
+  emit=vec3(1.,.25,.02)*(.10+chevron*.48);
+  relief=microRelief(p.xz,vec2(19.,19.),.012);
+}
+void platformMaterial(MAT_ARGS){
+  vec2 uv=faceUV(p,n);float grain=materialNoise(uv*vec2(16.,2.)+vec2(seed,0.),16.).x-.5;
+  float endGrain=1.-smoothstep(.4,.9,abs(n.y));
+  float lamination=filteredStripe(p.y+extent.y,.09,.004)*endGrain;
+  albedo=vec3(.57,.372,.197)*(1.+grain*.14-lamination*.12+(hash(vec2(seed,3.2))-.5)*.07);
+  rough=.59-grain*.04;spec=.20;
+  relief=microRelief(uv,vec2(27.,4.5),.028);
+}
+void jumpMaterial(MAT_ARGS){
+  float ring=filteredStripe(length(p.xz)-effectTime()*.065,.145,.013);
+  float hub=1.-smoothstep(.04,.17,length(p.xz));
+  albedo=vec3(.12,.77,.87);rough=.34;spec=.27;
+  emit=vec3(.025,.66,.95)*(.35+ring*.30+hub*.14);
+  relief=microRelief(p.xz,vec2(19.,19.),.008);
+}
+void bumperMaterial(MAT_ARGS){
+  float band=1.-smoothstep(.035,.06,abs(p.y-extent.y*.55));
+  float collar=smoothstep(extent.y*.67,extent.y*.9,abs(p.y));
+  albedo=mix(vec3(.76,.055,.028),vec3(.13,.11,.10),collar*.65);
+  rough=mix(.42,.88,collar);spec=.23;
+  emit=vec3(.95,.035,.012)*(.06+band*.20);
+  relief=microRelief(faceUV(p,n),vec2(29.,38.),.020);
+}
+void surfaceMaterial(float m,vec3 p,vec3 geometric,out vec3 albedo,out float rough,out float spec,out vec3 emit,out vec4 layers,out vec3 normal){
+  vec3 q,extent,relief=vec3(0),ng=geometric;float seed;
+  materialCoordinates(m,p,q,extent,seed);
+  bool cube=m>6.5&&m<7.5;
+  if(cube)ng=qrot(vec4(-uCubeQ.xyz,uCubeQ.w),geometric);
+  albedo=vec3(.65);rough=.65;spec=.20;emit=vec3(0);layers=vec4(0,0,.3,0);
+  if(m<1.5)woodMaterial(MAT_PASS);
+  else if(m<2.5)carpetMaterial(MAT_PASS);
+  else if(m<6.5)wallMaterial(MAT_PASS);
+  else if(m<7.5)cubeMaterial(MAT_PASS);
+  else if(m<8.5)obstacleMaterial(MAT_PASS);
+  else if(m<10.5)greenGoalMaterial(MAT_PASS);
+  else if(m<11.5)blueGoalMaterial(MAT_PASS);
+  else if(m<12.5)ringMaterial(MAT_PASS);
+  else if(m<13.5)lightMaterial(MAT_PASS);
+  else if(m<14.5)trimMaterial(MAT_PASS);
+  else if(m<15.5)portalMaterial(MAT_PASS);
+  else if(m<16.5)iceMaterial(MAT_PASS);
+  else if(m<17.5)brakeMaterial(MAT_PASS);
+  else if(m<18.5)boostMaterial(MAT_PASS);
+  else if(m<19.5)platformMaterial(MAT_PASS);
+  else if(m<20.5)jumpMaterial(MAT_PASS);
+  else bumperMaterial(MAT_PASS);
+  vec3 a=abs(ng),t,b;
+  if(a.y>=max(a.x,a.z)){t=vec3(1,0,0);b=vec3(0,0,1);}
+  else if(a.x>=a.z){t=vec3(0,0,1);b=vec3(0,1,0);}
+  else{t=vec3(1,0,0);b=vec3(0,1,0);}
+  vec3 slope=t*relief.x+b*relief.y;slope-=ng*dot(ng,slope);
+  normal=normalize(ng-slope);if(cube)normal=qrot(uCubeQ,normal);
+  // Preserve unresolved normal energy as roughness instead of sparkling detail.
+  rough=clamp(sqrt(rough*rough+relief.z*2.),.18,1.);
+  albedo=pow(clamp(albedo,vec3(.001),vec3(.95)),vec3(2.2));
+}
+// Stable compatibility surface for fixture callers and old integrations.
+void material(float m,vec3 p,vec3 n,out vec3 albedo,out float rough,out float spec,out vec3 emit){
+  vec4 layers;vec3 normal;surfaceMaterial(m,p,n,albedo,rough,spec,emit,layers,normal);
+}
+vec3 detailNormal(float m,vec3 p,vec3 geometric){
+  vec3 albedo,emit,normal;float rough,spec;vec4 layers;
+  surfaceMaterial(m,p,geometric,albedo,rough,spec,emit,layers,normal);return normal;
+}
+#undef MAT_ARGS
+#undef MAT_PASS
 vec3 fresnelSchlick(vec3 f0,float cosine){float x=clamp(1.-cosine,0.,1.),x2=x*x;return f0+(1.-f0)*x2*x2*x;}
 float distributionGGX(float nh,float rough){float a=max(rough*rough,.045),a2=a*a,d=nh*nh*(a2-1.)+1.;return a2/max(PI*d*d,.00005);}
 float smithG1(float cosine,float rough){float k=(rough+1.)*(rough+1.)*.125;return cosine/max(cosine*(1.-k)+k,.001);}
-float metalness(float m){return m>7.5&&m<8.5?.55:(m>13.5&&m<14.5?.25:0.);}
 vec3 roomBounce(vec3 p,vec3 n){
   vec3 hemi=mix(vec3(.055,.066,.080),vec3(.14,.16,.18),n.y*.5+.5);
   float floorNear=exp(-max(p.y,0.)*.65),side=1.-abs(n.y);
@@ -244,7 +462,7 @@ vec3 roomBounce(vec3 p,vec3 n){
   hemi+=vec3(.032,.0015,.0008)*max(dot(n,normalize(cubeDelta+vec3(.0001))),0.)/(1.+12.*dot(cubeDelta,cubeDelta));
   return hemi;
 }
-vec3 direct(vec3 p,vec3 n,vec3 v,vec3 lp,vec3 radiance,float power,float rough,vec3 f0,vec3 albedo,float metallic,float visibility,float coat){
+vec3 direct(vec3 p,vec3 n,vec3 v,vec3 lp,vec3 radiance,float power,float rough,vec3 f0,vec3 albedo,float metallic,float visibility,float coat,float coatRough,vec3 coatNormal){
   vec3 l=lp-p;float d2=dot(l,l);l*=inversesqrt(max(d2,.001));
   float nl=max(dot(n,l),0.),nv=max(dot(n,v),.001);vec3 h=normalize(l+v);
   float nh=max(dot(n,h),0.),vh=max(dot(v,h),0.);
@@ -252,10 +470,14 @@ vec3 direct(vec3 p,vec3 n,vec3 v,vec3 lp,vec3 radiance,float power,float rough,v
   float r=sqrt(rough*rough+.008/max(d2,.1));
   vec3 f=fresnelSchlick(f0,vh),diffuse=(1.-f)*(1.-metallic)*albedo/PI;
   vec3 specular=distributionGGX(nh,r)*smithG1(nl,r)*smithG1(nv,r)*f/max(4.*nl*nv,.001);
-#if DETAIL_LEVEL >= 2
-  float cf=.04+.96*pow(1.-vh,5.);
-  float coating=distributionGGX(nh,.24)*smithG1(nl,.24)*smithG1(nv,.24)*cf/max(4.*nl*nv,.001);
-  diffuse*=1.-coat*cf;specular=specular*(1.-coat*cf)+coat*coating;
+#if DETAIL_LEVEL > 0
+  float cnl=max(dot(coatNormal,l),0.),cnv=max(dot(coatNormal,v),.001),cnh=max(dot(coatNormal,h),0.);
+  float cf=fresnelSchlick(vec3(.04),vh).x;
+  float cr=sqrt(coatRough*coatRough+.008/max(d2,.1));
+  float coating=distributionGGX(cnh,cr)*smithG1(cnl,cr)*smithG1(cnv,cr)*cf/max(4.*cnl*cnv,.001);
+  float fv=fresnelSchlick(vec3(.04),cnv).x,fl=fresnelSchlick(vec3(.04),cnl).x;
+  float transmission=(1.-coat*fv)*(1.-coat*fl);
+  diffuse*=transmission;specular=specular*transmission+coat*coating*cnl/max(nl,.001);
 #endif
   return (diffuse+specular)*radiance*power*nl*visibility/(1.+.11*d2);
 }
@@ -264,8 +486,33 @@ vec3 environment(vec3 rd,float rough){
   c+=vec3(.22,.16,.09)*pow(max(dot(rd,normalize(vec3(.1,1.,-.5))),0.),mix(90.,4.,rough));
   return c;
 }
-vec3 quickMat(float m,vec3 p){vec3 a,e;float r,s;material(m,p,vec3(0,1,0),a,r,s,e);return a*.55+e;}
-vec2 march(vec3 ro,vec3 rd){float t=0.;for(int i=0;i<STEPS;i++){vec2 h=mapScene(ro+rd*t);if(h.x<SURF_DIST)return vec2(t,h.y);if(t>MAX_DIST)break;t+=h.x*.80;}return vec2(t,0.);}
+// Secondary hits use family mean pigments, not the expensive primary material graph.
+vec3 quickMat(float m,vec3 p){
+  vec3 a=vec3(.6),e=vec3(0);
+  if(m<1.5)a=vec3(.61,.425,.245);
+  else if(m<2.5)a=vec3(.245,.262,.269);
+  else if(m<3.5)a=vec3(.67,.45,.22);
+  else if(m<4.5)a=vec3(.35,.49,.26);
+  else if(m<5.5)a=vec3(.74,.74,.70);
+  else if(m<6.5)a=vec3(.58,.61,.60);
+  else if(m<7.5)a=vec3(.665,.029,.018);
+  else if(m<8.5)a=vec3(.255,.297,.326);
+  else if(m<10.5){a=vec3(.06,.75,.29);e=vec3(.035,.95,.25)*.50;}
+  else if(m<11.5){a=vec3(.12,.40,.89);e=vec3(.045,.28,1.)*.52;}
+  else if(m<12.5){a=vec3(.88,.63,.12);e=vec3(1.,.53,.035)*(.45+uHold*.77);}
+  else if(m<13.5){a=vec3(.95,.88,.73);e=vec3(1.,.84,.63)*3.2;}
+  else if(m<14.5)a=vec3(.38,.30,.23);
+  else if(m<15.5){a=vec3(.025,.11,.065);e=vec3(.025,.9,.37)*.8;}
+  else if(m<16.5){a=vec3(.27,.65,.85);e=vec3(.025,.22,.52)*.11;}
+  else if(m<17.5){a=vec3(.54,.18,.70);e=vec3(.50,.06,.82)*.085;}
+  else if(m<18.5){a=vec3(.94,.45,.08);e=vec3(1.,.25,.02)*.17;}
+  else if(m<19.5)a=vec3(.57,.372,.197);
+  else if(m<20.5){a=vec3(.12,.77,.87);e=vec3(.025,.66,.95)*.41;}
+  else{a=vec3(.76,.055,.028);e=vec3(.95,.035,.012)*.09;}
+  return pow(a,vec3(2.2))*.55+e;
+}
+// mediump hit tolerance tracks representable ray distance, preventing stalled steps and holes.
+vec2 march(vec3 ro,vec3 rd){float t=0.;for(int i=0;i<STEPS;i++){vec2 h=mapScene(ro+rd*t);if(h.x<${portable?'max(SURF_DIST,t*.0012)':'SURF_DIST'})return vec2(t,h.y);if(t>MAX_DIST)break;t+=h.x*.80;}return vec2(t,0.);}
 vec3 reflectionProbe(vec3 ro,vec3 rd,float rough){
   float t=.025;vec3 fallback=environment(rd,rough);
   for(int i=0;i<REFLECTION_STEPS;i++){
@@ -313,22 +560,28 @@ vec3 zoneSpill(vec3 p,vec3 n,vec4 z){
   return lightSpill(p,n,vec3(z.x,.12,z.y),color,.25);
 }
 vec3 shade(vec3 p,vec3 geometric,float m,vec3 rd){
-  vec3 n=detailNormal(m,p,geometric),albedo,emit;float rough,spec;material(m,p,n,albedo,rough,spec,emit);
-  vec3 v=-rd;float metallic=metalness(m),amb=ao(p,geometric),nv=max(dot(n,v),0.);
+  vec3 n,albedo,emit;float rough,spec;vec4 layers;surfaceMaterial(m,p,geometric,albedo,rough,spec,emit,layers,n);
+  vec3 v=-rd;float metallic=layers.x,amb=ao(p,geometric),nv=max(dot(n,v),0.);
   vec3 f0=mix(vec3(clamp(.024+spec*.075,.025,.065)),albedo,metallic),f=fresnelSchlick(f0,nv);
-  float coat=m>6.5&&m<7.5?.28:0.;
+  float coat=layers.y,coatRough=layers.z;
   vec3 key=vec3(1.,.86,.68)+vec3(uLook.y,0.,-uLook.y);
   vec3 lp=vec3(0,3.045,-.70),ld=lp-p;float visibility=softShadow(p+geometric*.009,normalize(ld),.014,length(ld)-.04);
   vec3 col=albedo*(1.-metallic)*(1.-f)*roomBounce(p,geometric)*amb;
-  col+=direct(p,n,v,lp,key,5.7,rough,f0,albedo,metallic,visibility,coat);
-  col+=direct(p,n,v,vec3(-1.80,2.60,3.0),vec3(.72,.82,1.),2.2,rough,f0,albedo,metallic,.85,coat);
+  col+=direct(p,n,v,lp,key,5.7,rough,f0,albedo,metallic,visibility,coat,coatRough,geometric);
+  col+=direct(p,n,v,vec3(-1.80,2.60,3.0),vec3(.72,.82,1.),2.2,rough,f0,albedo,metallic,.85,coat,coatRough,geometric);
   vec3 rim=vec3(1.92,3.04,-1.15),rl=rim-p;float rimShadow=1.;
 #if DETAIL_LEVEL >= 2
   rimShadow=softShadow(p+geometric*.009,normalize(rl),.014,length(rl)-.04);
 #endif
-  col+=direct(p,n,v,rim,vec3(1.,.86,.69),1.7,rough,f0,albedo,metallic,rimShadow,coat);
+  col+=direct(p,n,v,rim,vec3(1.,.86,.69),1.7,rough,f0,albedo,metallic,rimShadow,coat,coatRough,geometric);
+  col+=albedo*layers.w*pow(1.-nv,4.)*roomBounce(p,geometric)*amb;
   col*=.88+.12*amb;
-  if(rough<.78&&(m<1.5||(m>6.5&&m<8.5)||(m>13.5&&m<16.5)))col+=roughReflection(p,geometric,rd,n,rough)*f*(1.-rough*.55)*(.6+.4*amb);
+  if(rough<.78&&(m<1.5||(m>6.5&&m<8.5)||(m>13.5&&m<16.5)||(m>18.5&&m<19.5))){
+    float cf=.04+.96*pow(1.-max(dot(geometric,v),0.),5.);
+    // One shared reflection cone is an approximation; direct lobes remain independent.
+    vec3 response=f*(1.-coat*cf)*(1.-coat*cf)+vec3(coat*cf);
+    col+=roughReflection(p,geometric,rd,n,mix(rough,coatRough,coat*.35))*response*(1.-rough*.55)*(.6+.4*amb);
+  }
 #if GI_STEPS > 0
   if(m<1.5||(m>6.5&&m<8.5))col+=albedo*shortBounce(p,geometric)*amb;
 #endif
@@ -339,7 +592,10 @@ vec3 shade(vec3 p,vec3 geometric,float m,vec3 rd){
 #endif
   col+=albedo*spill*amb;
   if((m<2.5||(m>18.5&&m<19.5))&&geometric.y>.5){vec2 d=(p.xz-uCube)/vec2(.34,.32);float contact=exp(-dot(d,d)*1.6)*exp(-max(0.,uCubeFoot-p.y)*7.);col*=1.-.22*contact;}
-  if(m>14.5&&m<15.5)emit=portalEnergy(p,rd);
+  if(m>14.5&&m<15.5){
+    float frame=p.z< -3.09?smoothstep(.83,.94,max(abs(p.x-uTarget.x)/.58,abs(p.y-.74-uTargetY)/.70)):0.;
+    emit=portalEnergy(p,rd)*mix(1.,.32,frame);
+  }
   float pulse=uPulse.z*uLook.w;
   if(pulse>.001){float ring=abs(length(p.xz-uPulse.xy)-mix(.14,2.08,1.-pulse));float glow=exp(-abs(p.y-uTargetY)*25.)*aaLine(ring,.030)*pulse;col+=targetColor()*glow*.75;}
   return max(col+emit,vec3(0));

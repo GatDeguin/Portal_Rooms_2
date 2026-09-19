@@ -61,13 +61,14 @@ def main():
         program=programs[item['tier']];use(program);position=getattrib(program,b'aPos');enable(position);attrib(position,2,0x1406,0,0,None)
         width=item['width'];height=item['height'];viewport(0,0,width,height);clearcolor(0,0,0,1);clear(0x4000)
         for name,command in item['uniforms'].items():setters[command['kind']](getuniform(program,name.encode()),*command['args'])
-        draw(0x0004,0,3);finish();assert error()==0,f'GL error drawing {item["name"]}'
+        first_begin=time.perf_counter();draw(0x0004,0,3);finish();first_draw_ms=(time.perf_counter()-first_begin)*1000
+        assert error()==0,f'GL error drawing {item["name"]}'
         warm_ms=[]
         for _ in range(max(0,args.benchmark)):
             begin=time.perf_counter();draw(0x0004,0,3);finish();warm_ms.append((time.perf_counter()-begin)*1000)
             assert error()==0,f'GL error benchmarking {item["name"]}'
         pixels=(C.c_ubyte*(width*height*4))();read(0,0,width,height,0x1908,0x1401,pixels);assert error()==0
-        image=Image.frombytes('RGBA',(width,height),bytes(pixels)).transpose(Image.Transpose.FLIP_TOP_BOTTOM);stat=ImageStat.Stat(image.convert('RGB'));assert max(stat.stddev)>10,f'Uniform/empty render: {item["name"]}'
+        image=Image.frombytes('RGBA',(width,height),bytes(pixels)).transpose(Image.Transpose.FLIP_TOP_BOTTOM);stat=ImageStat.Stat(image.convert('RGB'));assert item.get('diagnostic',False) or max(stat.stddev)>10,f'Uniform/empty render: {item["name"]}'
         p99=None
         if item['name']=='cinematic-01' and (width,height)==(384,240):
             # A blank wall must have smooth irradiance, not shadow-march termination rings.
@@ -89,7 +90,7 @@ def main():
             assert sum(sum(pixel)/3 for pixel in front)/len(front)>40,'Cube front is underlit in the reference rig'
         hashes[item['name']]=hashlib.sha256(bytes(pixels)).hexdigest()
         image.save(output/(item['name']+'.png'))
-        results.append({'name':item['name'],'size':[width,height],'rgb_stddev':stat.stddev,'rgba_sha256':hashes[item['name']], 'wall_curvature_p99':p99,'warm_draw_ms':warm_ms,'median_draw_ms':statistics.median(warm_ms) if warm_ms else None})
+        results.append({'name':item['name'],'size':[width,height],'rgb_stddev':stat.stddev,'rgba_sha256':hashes[item['name']], 'wall_curvature_p99':p99,'first_draw_ms':first_draw_ms,'warm_draw_ms':warm_ms,'median_draw_ms':statistics.median(warm_ms) if warm_ms else None})
         print('PASS draw',item['name'],flush=True)
     for left,right in packet.get('comparisons',[]):
         assert hashes[left]==hashes[right],f'Static effects-off image changed: {left} vs {right}'
