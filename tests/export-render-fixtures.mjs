@@ -1,7 +1,7 @@
 // Exercise production uniform packing independently from the browser.
 import {Renderer} from '../src/renderer.js';
 import {GameEngine} from '../src/physics.js';
-import {LEVELS} from '../src/levels.js';
+import {CAMPAIGN_LEVELS as LEVELS} from '../src/campaign.js';
 import {DEFAULT_SETTINGS} from '../src/storage.js';
 import {VERTEX_SHADER,fragmentShader} from '../src/shaders.js';
 let commands={};let next=1;const constants=new Map();
@@ -30,6 +30,11 @@ for(const i of [0,6,14,17,19,21])snapshot(i,'medium',384,240,0,`scene-${String(i
 snapshot(0,'medium',216,384,0,'scene-phone');snapshot(21,'medium',384,240,3,'scene-22-portal');
 for(const i of [0,3,14,21])snapshot(i,'cinematic',384,240,i===21?3:0,`cinematic-${String(i+1).padStart(2,'0')}`);
 snapshot(0,'cinematic',1280,720,0,'cinematic-materials');
+// Expansion coverage uses the same composed catalog as the application.
+for(let i=22;i<LEVELS.length;i++)snapshot(i,'low',512,320,0,`expansion-${i+1}`);
+for(const id of [23,27,29,31,34,36,37,41,42])for(const tier of ['low','medium','high','cinematic'])snapshot(id-1,tier,512,320,0,`showcase-${id}-${tier}`);
+for(const id of [23,31,34,42])snapshot(id-1,'medium',320,180,0,`portrait-${id}`);
+snapshot(41,'cinematic',768,480,3,'expansion-final-portal');
 const tiers=['low','medium','high','cinematic'];
 const fragments=Object.fromEntries(tiers.map(t=>[t,fragmentShader(t)]));
 for(const tier of tiers)for(const precision of ['highp','mediump'])for(const derivatives of [false,true]){

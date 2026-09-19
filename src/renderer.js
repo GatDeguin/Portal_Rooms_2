@@ -2,6 +2,7 @@ import {VERTEX_SHADER,fragmentShader} from './shaders.js';
 import {AdaptiveQuality,drawingSize} from './quality.js';
 import {movingAt} from './geometry.js';
 import {clamp} from './math.js';
+import {lookForRoom} from './campaign.js';
 
 // Four subtle lighting states; presentation only, no level/progression mutation.
 const ROOM_LOOKS=[[1.04,0,1],[1.02,-.025,.96],[1.04,.018,1.03],[1.01,-.015,1.08]];
@@ -45,7 +46,7 @@ export class Renderer {
     const one=(name,v)=>gl.uniform1f(u[name],v),two=(name,x,y)=>gl.uniform2f(u[name],x,y),four=(name,a,b,d,e)=>gl.uniform4f(u[name],a,b,d,e);
     const reduced=this.motionQuery?.matches===true,effects=settings.effects!==false&&!reduced?1:0;
     const motion=settings.dynamicCamera&&!reduced?1:0,[qx,qy,qz,qw]=c.q;
-    const chapter=s.level<6?0:s.level<14?1:s.level<19?2:3;
+    const chapter=lookForRoom(room.id??s.level+1);
     four('uLook',...ROOM_LOOKS[chapter],effects);
     const extent=.245*(Math.abs(2*(qx*qy+qw*qz))+Math.abs(1-2*(qx*qx+qz*qz))+Math.abs(2*(qy*qz-qw*qx)));
     two('uRes',this.canvas.width,this.canvas.height);one('uTime',s.time);two('uCube',c.x,c.z);one('uCubeY',c.y+extent-.245);one('uCubeFoot',c.y);four('uCubeQ',...c.q);
