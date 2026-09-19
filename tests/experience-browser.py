@@ -54,8 +54,9 @@ def main():
         for run in runs:
           page.set_viewport_size({'width':1000,'height':720} if run['keyboard'] else {'width':390,'height':844})
           page.goto('about:blank');page.evaluate(CLOCK);page.evaluate(STORAGE,{'id':run['id'],'strongGravity':run['strongGravity']});page.evaluate(STUB)
-          page.set_content(html,wait_until='load');page.wait_for_function("document.getElementById('app').dataset.phase==='menu'")
-          page.locator('#startBtn').click();page.wait_for_function("document.getElementById('app').dataset.phase==='playing'")
+          # Boot is asynchronous; readiness must not poll the deliberately frozen RAF clock.
+          page.set_content(html,wait_until='load');page.wait_for_function("document.getElementById('app').dataset.phase==='menu'",polling=10)
+          page.locator('#startBtn').click();page.wait_for_function("document.getElementById('app').dataset.phase==='playing'",polling=10)
           if not run['keyboard']:
             dimensions=page.locator('#gl').bounding_box();assert abs(dimensions['width']/dimensions['height']-16/9)<.01,dimensions
             page.evaluate("document.getElementById('stickWrap').addEventListener('pointerdown',e=>window.__pointerId=e.pointerId,{once:true})")

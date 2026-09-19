@@ -73,9 +73,10 @@
       <div class="button-row"><button class="secondary" id="enableGyroBtn" data-action="gyro">Activar / recalibrar</button><button class="secondary" id="manualBtn" data-action="manual">Control manual</button></div>
       <p class="note" id="sensorStatus" role="status">Sensores desactivados. Teclado, arrastre y stick disponibles.</p>
     </fieldset></section><section id="settings-scene" role="tabpanel" aria-labelledby="tab-scene" hidden><fieldset><legend>Escena y respuesta</legend>
-      <label class="setting" for="quality"><span>Calidad gráfica</span><select id="quality" data-setting="quality"><option value="auto">Automática</option><option value="low">Baja</option><option value="medium">Media</option><option value="high">Alta</option><option value="cinematic">Cinemática</option></select></label>
+      <label class="setting" for="quality"><span>Calidad gráfica</span><select id="quality" data-setting="quality" aria-busy="false" aria-describedby="qualityActual qualityState"><option value="auto">Automática</option><option value="low">Baja</option><option value="medium">Media</option><option value="high">Alta</option><option value="cinematic">Cinemática</option></select></label>
       <p class="note">Cinemática prioriza materiales, reflejos y atmósfera. Recomendada para equipos potentes; Automática nunca la selecciona.</p>
       <p class="note" id="qualityActual">Automática adapta efectos y resolución; la física no cambia.</p>
+      <p class="note" id="qualityState" role="status" aria-live="polite">Los cambios se preparan antes de reemplazar la calidad actual.</p><button class="secondary" id="cancelQualityBtn" type="button" hidden>Cancelar cambio de calidad</button>
       <label class="setting" for="strongGravity"><span>Gravedad intensa</span><input id="strongGravity" data-setting="strongGravity" type="checkbox" checked></label>
       <label class="setting" for="dynamicCamera"><span>Cámara dinámica<small>Desactivá el movimiento de cámara y las sacudidas.</small></span><input id="dynamicCamera" data-setting="dynamicCamera" type="checkbox" checked></label>
       <label class="setting" for="compactHUD"><span>Interfaz compacta<small>Oculta estadísticas secundarias durante el juego.</small></span><input id="compactHUD" data-setting="compactHUD" type="checkbox" checked></label>
