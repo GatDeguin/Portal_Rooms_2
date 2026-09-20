@@ -4,7 +4,11 @@ import {Renderer} from '../src/renderer.js';
 import {GameEngine} from '../src/physics.js';
 import {movingAt} from '../src/geometry.js';
 function fixture(){
-  const commands={},flags={fail:false},gl=new Proxy({}, {get:(_,key)=>{
+  const commands={},flags={fail:false,textures:0,uploads:0,deletedTextures:[]},gl=new Proxy({}, {get:(_,key)=>{
+    if(key==='checkFramebufferStatus')return ()=>1;
+    if(key==='createTexture')return ()=>({texture:++flags.textures});
+    if(key==='texImage2D')return ()=>flags.uploads++;
+    if(key==='deleteTexture')return texture=>flags.deletedTextures.push(texture);
     if(key==='getShaderPrecisionFormat')return ()=>({precision:23});
     if(key==='getExtension')return ()=>null;
     if(key==='getParameter')return ()=>[8192,8192];
@@ -34,4 +38,10 @@ test('system reduced motion overrides a saved dynamic camera and effects choice'
 test('a rejected shader selection rolls back the renderer instead of stranding the UI',()=>{
   const {r,flags}=fixture(),previous=r.quality;flags.fail=true;
   assert.throws(()=>r.setQuality('cinematic'),/fixture compile failure/);assert.equal(r.quality,previous);assert.equal(r.quality.mode,'auto');
+});
+
+test('relief lattice is lazy, bound to sampler zero, reused between heavy tiers, and deleted once',()=>{
+ const {r,commands,flags}=fixture(),engine=new GameEngine();r.draw(engine,{});assert.equal(flags.textures,0,'Low does not prepare the relief lattice');
+ r.setQuality('high');r.draw(engine,{});const lattice=r.reliefNoiseTexture;assert.equal(flags.textures,2);assert.equal(flags.uploads,2);assert.deepEqual(commands.uReliefNoise,[0]);
+ r.setQuality('cinematic');r.draw(engine,{});assert.equal(r.reliefNoiseTexture,lattice);assert.equal(flags.textures,2);r.destroy();r.destroy();assert.equal(flags.deletedTextures.filter(t=>t===lattice).length,1);assert.equal(flags.deletedTextures.length,2);
 });

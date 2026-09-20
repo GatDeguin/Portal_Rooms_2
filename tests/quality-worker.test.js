@@ -9,7 +9,7 @@ function fixture(){
      this.posts.push(data);
      if(data.type==='init'){
        this.mode=data.quality;const fail=config.fail;
-       setTimeout(()=>this.onmessage?.({data:fail?{type:'error',message:'fixture rejected'}:{type:'ready',quality:{mode:this.mode,tier:this.mode==='auto'?'medium':this.mode,scale:1},width:640,height:360,description:this.mode}}),config.delay);
+       setTimeout(()=>this.onmessage?.({data:fail?{type:'error',message:'fixture rejected'}:{type:'ready',quality:{mode:this.mode,tier:this.mode==='auto'?'low':this.mode,scale:1},width:640,height:360,description:this.mode,renderMs:16,bitmap:{width:640,height:360,close(){}}}}),config.delay);
      }
    }};workers.push(w);return w;
  };
@@ -46,13 +46,13 @@ test('render backpressure bounds the queue and closes stale bitmaps',async()=>{
  for(let i=0;i<100;i++){engine.state.time=i;r.draw(engine,{});}
  assert.equal(f.workers[0].posts.filter(p=>p.type==='frame').length,1);
  let closed=false;const bitmap={width:640,height:360,close:()=>{closed=true;}};
- r.destroy();f.workers[0].onmessage({data:{type:'frame',bitmap}});assert.equal(closed,true);assert.equal(f.presented.length,0);
+ r.destroy();f.workers[0].onmessage({data:{type:'frame',bitmap}});assert.equal(closed,true);assert.equal(f.presented.length,1);
 });
 test('pausing drops queued frames instead of drawing behind the menu',async()=>{
  assert.equal(typeof api.WorkerRenderer,'function');const f=fixture();
  const r=await api.WorkerRenderer.create(f.canvas,{workerFactory:f.workerFactory,quality:'low'});
  const engine={state:{time:0},room:{id:1},target:{type:1,pos:[0,0]}};
  r.draw(engine,{});r.draw(engine,{});assert.equal(typeof r.pause,'function');r.pause();
- const w=f.workers[0];w.onmessage({data:{type:'frame',quality:{mode:'low',tier:'low',scale:1},description:'low'}});
+ const w=f.workers[0];w.onmessage({data:{type:'frame',id:w.posts.find(p=>p.type==='frame').id,quality:{mode:'low',tier:'low',scale:1},description:'low'}});
  assert.equal(w.posts.filter(p=>p.type==='frame').length,1);r.destroy();
 });

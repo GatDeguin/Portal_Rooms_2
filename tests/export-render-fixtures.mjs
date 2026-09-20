@@ -4,10 +4,13 @@ import {GameEngine} from '../src/physics.js';
 import {CAMPAIGN_LEVELS as LEVELS} from '../src/campaign.js';
 import {DEFAULT_SETTINGS} from '../src/storage.js';
 import {VERTEX_SHADER,fragmentShader} from '../src/shaders.js';
+import {RELIEF_NOISE_VERTEX,RELIEF_NOISE_FRAGMENT} from '../src/relief-noise.js';
 let commands={};let next=1;const constants=new Map();
 const gl=new Proxy({}, {get:(_,key)=>{
   if(key==='getShaderPrecisionFormat')return ()=>({precision:23});
-  if(key==='getParameter')return ()=>[8192,8192];
+  if(key==='getParameter')return parameter=>parameter===gl.VIEWPORT?[0,0,64,64]:parameter===gl.ACTIVE_TEXTURE?gl.TEXTURE0:parameter===gl.FRAMEBUFFER_BINDING||parameter===gl.CURRENT_PROGRAM||parameter===gl.ARRAY_BUFFER_BINDING||parameter===gl.TEXTURE_BINDING_2D?null:[8192,8192];
+  if(key==='checkFramebufferStatus')return ()=>gl.FRAMEBUFFER_COMPLETE;
+  if(key==='isEnabled')return ()=>false;
   if(key==='getShaderParameter'||key==='getProgramParameter')return ()=>true;
   if(key==='getShaderInfoLog'||key==='getProgramInfoLog')return ()=>'';
   if(key==='getAttribLocation')return ()=>0;
@@ -36,11 +39,17 @@ for(const id of [23,27,29,31,34,36,37,41,42])for(const tier of ['low','medium','
 for(const id of [23,31,34,42])snapshot(id-1,'medium',320,180,0,`portrait-${id}`);
 snapshot(41,'cinematic',768,480,3,'expansion-final-portal');
 const tiers=['low','medium','high','cinematic'];
-const fragments=Object.fromEntries(tiers.map(t=>[t,fragmentShader(t)]));
+const fragments={},surfaceFragments={};
+function addProfile(key,tier,precision='highp',derivatives=false){
+  const split=precision==='highp'&&['high','cinematic'].includes(tier);
+  fragments[key]=fragmentShader(tier,precision,{derivatives,...(split?{pass:'shade'}:{})});
+  if(split)surfaceFragments[key]=fragmentShader(tier,precision,{derivatives,pass:'surface'});
+}
+for(const tier of tiers)addProfile(tier,tier);
 for(const tier of tiers)for(const precision of ['highp','mediump'])for(const derivatives of [false,true]){
   if(precision==='highp'&&!derivatives)continue;
   const variant=`${tier}-${precision}-${derivatives?'derivatives':'cone'}`;
-  fragments[variant]=fragmentShader(tier,precision,{derivatives});
+  addProfile(variant,tier,precision,derivatives);
   const source=fixtures.find(f=>f.name===`quality-${tier}`);
   // Compile/link every combination. Half-float software JIT can take minutes per variant.
   // Pixel tests for those variants are opt-in; the report distinguishes compiled from drawn.
@@ -53,4 +62,6 @@ for(const time of [0,3]){
   const frame=structuredClone(still);frame.name=`effects-off-${time}`;frame.uniforms.uTime.args[0]=time;fixtures.push(frame);
 }
 const comparisons=[['effects-off-0','effects-off-3']];
-console.log(JSON.stringify({vertex:VERTEX_SHADER,fragments,fixtures,comparisons}));
+const reliefNoise={width:256,height:256,vertex:RELIEF_NOISE_VERTEX,fragment:RELIEF_NOISE_FRAGMENT};
+for(const fixture of fixtures){fixture.uniforms.uReliefNoise={kind:'uniform1i',args:[0]};fixture.uniforms.uSurfaceHits={kind:'uniform1i',args:[1]};}
+console.log(JSON.stringify({vertex:VERTEX_SHADER,fragments,surfaceFragments,fixtures,comparisons,reliefNoise}));

@@ -1,4 +1,4 @@
-import {Renderer} from './renderer.js';
+import {Renderer,preparationTimeout} from './renderer.js';
 
 let renderer=null,offscreen=null,view=null,size=null;
 function dimensions(next){
@@ -7,8 +7,21 @@ function dimensions(next){
   globalThis.innerWidth=next.width;globalThis.innerHeight=next.height;globalThis.devicePixelRatio=next.dpr;
   renderer?.resize();
 }
-function status(type){return {type,quality:{mode:renderer.quality.mode,tier:renderer.quality.tier,scale:renderer.quality.scale},description:renderer.description(),width:offscreen.width,height:offscreen.height};}
-self.onmessage=({data})=>{
+function status(type){return {type,quality:{mode:renderer.quality.mode,tier:renderer.quality.tier,scale:renderer.quality.scale},description:renderer.description(),timing:renderer.lastTimingState??'wall',width:offscreen.width,height:offscreen.height};}
+async function render(data,type){
+  dimensions(data.size);renderer.motionQuery={matches:data.reduced};
+  const started=performance.now();renderer.draw(data.scene,data.settings);
+  const bitmap=offscreen.transferToImageBitmap(),renderMs=performance.now()-started;
+  try{
+    const error=renderer.gl.getError();
+    if(error!==renderer.gl.NO_ERROR||!bitmap.width||!bitmap.height)throw new Error(`No se pudo dibujar esta calidad gráfica (WebGL ${error}).`);
+    renderer.observeRender(renderMs);
+    if(type==='ready')await renderer.settleRenderTiming();
+    if(renderer.lost)throw new Error('Se perdió el contexto WebGL.');
+    self.postMessage({...status(type),id:data.id,renderMs,bitmap},[bitmap]);
+  }catch(error){bitmap.close();throw error;}
+}
+self.onmessage=async({data})=>{
   try{
     if(data.type==='init'){
       offscreen=new OffscreenCanvas(2,2);
@@ -17,23 +30,23 @@ self.onmessage=({data})=>{
         addEventListener:(...args)=>offscreen.addEventListener(...args),removeEventListener:(...args)=>offscreen.removeEventListener(...args)};
       globalThis.innerWidth=2;globalThis.innerHeight=2;globalThis.devicePixelRatio=1;
       renderer=new Renderer(view,{quality:data.quality,deferProgram:true,onContextLost:()=>self.postMessage({type:'error',message:'Se perdió el contexto WebGL.'})});
-      self.postMessage({type:'preparing'});renderer.program();
-      renderer.motionQuery={matches:data.reduced};
-      // Some drivers defer compilation until the first draw. Warm only 2×2 pixels,
-      // in this candidate worker, before reporting that a quality is usable.
-      if(data.scene){renderer.draw(data.scene,data.settings);offscreen.transferToImageBitmap().close();}
-      const error=renderer.gl.getError();
-      if(error!==renderer.gl.NO_ERROR)throw new Error(`No se pudo preparar esta calidad gráfica (WebGL ${error}).`);
-      dimensions(data.size);self.postMessage(status('ready'));return;
+      renderer.externallyTimed=true;renderer.asyncCompile=true;
+      if(data.quality==='auto'&&['medium','high'].includes(data.tier))renderer.quality.tier=data.tier;
+      renderer.onAutoTier=tier=>self.postMessage({type:'promotion',tier});
+      self.postMessage({type:'preparing'});
+      // Cache the rescue tier before preparing the requested program.
+      const deadline=performance.now()+(data.prepareTimeoutMs??preparationTimeout(renderer.quality.tier));
+      const preparation=()=>({timeoutMs:Math.max(0,deadline-performance.now())});
+      const tiers=data.quality==='auto'&&renderer.quality.tier==='high'?['low','medium','high']:['low',renderer.quality.tier];
+      for(const tier of tiers)await renderer.prepareProgram(tier,preparation());
+      self.postMessage({type:'prepared'});
+      if(!data.scene)throw new Error('No hay una escena disponible para validar la calidad.');
+      // Readiness includes a real image at the requested drawing size, not a 2×2 warmup.
+      await render(data,'ready');return;
     }
     if(!renderer)return;
+    if(data.type==='promotion-result'){if(renderer.autoPending?.tier===data.tier)renderer.autoPending=null;if(data.failed)renderer.failedAutoTiers.add(data.tier);renderer.quality.resetSamples();return;}
     if(data.type==='reset'){renderer.quality.resetSamples();return;}
-    if(data.type==='frame'){
-      dimensions(data.size);renderer.motionQuery={matches:data.reduced};
-      if(data.elapsed>0)renderer.sample(data.elapsed);
-      renderer.draw(data.scene,data.settings);
-      const bitmap=offscreen.transferToImageBitmap();
-      try{self.postMessage({...status('frame'),bitmap},[bitmap]);}catch(error){bitmap.close();throw error;}
-    }
+    if(data.type==='frame')await render(data,'frame');
   }catch(error){self.postMessage({type:'error',message:error?.message??String(error)});}
 };

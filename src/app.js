@@ -15,6 +15,7 @@ const engine=new GameEngine(LEVELS,store.settings);engine.reset(store.progress.c
 const audio=new AudioFeedback(()=>store.settings);
 function visualPreferences(){app.classList.toggle('reduced-effects',motion.matches||store.settings.effects===false);}
 visualPreferences();
+const startupController=new AbortController();
 let phase='loading',renderer=null,input=null,raf=0,last=0,transitionTimer=null,panelStack=[],dirty=true,sceneDrawn=false,qualityRequest=null;
 const DIALOGS={menu:'startDialog',paused:'pauseDialog',settings:'settingsDialog',selector:'levelsDialog',victory:'victoryDialog',final:'finalDialog',confirm:'confirmDialog',help:'helpDialog'};
 
@@ -26,7 +27,7 @@ function fail(error){
 function requestFrame(){if(!raf&&!document.hidden&&phase!=='error')raf=requestAnimationFrame(frame);}
 function invalidate(){dirty=true;requestFrame();}
 function showPhase(next){
-  if(next!=='settings')cancelQuality();
+  if(next!=='settings'&&(!qualityRequest?.startup||phase==='settings'))cancelQuality();
   if(next!=='playing')renderer?.pause?.();
   phase=next;app.dataset.phase=next;
   if(next!=='playing'){engine.pause();input?.clear();}
@@ -40,6 +41,7 @@ function pauseGame(){
 }
 function resume(){
   if(phase!=='paused'||document.hidden||engine.state.solved)return;
+  if(renderer?.recovering){ui.toast('El render se está recuperando. Esperá un momento para seguir.');return;}
   input.clear();audio.unlock();renderer.quality.resetSamples();showPhase('playing');engine.start();last=performance.now();canvas.focus({preventScroll:true});requestFrame();
 }
 function openPanel(panel){
@@ -51,6 +53,7 @@ function back(){
   showPhase(panelStack.pop()??'menu');
 }
 function begin(index,restart=false){
+  if(renderer?.recovering){ui.toast('El render se está recuperando. Esperá un momento para seguir.');return;}
   if(!store.startAttempt(index,restart))return;
   clearTimeout(transitionTimer);input.clear();panelStack=[];engine.settings=store.settings;engine.reset(index);audio.unlock();renderer.quality.resetSamples();
   showPhase('transition');app.classList.add('switching');
@@ -108,6 +111,7 @@ async function action(name){
       catch{ui.toast('El navegador no permitió la pantalla completa.');}break;
     case 'confirm-reset':openPanel('confirm');break;
     case 'reset-all':if(phase==='confirm'){store.resetProgress();engine.reset(0);panelStack=[];showPhase('menu');ui.toast('Progreso y récords borrados. Tus ajustes se conservaron.');}break;
+    case 'cancel-quality':cancelQuality();break;
     case 'reload':location.reload();break;
     case 'safe-quality':store.setSettings({quality:'low'});location.reload();break;
   }
@@ -130,20 +134,21 @@ function cancelQuality(){
   qualityRequest.abort();qualityRequest=null;
   ui.qualityStatus(null,'Cambio cancelado. Se conserva la calidad anterior.');ui.settings(store.settings,renderer);
 }
-async function applyQuality(value){
-  if(!renderer||phase!=='settings')return;
-  cancelQuality();const controller=new AbortController();qualityRequest=controller;
-  ui.qualityStatus(value,'Preparando la calidad gráfica… Podés cancelar o volver sin esperar.');
+async function applyQuality(value,{startup=false}={}){
+  if(!renderer||(!startup&&phase!=='settings'))return;
+  cancelQuality();const controller=new AbortController();controller.startup=startup;qualityRequest=controller;
+  const label={medium:'Media',high:'Alta',cinematic:'Cinemática'}[value]??value;
+  ui.qualityStatus(value,startup?`Preparando ${label}. Mientras tanto, render en Baja. Tu preferencia guardada se conserva.`:'Preparando la calidad gráfica… Podés cancelar o volver sin esperar.');
   ui.settings(store.settings,renderer);
   try{
     await renderer.requestQuality(value,{signal:controller.signal});
     if(qualityRequest!==controller||controller.signal.aborted)return;
-    store.setSettings({quality:value});engine.settings=store.settings;
+    if(!startup)store.setSettings({quality:value});engine.settings=store.settings;
     renderer.quality.resetSamples();last=performance.now();
     ui.qualityStatus(null,'Calidad lista. Se mostrará al volver a la partida.');
   }catch(error){
     if(qualityRequest!==controller)return;
-    ui.qualityStatus(null,error.name==='AbortError'?'Cambio cancelado. Se conserva la calidad anterior.':`${error.message} La selección guardada no cambió.`);
+    ui.qualityStatus(null,error.name==='AbortError'?'Cambio cancelado. Se conserva la calidad anterior.':`${error.message} ${startup?'Continúa en Baja; la preferencia guardada y tu progreso se conservan.':'La selección guardada no cambió.'}`);
   }finally{
     if(qualityRequest===controller){qualityRequest=null;ui.settings(store.settings,renderer);invalidate();}
   }
@@ -170,14 +175,14 @@ document.addEventListener('visibilitychange',()=>{
   if(document.hidden){cancelQuality();renderer?.pause?.();pauseGame();engine.pause();input.clear();audio.suspend();if(raf)cancelAnimationFrame(raf);raf=0;}
   else{last=performance.now();renderer?.quality.resetSamples();invalidate();}
 });
-window.addEventListener('pagehide',()=>{cancelQuality();renderer?.pause?.();pauseGame();if(raf)cancelAnimationFrame(raf);raf=0;audio.suspend();});
-window.addEventListener('pageshow',()=>{if(phase!=='loading')invalidate();});
+window.addEventListener('pagehide',event=>{if(phase==='loading')startupController.abort();if(!event.persisted)renderer?.destroy();cancelQuality();renderer?.pause?.();pauseGame();if(raf)cancelAnimationFrame(raf);raf=0;audio.suspend();});
+window.addEventListener('pageshow',event=>{if(event.persisted&&phase==='loading'&&startupController.signal.aborted){location.reload();return;}if(phase!=='loading')invalidate();});
 motion.addEventListener?.('change',e=>{if(e.matches){store.setSettings({dynamicCamera:false});engine.settings=store.settings;}visualPreferences();ui.settings(store.settings,renderer);invalidate();});
 canvas.addEventListener('contextmenu',e=>e.preventDefault());
 try{
-  renderer=await createRenderer(canvas,{quality:store.settings.quality,engine,settings:store.settings,onContextLost:error=>fail(error??new Error('Se perdió el contexto WebGL. El progreso guardado no se elimina al recargar.'))});
-  if(renderer.quality.mode!==store.settings.quality){store.setSettings({quality:renderer.quality.mode});engine.settings=store.settings;}
+  renderer=await createRenderer(canvas,{signal:startupController.signal,quality:store.settings.quality,engine,settings:store.settings,onWarning:message=>{pauseGame();ui.qualityStatus(null,message);ui.toast(message);},onContextLost:error=>fail(error??new Error('Se perdió el contexto WebGL. El progreso guardado no se elimina al recargar.'))});
   ui.el('loading').hidden=true;ui.sensor('manual');showPhase('menu');
+  if(renderer.startupQuality)void applyQuality(renderer.startupQuality,{startup:true});
   if(renderer.warning){ui.qualityStatus(null,renderer.warning);ui.toast(renderer.warning);}
   if(storageProblem)ui.toast('No se puede guardar en este navegador. Esta sesión funciona en memoria.');
-}catch(error){fail(error);}
+}catch(error){if(error.name!=='AbortError')fail(error);}

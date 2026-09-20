@@ -1,14 +1,15 @@
 import {TIERS} from './quality.js';
 export const VERTEX_SHADER='attribute vec2 aPos; varying vec2 vUv; void main(){vUv=aPos*.5+.5;gl_Position=vec4(aPos,0.,1.);}';
 const uniforms=(name,count)=>Array.from({length:count},(_,i)=>`uniform vec4 ${name}${i};`).join('\n');
-const objects=(count,call)=>Array.from({length:count},(_,i)=>`r=opU(r,${call(i)});`).join('\n');
+const objects=(count,call,firstKey=0)=>Array.from({length:count},(_,i)=>`${firstKey?`if(includeSceneCandidate(${firstKey+i}.))`:''}r=opU(r,${call(i)});`).join('\n');
 /** WebGL 1 / GLSL ES 1.00. Derivatives require an explicitly enabled extension. */
 export function fragmentShader(tier='medium',precision='highp',capabilities={}) {
   const q=TIERS[tier]??TIERS.medium,portable=precision==='mediump';
-  const derivatives=capabilities?.derivatives===true;
+  const derivatives=capabilities?.derivatives===true,pass=capabilities?.pass??'combined';
   return `${derivatives?'#extension GL_OES_standard_derivatives : enable\n':''}
 precision ${portable?'mediump':'highp'} float;
 varying vec2 vUv;
+uniform sampler2D uReliefNoise,uSurfaceHits;
 uniform vec2 uRes,uCube,uGravity,uTarget,uBoost;
 uniform float uTime,uCubeY,uCubeFoot,uShake,uTargetY,uTargetType,uHold,uMotion;
 uniform vec4 uCubeQ,uPulse;
@@ -35,12 +36,18 @@ ${uniforms('uBump',3)}
 #define PORTAL_LAYERS ${portable?Math.min(q.portalLayers,3):q.portalLayers}
 #define HAS_DERIVATIVES ${derivatives?1:0}
 // Inward-only relief preserves the collision envelope. Half precision uses bump only.
-#define POM_STEPS ${portable||q.detail<2?0:q.detail===2?40:64}
-#define POM_REFINE ${q.detail===3?6:4}
+#define POM_STEPS ${portable||q.detail<2?0:q.detail===2?8:14}
+#define POM_REFINE ${q.detail===3?4:3}
 const float PI=3.14159265;
 float gFootprint=.002;
 float gReliefFootprint=.002;
 float gRayCone=0.;
+${pass==='shade'?'vec3 gSurfaceGradient=vec3(0);':''}
+vec3 gHitNormal=vec3(0);
+bool gHitNormalValid=false;
+vec3 gExcludedCandidates=vec3(0);
+vec3 gHitPoint=vec3(0),gHitCoordinates=vec3(0),gHitExtent=vec3(1);
+float gHitMaterial=0.,gHitSeed=0.,gHitKey=0.,gForcedCandidate=0.;
 float effectTime(){return uTime*uLook.w;}
 // Bounded arithmetic also works with mediump: no enormous sine/hash products.
 float hash(vec2 p){p=mod(p,251.);return fract(17.*fract(p.x*.1031+p.y*.11369)*fract(p.y*.13787+p.x*.09987));}
@@ -56,6 +63,20 @@ float fbm(vec2 p,float frequency){
   return v;
 }
 float aaLine(float distanceToLine,float halfWidth){float w=max(gFootprint,.0005);return 1.-smoothstep(halfWidth-w,halfWidth+w,distanceToLine);}
+// Render-only instance exclusions are used only after a silhouette miss. Cheap
+// profiles fold this to true. Primitive SDFs and the normal scene union stay shared.
+bool includeCandidate(float key){
+#if POM_STEPS > 0
+  if(gForcedCandidate>0.)return key==gForcedCandidate;
+  return all(notEqual(gExcludedCandidates,vec3(key)));
+#else
+  return true;
+#endif
+}
+// Secondary rays in the lighting pass never exclude instances. Specializing this
+// gate avoids carrying primary-hit mutable state through every shadow/AO/reflection
+// scene union, while candidate reconstruction still uses includeCandidate above.
+bool includeSceneCandidate(float key){${pass==='shade'?'return true;':'return includeCandidate(key);'}}
 vec3 qrot(vec4 q,vec3 v){return v+2.*cross(q.xyz,cross(q.xyz,v)+q.w*v);}
 float sdBox(vec3 p,vec3 b){vec3 q=abs(p)-b;return length(max(q,0.))+min(max(q.x,max(q.y,q.z)),0.);}
 float sdRoundBox(vec3 p,vec3 b,float r){vec3 q=abs(p)-b+r;return length(max(q,0.))+min(max(q.x,max(q.y,q.z)),0.)-r;}
@@ -81,29 +102,30 @@ vec2 rampObj(vec3 p,vec4 r,vec4 meta){
 vec2 platformObj(vec3 p,vec4 r,vec4 meta){if(r.z<=.001)return vec2(100,0);float h=max(meta.x,.03);return vec2(sdRoundBox(p-vec3(r.x,h*.5,r.y),vec3(r.z*.5,h*.5,r.w*.5),.018),19.);}
 vec2 mapScene(vec3 p){
   vec2 r=vec2(100,0);
-  r=opU(r,vec2(sdBox(p-vec3(0,-.055,0),vec3(3.25,.055,3.25)),1.));
-  r=opU(r,vec2(sdRoundBox(p-vec3(0,.005,.78),vec3(2.08,.005,1.27),.004),2.));
-  r=opU(r,vec2(sdBox(p-vec3(0,1.58,-3.23),vec3(3.25,1.62,.045)),3.));
-  r=opU(r,vec2(sdBox(p-vec3(-3.23,1.58,0),vec3(.045,1.62,3.25)),4.));
-  r=opU(r,vec2(sdBox(p-vec3(3.23,1.58,0),vec3(.045,1.62,3.25)),5.));
-  r=opU(r,vec2(sdBox(p-vec3(0,3.18,0),vec3(3.25,.045,3.25)),6.));
-  r=opU(r,vec2(sdRoundBox(p-vec3(0,.115,-3.155),vec3(3.18,.105,.045),.020),14.));
-  r=opU(r,vec2(sdRoundBox(p-vec3(-3.155,.115,0),vec3(.045,.105,3.18),.020),14.));
-  r=opU(r,vec2(sdRoundBox(p-vec3(3.155,.115,0),vec3(.045,.105,3.18),.020),14.));
+  if(includeSceneCandidate(100.))r=opU(r,vec2(sdBox(p-vec3(0,-.055,0),vec3(3.25,.055,3.25)),1.));
+  if(includeSceneCandidate(200.))r=opU(r,vec2(sdRoundBox(p-vec3(0,.005,.78),vec3(2.08,.005,1.27),.004),2.));
+  if(includeSceneCandidate(300.))r=opU(r,vec2(sdBox(p-vec3(0,1.58,-3.23),vec3(3.25,1.62,.045)),3.));
+  if(includeSceneCandidate(400.))r=opU(r,vec2(sdBox(p-vec3(-3.23,1.58,0),vec3(.045,1.62,3.25)),4.));
+  if(includeSceneCandidate(500.))r=opU(r,vec2(sdBox(p-vec3(3.23,1.58,0),vec3(.045,1.62,3.25)),5.));
+  if(includeSceneCandidate(600.))r=opU(r,vec2(sdBox(p-vec3(0,3.18,0),vec3(3.25,.045,3.25)),6.));
+  if(includeSceneCandidate(1401.))r=opU(r,vec2(sdRoundBox(p-vec3(0,.115,-3.155),vec3(3.18,.105,.045),.020),14.));
+  if(includeSceneCandidate(1402.))r=opU(r,vec2(sdRoundBox(p-vec3(-3.155,.115,0),vec3(.045,.105,3.18),.020),14.));
+  if(includeSceneCandidate(1403.))r=opU(r,vec2(sdRoundBox(p-vec3(3.155,.115,0),vec3(.045,.105,3.18),.020),14.));
   r=opU(r,vec2(sdRoundBox(p-vec3(0,3.095,-1.65),vec3(1.95,.025,.032),.012),13.));
   r=opU(r,vec2(sdRoundBox(p-vec3(-1.95,3.095,-.40),vec3(.032,.025,1.30),.012),13.));
   r=opU(r,vec2(sdRoundBox(p-vec3(1.95,3.095,-.40),vec3(.032,.025,1.30),.012),13.));
   ${objects(8,i=>`zoneObj(p,uZone${i})`)}
-  ${objects(3,i=>`rampObj(p,uRamp${i},uRampMeta${i})`)}
-  ${objects(4,i=>`platformObj(p,uPlat${i},uPlatMeta${i})`)}
+  ${objects(3,i=>`rampObj(p,uRamp${i},uRampMeta${i})`,1921)}
+  ${objects(4,i=>`platformObj(p,uPlat${i},uPlatMeta${i})`,1911)}
   if(uTargetType<3.5){vec3 tp=p-vec3(uTarget.x,.035+uTargetY,uTarget.y);float d=uTargetType<2.5?sdCyl(tp,.49,.020):sdRing(tp);r=opU(r,vec2(d,9.+uTargetType));}
   else{
     r=opU(r,vec2(sdRoundBox(p-vec3(uTarget.x,.74+uTargetY,-3.185),vec3(.58,.70,.030),.045),15.));
     r=opU(r,vec2(sdRing(p-vec3(uTarget.x,.03+uTargetY,uTarget.y)),15.));
   }
-  ${objects(6,i=>`obstacle(p,uObs${i})`)}
-  ${objects(3,i=>`bumperObj(p,uBump${i})`)}
+  ${objects(6,i=>`obstacle(p,uObs${i})`,801)}
+  ${objects(3,i=>`bumperObj(p,uBump${i})`,2241)}
   vec4 iq=vec4(-uCubeQ.xyz,uCubeQ.w);vec3 cp=qrot(iq,p-vec3(uCube.x,.255+uCubeY,uCube.y));
+  if(!includeSceneCandidate(700.))return r;
   return opU(r,vec2(sdRoundBox(cp,vec3(.245),.038),7.));
 }
 vec3 normalAt(vec3 p){vec2 e=vec2(.0022,0.);return normalize(vec3(mapScene(p+e.xyy).x-mapScene(p-e.xyy).x,mapScene(p+e.yxy).x-mapScene(p-e.yxy).x,mapScene(p+e.yyx).x-mapScene(p-e.yyx).x));}
@@ -159,12 +181,13 @@ vec3 portalEnergy(vec3 p,vec3 rd){
 
 // Box-filter a periodic line analytically. Unresolved lines retain their mean coverage.
 float stripeIntegral(float x,float duty){return floor(x)*duty+min(fract(x),duty);}
-float filteredStripe(float coordinate,float period,float width){
-  float duty=clamp(width/period,0.,1.),span=max(gFootprint/period,.002);
+float stripeCoverage(float coordinate,float period,float width,float footprint){
+  float duty=clamp(width/period,0.,1.),span=max(footprint/period,.002);
   if(span>=1.)return duty;
   float x=coordinate/period+duty*.5;
   return clamp((stripeIntegral(x+span*.5,duty)-stripeIntegral(x-span*.5,duty))/span,0.,1.);
 }
+float filteredStripe(float coordinate,float period,float width){return stripeCoverage(coordinate,period,width,gFootprint);}
 // Value and analytic derivatives from the SAME four lattice samples. No extra SDF calls.
 vec3 materialNoise(vec2 p,float frequency){
   vec2 i=floor(p),f=fract(p),u=f*f*f*(f*(f*6.-15.)+10.);
@@ -202,36 +225,39 @@ float edgeMask(vec3 p,vec3 extent){
 }
 // Select the existing uniform slot only AFTER a hit. Slot seeds do not change as it moves.
 void materialCoordinates(float m,vec3 p,out vec3 q,out vec3 extent,out float seed){
+  // Primary shading reuses the chosen instance even after secondary-ray exclusions
+  // are reset. Nearby objects with the same material must not steal its coordinates.
+  if(gHitMaterial==m&&distance(p,gHitPoint)<.0001){q=gHitCoordinates;extent=gHitExtent;seed=gHitSeed;return;}
   q=p;extent=vec3(1);seed=0.;float best=100.,d;
   if(m>6.5&&m<7.5){q=cubeLocal(p);extent=vec3(.245);return;}
   if(m>7.5&&m<8.5){
-    if(uObs0.z>.001){d=abs(obstacle(p,uObs0).x);if(d<best){best=d;q=p-vec3(uObs0.x,.245,uObs0.y);extent=vec3(uObs0.z*.5,.245,uObs0.w*.5);seed=1.;}}
-    if(uObs1.z>.001){d=abs(obstacle(p,uObs1).x);if(d<best){best=d;q=p-vec3(uObs1.x,.245,uObs1.y);extent=vec3(uObs1.z*.5,.245,uObs1.w*.5);seed=2.;}}
-    if(uObs2.z>.001){d=abs(obstacle(p,uObs2).x);if(d<best){best=d;q=p-vec3(uObs2.x,.245,uObs2.y);extent=vec3(uObs2.z*.5,.245,uObs2.w*.5);seed=3.;}}
-    if(uObs3.z>.001){d=abs(obstacle(p,uObs3).x);if(d<best){best=d;q=p-vec3(uObs3.x,.245,uObs3.y);extent=vec3(uObs3.z*.5,.245,uObs3.w*.5);seed=4.;}}
-    if(uObs4.z>.001){d=abs(obstacle(p,uObs4).x);if(d<best){best=d;q=p-vec3(uObs4.x,.245,uObs4.y);extent=vec3(uObs4.z*.5,.245,uObs4.w*.5);seed=5.;}}
-    if(uObs5.z>.001){d=abs(obstacle(p,uObs5).x);if(d<best){best=d;q=p-vec3(uObs5.x,.245,uObs5.y);extent=vec3(uObs5.z*.5,.245,uObs5.w*.5);seed=6.;}}
+    if(includeCandidate(801.)&&uObs0.z>.001){d=abs(obstacle(p,uObs0).x);if(d<best){best=d;q=p-vec3(uObs0.x,.245,uObs0.y);extent=vec3(uObs0.z*.5,.245,uObs0.w*.5);seed=1.;}}
+    if(includeCandidate(802.)&&uObs1.z>.001){d=abs(obstacle(p,uObs1).x);if(d<best){best=d;q=p-vec3(uObs1.x,.245,uObs1.y);extent=vec3(uObs1.z*.5,.245,uObs1.w*.5);seed=2.;}}
+    if(includeCandidate(803.)&&uObs2.z>.001){d=abs(obstacle(p,uObs2).x);if(d<best){best=d;q=p-vec3(uObs2.x,.245,uObs2.y);extent=vec3(uObs2.z*.5,.245,uObs2.w*.5);seed=3.;}}
+    if(includeCandidate(804.)&&uObs3.z>.001){d=abs(obstacle(p,uObs3).x);if(d<best){best=d;q=p-vec3(uObs3.x,.245,uObs3.y);extent=vec3(uObs3.z*.5,.245,uObs3.w*.5);seed=4.;}}
+    if(includeCandidate(805.)&&uObs4.z>.001){d=abs(obstacle(p,uObs4).x);if(d<best){best=d;q=p-vec3(uObs4.x,.245,uObs4.y);extent=vec3(uObs4.z*.5,.245,uObs4.w*.5);seed=5.;}}
+    if(includeCandidate(806.)&&uObs5.z>.001){d=abs(obstacle(p,uObs5).x);if(d<best){best=d;q=p-vec3(uObs5.x,.245,uObs5.y);extent=vec3(uObs5.z*.5,.245,uObs5.w*.5);seed=6.;}}
   }else if(m>18.5&&m<19.5){
-    if(uPlat0.z>.001){d=abs(platformObj(p,uPlat0,uPlatMeta0).x);if(d<best){best=d;q=p-vec3(uPlat0.x,uPlatMeta0.x*.5,uPlat0.y);extent=vec3(uPlat0.z*.5,uPlatMeta0.x*.5,uPlat0.w*.5);seed=11.;}}
-    if(uPlat1.z>.001){d=abs(platformObj(p,uPlat1,uPlatMeta1).x);if(d<best){best=d;q=p-vec3(uPlat1.x,uPlatMeta1.x*.5,uPlat1.y);extent=vec3(uPlat1.z*.5,uPlatMeta1.x*.5,uPlat1.w*.5);seed=12.;}}
-    if(uPlat2.z>.001){d=abs(platformObj(p,uPlat2,uPlatMeta2).x);if(d<best){best=d;q=p-vec3(uPlat2.x,uPlatMeta2.x*.5,uPlat2.y);extent=vec3(uPlat2.z*.5,uPlatMeta2.x*.5,uPlat2.w*.5);seed=13.;}}
-    if(uPlat3.z>.001){d=abs(platformObj(p,uPlat3,uPlatMeta3).x);if(d<best){best=d;q=p-vec3(uPlat3.x,uPlatMeta3.x*.5,uPlat3.y);extent=vec3(uPlat3.z*.5,uPlatMeta3.x*.5,uPlat3.w*.5);seed=14.;}}
-    if(uRamp0.z>.001){d=abs(rampObj(p,uRamp0,uRampMeta0).x);if(d<best){best=d;q=p-vec3(uRamp0.x,(uRampMeta0.x+uRampMeta0.w)*.5,uRamp0.y);extent=vec3(uRamp0.z*.5,(uRampMeta0.x-uRampMeta0.w)*.5,uRamp0.w*.5);seed=21.;}}
-    if(uRamp1.z>.001){d=abs(rampObj(p,uRamp1,uRampMeta1).x);if(d<best){best=d;q=p-vec3(uRamp1.x,(uRampMeta1.x+uRampMeta1.w)*.5,uRamp1.y);extent=vec3(uRamp1.z*.5,(uRampMeta1.x-uRampMeta1.w)*.5,uRamp1.w*.5);seed=22.;}}
-    if(uRamp2.z>.001){d=abs(rampObj(p,uRamp2,uRampMeta2).x);if(d<best){best=d;q=p-vec3(uRamp2.x,(uRampMeta2.x+uRampMeta2.w)*.5,uRamp2.y);extent=vec3(uRamp2.z*.5,(uRampMeta2.x-uRampMeta2.w)*.5,uRamp2.w*.5);seed=23.;}}
+    if(includeCandidate(1911.)&&uPlat0.z>.001){d=abs(platformObj(p,uPlat0,uPlatMeta0).x);if(d<best){best=d;q=p-vec3(uPlat0.x,uPlatMeta0.x*.5,uPlat0.y);extent=vec3(uPlat0.z*.5,uPlatMeta0.x*.5,uPlat0.w*.5);seed=11.;}}
+    if(includeCandidate(1912.)&&uPlat1.z>.001){d=abs(platformObj(p,uPlat1,uPlatMeta1).x);if(d<best){best=d;q=p-vec3(uPlat1.x,uPlatMeta1.x*.5,uPlat1.y);extent=vec3(uPlat1.z*.5,uPlatMeta1.x*.5,uPlat1.w*.5);seed=12.;}}
+    if(includeCandidate(1913.)&&uPlat2.z>.001){d=abs(platformObj(p,uPlat2,uPlatMeta2).x);if(d<best){best=d;q=p-vec3(uPlat2.x,uPlatMeta2.x*.5,uPlat2.y);extent=vec3(uPlat2.z*.5,uPlatMeta2.x*.5,uPlat2.w*.5);seed=13.;}}
+    if(includeCandidate(1914.)&&uPlat3.z>.001){d=abs(platformObj(p,uPlat3,uPlatMeta3).x);if(d<best){best=d;q=p-vec3(uPlat3.x,uPlatMeta3.x*.5,uPlat3.y);extent=vec3(uPlat3.z*.5,uPlatMeta3.x*.5,uPlat3.w*.5);seed=14.;}}
+    if(includeCandidate(1921.)&&uRamp0.z>.001){d=abs(rampObj(p,uRamp0,uRampMeta0).x);if(d<best){best=d;q=p-vec3(uRamp0.x,(uRampMeta0.x+uRampMeta0.w)*.5,uRamp0.y);extent=vec3(uRamp0.z*.5,(uRampMeta0.x-uRampMeta0.w)*.5,uRamp0.w*.5);seed=21.;}}
+    if(includeCandidate(1922.)&&uRamp1.z>.001){d=abs(rampObj(p,uRamp1,uRampMeta1).x);if(d<best){best=d;q=p-vec3(uRamp1.x,(uRampMeta1.x+uRampMeta1.w)*.5,uRamp1.y);extent=vec3(uRamp1.z*.5,(uRampMeta1.x-uRampMeta1.w)*.5,uRamp1.w*.5);seed=22.;}}
+    if(includeCandidate(1923.)&&uRamp2.z>.001){d=abs(rampObj(p,uRamp2,uRampMeta2).x);if(d<best){best=d;q=p-vec3(uRamp2.x,(uRampMeta2.x+uRampMeta2.w)*.5,uRamp2.y);extent=vec3(uRamp2.z*.5,(uRampMeta2.x-uRampMeta2.w)*.5,uRamp2.w*.5);seed=23.;}}
   }else if((m>15.5&&m<18.5)||(m>19.5&&m<20.5)){
-    if(uZone0.w>.5&&abs(15.+uZone0.w-m)<.25){d=abs(zoneObj(p,uZone0).x);if(d<best){best=d;q=p-vec3(uZone0.x,.016,uZone0.y);extent=vec3(uZone0.z,.012,uZone0.z);seed=31.;}}
-    if(uZone1.w>.5&&abs(15.+uZone1.w-m)<.25){d=abs(zoneObj(p,uZone1).x);if(d<best){best=d;q=p-vec3(uZone1.x,.016,uZone1.y);extent=vec3(uZone1.z,.012,uZone1.z);seed=32.;}}
-    if(uZone2.w>.5&&abs(15.+uZone2.w-m)<.25){d=abs(zoneObj(p,uZone2).x);if(d<best){best=d;q=p-vec3(uZone2.x,.016,uZone2.y);extent=vec3(uZone2.z,.012,uZone2.z);seed=33.;}}
-    if(uZone3.w>.5&&abs(15.+uZone3.w-m)<.25){d=abs(zoneObj(p,uZone3).x);if(d<best){best=d;q=p-vec3(uZone3.x,.016,uZone3.y);extent=vec3(uZone3.z,.012,uZone3.z);seed=34.;}}
-    if(uZone4.w>.5&&abs(15.+uZone4.w-m)<.25){d=abs(zoneObj(p,uZone4).x);if(d<best){best=d;q=p-vec3(uZone4.x,.016,uZone4.y);extent=vec3(uZone4.z,.012,uZone4.z);seed=35.;}}
-    if(uZone5.w>.5&&abs(15.+uZone5.w-m)<.25){d=abs(zoneObj(p,uZone5).x);if(d<best){best=d;q=p-vec3(uZone5.x,.016,uZone5.y);extent=vec3(uZone5.z,.012,uZone5.z);seed=36.;}}
-    if(uZone6.w>.5&&abs(15.+uZone6.w-m)<.25){d=abs(zoneObj(p,uZone6).x);if(d<best){best=d;q=p-vec3(uZone6.x,.016,uZone6.y);extent=vec3(uZone6.z,.012,uZone6.z);seed=37.;}}
-    if(uZone7.w>.5&&abs(15.+uZone7.w-m)<.25){d=abs(zoneObj(p,uZone7).x);if(d<best){best=d;q=p-vec3(uZone7.x,.016,uZone7.y);extent=vec3(uZone7.z,.012,uZone7.z);seed=38.;}}
+    if(includeCandidate((15.+uZone0.w)*100.+31.)&&uZone0.w>.5&&abs(15.+uZone0.w-m)<.25){d=abs(zoneObj(p,uZone0).x);if(d<best){best=d;q=p-vec3(uZone0.x,.016,uZone0.y);extent=vec3(uZone0.z,.012,uZone0.z);seed=31.;}}
+    if(includeCandidate((15.+uZone1.w)*100.+32.)&&uZone1.w>.5&&abs(15.+uZone1.w-m)<.25){d=abs(zoneObj(p,uZone1).x);if(d<best){best=d;q=p-vec3(uZone1.x,.016,uZone1.y);extent=vec3(uZone1.z,.012,uZone1.z);seed=32.;}}
+    if(includeCandidate((15.+uZone2.w)*100.+33.)&&uZone2.w>.5&&abs(15.+uZone2.w-m)<.25){d=abs(zoneObj(p,uZone2).x);if(d<best){best=d;q=p-vec3(uZone2.x,.016,uZone2.y);extent=vec3(uZone2.z,.012,uZone2.z);seed=33.;}}
+    if(includeCandidate((15.+uZone3.w)*100.+34.)&&uZone3.w>.5&&abs(15.+uZone3.w-m)<.25){d=abs(zoneObj(p,uZone3).x);if(d<best){best=d;q=p-vec3(uZone3.x,.016,uZone3.y);extent=vec3(uZone3.z,.012,uZone3.z);seed=34.;}}
+    if(includeCandidate((15.+uZone4.w)*100.+35.)&&uZone4.w>.5&&abs(15.+uZone4.w-m)<.25){d=abs(zoneObj(p,uZone4).x);if(d<best){best=d;q=p-vec3(uZone4.x,.016,uZone4.y);extent=vec3(uZone4.z,.012,uZone4.z);seed=35.;}}
+    if(includeCandidate((15.+uZone5.w)*100.+36.)&&uZone5.w>.5&&abs(15.+uZone5.w-m)<.25){d=abs(zoneObj(p,uZone5).x);if(d<best){best=d;q=p-vec3(uZone5.x,.016,uZone5.y);extent=vec3(uZone5.z,.012,uZone5.z);seed=36.;}}
+    if(includeCandidate((15.+uZone6.w)*100.+37.)&&uZone6.w>.5&&abs(15.+uZone6.w-m)<.25){d=abs(zoneObj(p,uZone6).x);if(d<best){best=d;q=p-vec3(uZone6.x,.016,uZone6.y);extent=vec3(uZone6.z,.012,uZone6.z);seed=37.;}}
+    if(includeCandidate((15.+uZone7.w)*100.+38.)&&uZone7.w>.5&&abs(15.+uZone7.w-m)<.25){d=abs(zoneObj(p,uZone7).x);if(d<best){best=d;q=p-vec3(uZone7.x,.016,uZone7.y);extent=vec3(uZone7.z,.012,uZone7.z);seed=38.;}}
   }else if(m>21.5){
-    if(uBump0.z>.01){d=abs(bumperObj(p,uBump0).x);if(d<best){best=d;float h=max(uBump0.w,.34);q=p-vec3(uBump0.x,h*.5,uBump0.y);extent=vec3(uBump0.z,h*.5,uBump0.z);seed=41.;}}
-    if(uBump1.z>.01){d=abs(bumperObj(p,uBump1).x);if(d<best){best=d;float h=max(uBump1.w,.34);q=p-vec3(uBump1.x,h*.5,uBump1.y);extent=vec3(uBump1.z,h*.5,uBump1.z);seed=42.;}}
-    if(uBump2.z>.01){d=abs(bumperObj(p,uBump2).x);if(d<best){best=d;float h=max(uBump2.w,.34);q=p-vec3(uBump2.x,h*.5,uBump2.y);extent=vec3(uBump2.z,h*.5,uBump2.z);seed=43.;}}
+    if(includeCandidate(2241.)&&uBump0.z>.01){d=abs(bumperObj(p,uBump0).x);if(d<best){best=d;float h=max(uBump0.w,.34);q=p-vec3(uBump0.x,h*.5,uBump0.y);extent=vec3(uBump0.z,h*.5,uBump0.z);seed=41.;}}
+    if(includeCandidate(2242.)&&uBump1.z>.01){d=abs(bumperObj(p,uBump1).x);if(d<best){best=d;float h=max(uBump1.w,.34);q=p-vec3(uBump1.x,h*.5,uBump1.y);extent=vec3(uBump1.z,h*.5,uBump1.z);seed=42.;}}
+    if(includeCandidate(2243.)&&uBump2.z>.01){d=abs(bumperObj(p,uBump2).x);if(d<best){best=d;float h=max(uBump2.w,.34);q=p-vec3(uBump2.x,h*.5,uBump2.y);extent=vec3(uBump2.z,h*.5,uBump2.z);seed=43.;}}
   }else if(m>9.5&&m<12.5){q=p-vec3(uTarget.x,.035+uTargetY,uTarget.y);extent=vec3(.49,.02,.49);}
   else if(m>14.5&&m<15.5){
     if(p.z< -3.09){q=p-vec3(uTarget.x,.74+uTargetY,-3.185);extent=vec3(.58,.70,.03);}
@@ -311,144 +337,163 @@ float reliefDepth(float m){
 }
 // Continuous object-space height fields avoid face-projection seams on rounded edges.
 // The map stores depth below the original surface, in world units.
+// Height sampling is pure: repeatedly saving/writing/restoring gFootprint bloats
+// WebGL 1 compiler dataflow across POM, normal and light probes. The same filters
+// receive the relief footprint directly, with identical values and no side effects.
+float reliefWeight(float frequency){return 1.-smoothstep(.16,.65,gReliefFootprint*frequency);}
+float reliefNoise(vec2 p,float frequency){
+  // The same periodic lattice is baked once on the GPU. Quintic interpolation
+  // remains analytic; a filtered lookup replaces four repeated hash trees.
+  // The 251-period padding covers the wrap cell in a WebGL 1 power-of-two texture.
+  vec2 f=fract(p),u=f*f*f*(f*(f*6.-15.)+10.);
+  float value=texture2D(uReliefNoise,(mod(floor(p),251.)+.5+u)/256.).r;
+  return mix(.5,value,reliefWeight(frequency));
+}
 float surfaceInset(float m,vec3 q,vec3 extent,float seed){
   float depth=reliefDepth(m);
   if(depth==0.)return 0.;
-  float footprint=gFootprint;gFootprint=gReliefFootprint;
   float h;
   if(m<1.5){
     vec2 local,id;woodBoardCoordinates(q.xz,local,id);
     float offset=hash(vec2(id.x,2.7));
-    float joint=max(filteredStripe(q.x+3.25,.54,.006),filteredStripe(q.z+3.25+offset*1.8,1.8,.005));
-    float fibre=filteredNoise(local*vec2(65.,4.)+hash(id)*7.,65.);
+    float joint=max(stripeCoverage(q.x+3.25,.54,.006,gReliefFootprint),stripeCoverage(q.z+3.25+offset*1.8,1.8,.005,gReliefFootprint));
+    float fibre=reliefNoise(local*vec2(65.,4.)+hash(id)*7.,65.);
     h=.12+.26*fibre+.62*joint;
   }else if(m<2.5){
     float yarn=.5+.5*sin(q.x*440.)*sin(q.z*360.);
-    h=.20+.80*mix(.5,yarn,detailWeight(70.));
+    h=.20+.80*mix(.5,yarn,reliefWeight(70.));
   }else if(m>18.5&&m<19.5){
     vec3 grain=extent.z>=extent.x?q:q.zyx;
-    h=.22+.78*filteredNoise(vec2(grain.x*42.+grain.y*31.,grain.z*4.)+seed,52.);
+    h=.22+.78*reliefNoise(vec2(grain.x*42.+grain.y*31.,grain.z*4.)+seed,52.);
   }else{
     float frequency=m<6.5?38.:(m<8.5?27.:34.);
-    h=.18+.82*(filteredNoise(q.xz*frequency+seed,frequency)+filteredNoise(q.xy*frequency+seed+5.7,frequency))*.5;
+    h=.18+.82*(reliefNoise(q.xz*frequency+seed,frequency)+reliefNoise(q.xy*frequency+seed+5.7,frequency))*.5;
   }
-  gFootprint=footprint;return depth*clamp(h,0.,1.);
+  return depth*clamp(h,0.,1.);
 }
-// Work only within the shallow relief shell; most scene candidates need no height sample.
-vec2 reliefSample(float d,float m,vec3 q,vec3 extent,float seed){
-  float depth=reliefDepth(m);
-  if(d<.001&&d> -depth-.001)d+=surfaceInset(m,q,extent,seed);
-  return vec2(d,m);
-}
-vec2 reliefObstacle(vec3 p,vec4 o,float seed){
-  if(o.z<=.001)return vec2(100,0);
-  vec3 q=p-vec3(o.x,.245,o.y),e=vec3(o.z*.5,.245,o.w*.5);
-  return reliefSample(sdRoundBox(q,e,.045),8.,q,e,seed);
-}
-vec2 reliefPlatform(vec3 p,vec4 r,vec4 meta,float seed){
-  if(r.z<=.001)return vec2(100,0);
-  float h=max(meta.x,.03);vec3 q=p-vec3(r.x,h*.5,r.y),e=vec3(r.z*.5,h*.5,r.w*.5);
-  return reliefSample(sdRoundBox(q,e,.018),19.,q,e,seed);
-}
-vec2 reliefRamp(vec3 p,vec4 r,vec4 meta,float seed){
-  if(r.z<=.001)return vec2(100,0);
-  vec3 q=p-vec3(r.x,(meta.x+meta.w)*.5,r.y),e=vec3(r.z*.5,(meta.x-meta.w)*.5,r.w*.5);
-  return reliefSample(rampObj(p,r,meta).x,19.,q,e,seed);
-}
-vec2 reliefBumper(vec3 p,vec4 b,float seed){
-  if(b.z<.01)return vec2(100,0);
-  float h=max(b.w,.34);vec3 q=p-vec3(b.x,h*.5,b.y),e=vec3(b.z,h*.5,b.z);
-  return reliefSample(sdCyl(q,b.z,h*.5),22.,q,e,seed);
-}
-// Union AFTER displacement: a clipped foreground must expose the next actual surface.
-// Applying depth only to mapScene's closest ID would hide overlapping objects.
-vec2 mapReliefScene(vec3 p){
-  vec3 e=vec3(1);vec2 r=vec2(100,0);
-  r=opU(r,reliefSample(sdBox(p-vec3(0,-.055,0),vec3(3.25,.055,3.25)),1.,p,e,0.));
-  r=opU(r,reliefSample(sdRoundBox(p-vec3(0,.005,.78),vec3(2.08,.005,1.27),.004),2.,p,e,0.));
-  r=opU(r,reliefSample(sdBox(p-vec3(0,1.58,-3.23),vec3(3.25,1.62,.045)),3.,p,e,0.));
-  r=opU(r,reliefSample(sdBox(p-vec3(-3.23,1.58,0),vec3(.045,1.62,3.25)),4.,p,e,0.));
-  r=opU(r,reliefSample(sdBox(p-vec3(3.23,1.58,0),vec3(.045,1.62,3.25)),5.,p,e,0.));
-  r=opU(r,reliefSample(sdBox(p-vec3(0,3.18,0),vec3(3.25,.045,3.25)),6.,p,e,0.));
-  r=opU(r,reliefSample(sdRoundBox(p-vec3(0,.115,-3.155),vec3(3.18,.105,.045),.020),14.,p,e,0.));
-  r=opU(r,reliefSample(sdRoundBox(p-vec3(-3.155,.115,0),vec3(.045,.105,3.18),.020),14.,p,e,0.));
-  r=opU(r,reliefSample(sdRoundBox(p-vec3(3.155,.115,0),vec3(.045,.105,3.18),.020),14.,p,e,0.));
-  r=opU(r,vec2(sdRoundBox(p-vec3(0,3.095,-1.65),vec3(1.95,.025,.032),.012),13.));
-  r=opU(r,vec2(sdRoundBox(p-vec3(-1.95,3.095,-.40),vec3(.032,.025,1.30),.012),13.));
-  r=opU(r,vec2(sdRoundBox(p-vec3(1.95,3.095,-.40),vec3(.032,.025,1.30),.012),13.));
-  ${objects(8,i=>`zoneObj(p,uZone${i})`)}
-  ${objects(3,i=>`reliefRamp(p,uRamp${i},uRampMeta${i},${21+i}.)`)}
-  ${objects(4,i=>`reliefPlatform(p,uPlat${i},uPlatMeta${i},${11+i}.)`)}
-  if(uTargetType<3.5){vec3 tp=p-vec3(uTarget.x,.035+uTargetY,uTarget.y);float d=uTargetType<2.5?sdCyl(tp,.49,.020):sdRing(tp);r=opU(r,vec2(d,9.+uTargetType));}
-  else{
-    r=opU(r,vec2(sdRoundBox(p-vec3(uTarget.x,.74+uTargetY,-3.185),vec3(.58,.70,.030),.045),15.));
-    r=opU(r,vec2(sdRing(p-vec3(uTarget.x,.03+uTargetY,uTarget.y)),15.));
-  }
-  ${objects(6,i=>`reliefObstacle(p,uObs${i},${1+i}.)`)}
-  ${objects(3,i=>`reliefBumper(p,uBump${i},${41+i}.)`)}
-  vec3 cp=cubeLocal(p);
-  return opU(r,reliefSample(sdRoundBox(cp,vec3(.245),.038),7.,cp,vec3(.245),0.));
-}
-// Length of the candidate's finite envelope along this ray. Layered traversal must
-// cross the entire envelope at a grazing angle, rather than stall on its flat side.
-float reliefRaySpan(float m,vec3 p,vec3 rd){
-  vec3 q,e;float seed;materialCoordinates(m,p,q,e,seed);
-  if(m<1.5){q=p-vec3(0,-.055,0);e=vec3(3.25,.055,3.25);}
-  else if(m<2.5){q=p-vec3(0,.005,.78);e=vec3(2.08,.005,1.27);}
-  else if(m<3.5){q=p-vec3(0,1.58,-3.23);e=vec3(3.25,1.62,.045);}
-  else if(m<4.5){q=p-vec3(-3.23,1.58,0);e=vec3(.045,1.62,3.25);}
-  else if(m<5.5){q=p-vec3(3.23,1.58,0);e=vec3(.045,1.62,3.25);}
-  else if(m<6.5){q=p-vec3(0,3.18,0);e=vec3(3.25,.045,3.25);}
-  else if(m<7.5)rd=qrot(vec4(-uCubeQ.xyz,uCubeQ.w),rd);
-  else if(m>13.5&&m<14.5){
-    if(abs(p.x)>3.1){q=p-vec3(sign(p.x)*3.155,.115,0);e=vec3(.045,.105,3.18);}
-    else{q=p-vec3(0,.115,-3.155);e=vec3(3.18,.105,.045);}
-  }
-  float span=MAX_DIST;
-  if(abs(rd.x)>.00001)span=min(span,(sign(rd.x)*e.x-q.x)/rd.x);
-  if(abs(rd.y)>.00001)span=min(span,(sign(rd.y)*e.y-q.y)/rd.y);
-  if(abs(rd.z)>.00001)span=min(span,(sign(rd.z)*e.z-q.z)/rd.z);
-  return max(span,0.);
-}
-vec2 parallaxOcclusion(vec3 ro,vec3 rd,vec2 baseHit){
-#if POM_STEPS > 0
-  if(baseHit.y<.5||reliefDepth(baseHit.y)<=0.)return baseHit;
-  float t=max(0.,baseHit.x-.002),previous=t;vec2 h=vec2(1,0);
-  float span=reliefRaySpan(baseHit.y,ro+rd*t,rd);
-  // Reserve iterations for the surface revealed behind a rejected silhouette.
-  float layer=max(.00015,span/(float(POM_STEPS)-16.)),envelopeEnd=t+span;
-  // Bounded height gradients require conservative shell steps. No division by N.V.
-  for(int i=0;i<POM_STEPS;i++){
-    h=mapReliefScene(ro+rd*t);
-    if(h.x<=0.)break;
-    previous=t;
-    // Land exactly on the candidate exit before switching to fine background steps.
-    // Carrying a thick object's layer spacing forward can tunnel through the carpet.
-    float next=t+max(h.x*.65,t<envelopeEnd?layer:.00015);
-    t=t<envelopeEnd?min(next,envelopeEnd):next;
-    if(t>MAX_DIST)return vec2(t,0.);
-  }
-  if(h.x<=0.){
-    float lo=previous,hi=t;
-    for(int j=0;j<POM_REFINE;j++){
-      float mid=(lo+hi)*.5;vec2 candidate=mapReliefScene(ro+rd*mid);
-      if(candidate.x>0.)lo=mid;else{hi=mid;h=candidate;}
+// Resolve an instance ONCE, outside POM. A material ID identifies a family, not
+// an instance: caching the local ray/shape avoids repeating nearest-object searches.
+struct ReliefCandidate {
+  float material;float seed;float shape;float radius;float key;
+  vec3 origin;vec3 direction;vec3 extent;vec3 pigmentOffset;vec4 ramp;
+};
+ReliefCandidate reliefCandidate(vec3 ro,vec3 rd,vec2 hit){
+  ReliefCandidate c;vec3 p=ro+rd*hit.x,q,e;float seed;
+  materialCoordinates(hit.y,p,q,e,seed);
+  c.material=hit.y;c.seed=seed;c.key=hit.y*100.+seed;c.shape=1.;c.radius=0.;c.ramp=vec4(0);
+  vec3 center=p-q;c.pigmentOffset=vec3(0);
+  float m=hit.y;
+  if(m<1.5){center=vec3(0,-.055,0);e=vec3(3.25,.055,3.25);}
+  else if(m<2.5){center=vec3(0,.005,.78);e=vec3(2.08,.005,1.27);c.radius=.004;}
+  else if(m<3.5){center=vec3(0,1.58,-3.23);e=vec3(3.25,1.62,.045);}
+  else if(m<4.5){center=vec3(-3.23,1.58,0);e=vec3(.045,1.62,3.25);}
+  else if(m<5.5){center=vec3(3.23,1.58,0);e=vec3(.045,1.62,3.25);}
+  else if(m<6.5){center=vec3(0,3.18,0);e=vec3(3.25,.045,3.25);}
+  else if(m<7.5){center=vec3(uCube.x,.255+uCubeY,uCube.y);c.radius=.038;}
+  else if(m<8.5)c.radius=.045;
+  else if(m>9.5&&m<11.5)c.shape=2.;
+  else if(m>11.5&&m<12.5)c.shape=4.;
+  else if(m>12.5&&m<13.5){
+    // Light bars share a material, but their normals belong to one primitive.
+    float best=100.,d;c.radius=.012;
+    {vec3 origin=vec3(0,3.095,-1.65),size=vec3(1.95,.025,.032);d=sdRoundBox(p-origin,size,.012);if(includeCandidate(1301.)&&d<best){best=d;center=origin;e=size;c.key=1301.;}}
+    {vec3 origin=vec3(-1.95,3.095,-.40),size=vec3(.032,.025,1.30);d=sdRoundBox(p-origin,size,.012);if(includeCandidate(1302.)&&d<best){best=d;center=origin;e=size;c.key=1302.;}}
+    {vec3 origin=vec3(1.95,3.095,-.40),size=vec3(.032,.025,1.30);d=sdRoundBox(p-origin,size,.012);if(includeCandidate(1303.)&&d<best){best=d;center=origin;e=size;c.key=1303.;}}
+  }else if(m>13.5&&m<14.5){
+    float best=100.,d;c.radius=.020;
+    if(includeCandidate(1401.)){vec3 origin=vec3(0,.115,-3.155),size=vec3(3.18,.105,.045);d=abs(sdRoundBox(p-origin,size,.020));if(d<best){best=d;center=origin;e=size;c.key=1401.;}}
+    if(includeCandidate(1402.)){vec3 origin=vec3(-3.155,.115,0),size=vec3(.045,.105,3.18);d=abs(sdRoundBox(p-origin,size,.020));if(d<best){best=d;center=origin;e=size;c.key=1402.;}}
+    if(includeCandidate(1403.)){vec3 origin=vec3(3.155,.115,0),size=vec3(.045,.105,3.18);d=abs(sdRoundBox(p-origin,size,.020));if(d<best){best=d;center=origin;e=size;c.key=1403.;}}
+  }else if(m>14.5&&m<15.5){
+    vec3 wall=vec3(uTarget.x,.74+uTargetY,-3.185),ring=vec3(uTarget.x,.03+uTargetY,uTarget.y);
+    if(includeCandidate(1501.)&&(!includeCandidate(1502.)||sdRoundBox(p-wall,vec3(.58,.70,.030),.045)<sdRing(p-ring))){
+      center=wall;e=vec3(.58,.70,.030);c.radius=.045;c.key=1501.;
+    }else{center=ring;e=vec3(.515,.018,.515);c.shape=4.;c.key=1502.;}
+  }else if((m>15.5&&m<18.5)||(m>19.5&&m<20.5))c.shape=2.;
+  else if(m>18.5&&m<19.5){
+    c.radius=.018;
+    if(seed>20.){
+      c.shape=3.;
+      vec4 meta=seed<21.5?uRampMeta0:(seed<22.5?uRampMeta1:uRampMeta2);
+      c.ramp=vec4(2.*e.y,meta.yz,0.);
     }
-    return vec2(hi,h.y);
+  }else if(m>21.5)c.shape=2.;
+  if(m<6.5||(m>12.5&&m<14.5))c.pigmentOffset=center;
+  c.extent=e;c.origin=ro-center;c.direction=rd;
+  if(m>6.5&&m<7.5){vec4 iq=vec4(-uCubeQ.xyz,uCubeQ.w);c.origin=qrot(iq,c.origin);c.direction=qrot(iq,rd);}
+  return c;
+}
+float candidateBaseDistance(ReliefCandidate c,vec3 p){
+  if(c.shape>3.5)return sdRing(p);
+  if(c.shape>2.5)return rampObj(p+vec3(0,c.extent.y,0),vec4(0,0,c.extent.x*2.,c.extent.z*2.),c.ramp).x;
+  if(c.shape>1.5)return sdCyl(p,c.extent.x,c.extent.y);
+  return sdRoundBox(p,c.extent,c.radius);
+}
+float candidateReliefDistance(ReliefCandidate c,vec3 p,out float envelope){
+  envelope=candidateBaseDistance(c,p);
+  // Interior samples are already certain hits; evaluating their pigment is wasted.
+  if(envelope < -reliefDepth(c.material))return envelope;
+  return envelope+surfaceInset(c.material,p+c.pigmentOffset,c.extent,c.seed);
+}
+vec3 candidateNormal(ReliefCandidate c,float t){
+  vec3 p=c.origin+c.direction*t;vec2 d=vec2(.0022,0.);
+  vec3 n=normalize(vec3(candidateBaseDistance(c,p+d.xyy)-candidateBaseDistance(c,p-d.xyy),
+    candidateBaseDistance(c,p+d.yxy)-candidateBaseDistance(c,p-d.yxy),
+    candidateBaseDistance(c,p+d.yyx)-candidateBaseDistance(c,p-d.yyx)));
+  return c.material>6.5&&c.material<7.5?qrot(uCubeQ,n):n;
+}
+float candidateBoxExit(ReliefCandidate c,float t){
+  vec3 p=c.origin+c.direction*t,e=c.extent;
+  if(c.shape>2.5)e.y+=.025; // ramp's existing lower collision envelope
+  float span=MAX_DIST;
+  if(abs(c.direction.x)>.00001)span=min(span,(sign(c.direction.x)*e.x-p.x)/c.direction.x);
+  if(abs(c.direction.y)>.00001)span=min(span,(sign(c.direction.y)*e.y-p.y)/c.direction.y);
+  if(abs(c.direction.z)>.00001)span=min(span,(sign(c.direction.z)*e.z-p.z)/c.direction.z);
+  return t+max(span,0.);
+}
+// Never put mapScene/materialCoordinates in this call graph. POM samples ONLY the
+// cached primitive. Scene traversal resumes separately, only for a clipped edge.
+vec2 parallaxOcclusion(ReliefCandidate c,float entry){
+#if POM_STEPS > 0
+  float start=max(0.,entry-.002),end=candidateBoxExit(c,start);
+  float lo=start,hi=end,loD=1.,hiD=1.,t=start,envelope=1.;
+  bool refining=false;int refinements=0;
+  // A single sampling call site serves both layers and bracket refinement. This
+  // keeps WebGL 1 compilers from cloning the entire height tree for each phase.
+  for(int i=0;i<POM_STEPS+POM_REFINE;i++){
+    if(refining)t=mix(lo,hi,clamp(loD/max(loD-hiD,.000001),.1,.9));
+    else{
+      if(i>=POM_STEPS)break;
+      float f=float(i)/float(POM_STEPS-1);t=mix(start,end,f*f);
+    }
+    float d=candidateReliefDistance(c,c.origin+c.direction*t,envelope);
+    if(refining){
+      if(d>0.){lo=t;loD=d;}else{hi=t;hiD=d;}
+      refinements++;if(refinements>=POM_REFINE)break;
+    }else if(d<=0.){hi=t;hiD=d;refining=true;}
+    else{lo=t;loD=d;}
   }
-  // The finite foreground interval was crossed without a hit. Continue in the
-  // background, never resurrect the clipped foreground when the budget runs out.
-  return vec2(t,-1.);
+  if(refining)return vec2(mix(lo,hi,clamp(loD/max(loD-hiD,.000001),0.,1.)),c.material);
+  // Resume the shared scene marcher with this instance excluded. Starting at the
+  // entry also catches thin backgrounds overlapping its envelope; jumping to the
+  // AABB exit would skip them. Exclusions accumulate across bounded continuations.
+  return vec2(start,-1.);
 #endif
-  return baseHit;
+  return vec2(entry,c.material);
 }
 vec3 reliefGradient(float m,vec3 q,vec3 extent,float seed){
 #if POM_STEPS > 0
   if(reliefDepth(m)>0.){
-    float e=max(.0015,gReliefFootprint*.5);vec2 d=vec2(e,0.);
-    return vec3(surfaceInset(m,q+d.xyy,extent,seed)-surfaceInset(m,q-d.xyy,extent,seed),
-      surfaceInset(m,q+d.yxy,extent,seed)-surfaceInset(m,q-d.yxy,extent,seed),
-      surfaceInset(m,q+d.yyx,extent,seed)-surfaceInset(m,q-d.yyx,extent,seed))/(2.*e);
+    float e=max(.0015,gReliefFootprint*.5);vec3 gradient=vec3(0);
+    // Preserve the six central-difference samples with ONE height call site.
+    // Six written-out calls force WebGL 1 backends to inline the entire field six
+    // times; a bounded sampling loop keeps both runtime and compilation compact.
+    for(int i=0;i<6;i++){
+      vec3 axis=i<2?vec3(1,0,0):(i<4?vec3(0,1,0):vec3(0,0,1));
+      float side=mod(float(i),2.)<.5?1.:-1.;
+      gradient+=axis*side*surfaceInset(m,q+axis*(side*e),extent,seed);
+    }
+    return gradient/(2.*e);
   }
 #endif
   return vec3(0);
@@ -468,6 +513,34 @@ float reliefVisibility(float m,vec3 p,vec3 n,vec3 light){
   }
 #endif
   return 1.;
+}
+// One height-field call site serves the primary normal and both relief shadows.
+// Coordinates and directions are already local to the selected object.
+void reliefLighting(float m,vec3 q,vec3 extent,float seed,vec3 normal,vec3 keyLight,vec3 rimLight,out vec3 gradient,out vec2 visibility){
+  gradient=vec3(0);visibility=vec2(1);
+#if POM_STEPS > 0
+  if(reliefDepth(m)>0.){
+    float stepSize=max(.0015,gReliefFootprint*.5),center=0.;vec2 shadow=vec2(1);
+    for(int i=0;i<15;i++){
+      vec3 axis=vec3(0),samplePoint=q,light=keyLight;float side=1.,distance=0.;
+      if(i>0&&i<7){
+        axis=i<3?vec3(1,0,0):(i<5?vec3(0,1,0):vec3(0,0,1));
+        side=mod(float(i-1),2.)<.5?1.:-1.;samplePoint=q+axis*(side*stepSize);
+      }else if(i>=7){
+        light=i<11?keyLight:rimLight;distance=float(i<11?i-6:i-10)*.004;
+        samplePoint=q+light*distance;
+      }
+      float height=surfaceInset(m,samplePoint,extent,seed);
+      if(i==0)center=height;
+      else if(i<7)gradient+=axis*(side*height);
+      else{
+        float visible=smoothstep(-.0015,.0005,dot(normal,light)*distance+height-center);
+        if(i<11)shadow.x=min(shadow.x,visible);else shadow.y=min(shadow.y,visible);
+      }
+    }
+    gradient/=2.*stepSize;visibility=mix(vec2(.4),vec2(1),shadow);
+  }
+#endif
 }
 void woodMaterial(MAT_ARGS){
   vec2 uv=faceUV(p,n),local,id;woodBoardCoordinates(uv,local,id);
@@ -675,7 +748,7 @@ void surfaceMaterial(float m,vec3 p,vec3 geometric,out vec3 albedo,out float rou
   else if(a.x>=a.z){t=vec3(0,0,1);b=vec3(0,1,0);}
   else{t=vec3(1,0,0);b=vec3(0,1,0);}
   vec3 slope=t*relief.x+b*relief.y;slope-=ng*dot(ng,slope);
-  vec3 gradient=reliefGradient(m,q,extent,seed);gradient-=ng*dot(ng,gradient);
+  vec3 gradient=${pass==='shade'?'gSurfaceGradient':'reliefGradient(m,q,extent,seed)'};gradient-=ng*dot(ng,gradient);
   normal=normalize(ng-slope+gradient);if(cube)normal=qrot(uCubeQ,normal);
   vec4 paint=materialVertexColor(m,q,extent,seed);
   rough+=paint.a*.025;layers.y*=1.-paint.a*.08;
@@ -758,14 +831,59 @@ vec3 quickMat(float m,vec3 p){
 }
 // mediump hit tolerance tracks representable ray distance, preventing stalled steps and holes.
 vec2 marchEnvelope(vec3 ro,vec3 rd){float t=0.;for(int i=0;i<STEPS;i++){vec2 h=mapScene(ro+rd*t);if(h.x<${portable?'max(SURF_DIST,t*.0012)':'SURF_DIST'})return vec2(t,h.y);if(t>MAX_DIST)break;t+=h.x*.80;}return vec2(t,0.);}
+// A normal scene march, invoked only AFTER candidate refinement failed. The
+// rejected instance is excluded from the existing union, not copied into a second
+// scene graph. No tiny blind steps, AABB jumps, or foreground resurrection.
+vec2 marchFrom(vec3 ro,vec3 rd,float startT){
+  float t=startT;
+  for(int i=0;i<STEPS;i++){
+    vec2 h=mapScene(ro+rd*t);
+    if(h.x<SURF_DIST)return vec2(t,h.y);
+    if(t>MAX_DIST)break;t+=h.x*.80;
+  }
+  return vec2(t,0.);
+}
 vec2 march(vec3 ro,vec3 rd){
+  gExcludedCandidates=vec3(0);gHitNormalValid=false;gHitMaterial=0.;gHitKey=0.;
   vec2 base=marchEnvelope(ro,rd);
 #if POM_STEPS > 0
-  if(base.y>.5&&gRayCone>0.)gReliefFootprint=clamp(base.x*gRayCone/max(abs(dot(normalAt(ro+rd*base.x),rd)),.22),.0005,.10);
+  // Bound sequential silhouette continuations too. A third/fourth surface uses its
+  // envelope. Retain every rejected key until done so a later miss cannot revive it.
+  for(int candidateIndex=0;candidateIndex<${q.detail===3?3:2};candidateIndex++){
+    if(base.y<.5||reliefDepth(base.y)<=0.)break;
+    ReliefCandidate c=reliefCandidate(ro,rd,base);
+    vec3 n=candidateNormal(c,base.x);
+    if(gRayCone>0.)gReliefFootprint=clamp(base.x*gRayCone/max(abs(dot(n,rd)),.22),.0005,.10);
+    vec2 hit=parallaxOcclusion(c,base.x);
+    if(hit.y>0.){
+      gHitNormal=candidateNormal(c,hit.x);gHitNormalValid=true;base=hit;
+      gHitPoint=ro+rd*hit.x;gHitCoordinates=c.origin+c.direction*hit.x+c.pigmentOffset;
+      gHitExtent=c.extent;gHitSeed=c.seed;gHitMaterial=hit.y;gHitKey=c.key;break;
+    }
+    gExcludedCandidates=vec3(c.key,gExcludedCandidates.xy);
+    base=marchFrom(ro,rd,hit.x);
+  }
 #endif
-  vec2 hit=parallaxOcclusion(ro,rd,base);
-  if(hit.y<0.){vec2 background=marchEnvelope(ro+rd*hit.x,rd);return vec2(hit.x+background.x,background.y);}
-  return hit;
+  // Resolve the fallback normal at one call site, before restoring exclusions.
+  // Calling normalAt again in main clones six full scene unions in WebGL 1
+  // compilers even though a pixel only needs one geometric normal.
+  if(base.y>.5&&base.x<MAX_DIST&&!gHitNormalValid){
+    gHitPoint=ro+rd*base.x;
+#if POM_STEPS > 0
+    // All primary high-quality normals use the already selected primitive. A
+    // six-query scene normal would clone the complete union in the GPU compiler.
+    ReliefCandidate c=reliefCandidate(ro,rd,base);gHitNormal=candidateNormal(c,base.x);gHitKey=c.key;
+#else
+    gHitNormal=normalAt(gHitPoint);
+#endif
+    gHitNormalValid=true;
+    if(gExcludedCandidates.x>0.){
+      materialCoordinates(base.y,gHitPoint,gHitCoordinates,gHitExtent,gHitSeed);gHitMaterial=base.y;
+    }
+  }
+  // Secondary rays, normals and all subsequent scene queries see the original union.
+  gExcludedCandidates=vec3(0);
+  return base;
 }
 vec3 reflectionProbe(vec3 ro,vec3 rd,float rough){
   float t=.025;vec3 fallback=environment(rd,rough);
@@ -814,21 +932,29 @@ vec3 zoneSpill(vec3 p,vec3 n,vec4 z){
   return lightSpill(p,n,vec3(z.x,.12,z.y),color,.25);
 }
 vec3 shade(vec3 p,vec3 geometric,float m,vec3 rd){
+  vec3 lp=vec3(0,3.045,-.70),ld=lp-p,rim=vec3(1.92,3.04,-1.15),rl=rim-p;
+  ${pass==='shade'?`
+  vec3 localPoint,extent,localNormal=geometric,keyLight=normalize(ld),rimLight=normalize(rl);float seed;
+  materialCoordinates(m,p,localPoint,extent,seed);
+  if(m>6.5&&m<7.5){vec4 iq=vec4(-uCubeQ.xyz,uCubeQ.w);localNormal=qrot(iq,geometric);keyLight=qrot(iq,keyLight);rimLight=qrot(iq,rimLight);}
+  vec2 reliefLightVisibility;
+  reliefLighting(m,localPoint,extent,seed,localNormal,keyLight,rimLight,gSurfaceGradient,reliefLightVisibility);
+  `:''}
   vec3 n,albedo,emit;float rough,spec;vec4 layers;surfaceMaterial(m,p,geometric,albedo,rough,spec,emit,layers,n);
   vec3 v=-rd;float metallic=layers.x,amb=ao(p,geometric),nv=max(dot(n,v),0.);
   vec3 f0=mix(vec3(clamp(.024+spec*.075,.025,.065)),albedo,metallic),f=fresnelSchlick(f0,nv);
   float coat=layers.y,coatRough=layers.z;
   vec3 key=vec3(1.,.86,.68)+vec3(uLook.y,0.,-uLook.y);
-  vec3 lp=vec3(0,3.045,-.70),ld=lp-p;float visibility=softShadow(p+geometric*.009,normalize(ld),.014,length(ld)-.04);
-  visibility*=reliefVisibility(m,p,geometric,normalize(ld));
+  float visibility=softShadow(p+geometric*.009,normalize(ld),.014,length(ld)-.04);
+  visibility*=${pass==='shade'?'reliefLightVisibility.x':'reliefVisibility(m,p,geometric,normalize(ld))'};
   vec3 col=albedo*(1.-metallic)*(1.-f)*roomBounce(p,geometric)*amb;
   col+=direct(p,n,v,lp,key,5.7,rough,f0,albedo,metallic,visibility,coat,coatRough,geometric);
   col+=direct(p,n,v,vec3(-1.80,2.60,3.0),vec3(.72,.82,1.),2.2,rough,f0,albedo,metallic,.85,coat,coatRough,geometric);
-  vec3 rim=vec3(1.92,3.04,-1.15),rl=rim-p;float rimShadow=1.;
+  float rimShadow=1.;
 #if DETAIL_LEVEL >= 2
   rimShadow=softShadow(p+geometric*.009,normalize(rl),.014,length(rl)-.04);
 #endif
-  rimShadow*=reliefVisibility(m,p,geometric,normalize(rl));
+  rimShadow*=${pass==='shade'?'reliefLightVisibility.y':'reliefVisibility(m,p,geometric,normalize(rl))'};
   col+=direct(p,n,v,rim,vec3(1.,.86,.69),1.7,rough,f0,albedo,metallic,rimShadow,coat,coatRough,geometric);
   col+=albedo*layers.w*pow(1.-nv,4.)*roomBounce(p,geometric)*amb;
   col*=.88+.12*amb;
@@ -903,6 +1029,11 @@ vec3 cameraRay(vec2 frag,out vec3 ro){
   return normalize(uu*uv.x+vv*uv.y+ww*fov);
 }
 vec3 aces(vec3 x){const float a=2.51,b=.03,c=2.43,d=.59,e=.14;return clamp((x*(a*x+b))/(x*(c*x+d)+e),0.,1.);}
+// RGBA8 is universally renderable in WebGL 1. Depth16 spans 24 world units
+// (maximum rounding error .183mm, below the 1mm primary tolerance); key16 retains
+// the exact selected instance, including backgrounds exposed by a silhouette.
+vec2 packSurfaceWord(float word){return vec2(floor(word/256.),mod(word,256.))/255.;}
+float unpackSurfaceWord(vec2 bytes){return dot(floor(bytes*255.+.5),vec2(256.,1.));}
 void main(){
   vec3 ro,rd=cameraRay(gl_FragCoord.xy,ro);
   // Derivatives are evaluated in uniform control flow, never in a material branch.
@@ -911,9 +1042,30 @@ void main(){
   rayCone=max(rayCone,length(fwidth(rd))*.5);
 #endif
   gRayCone=rayCone;
-  vec2 hit=march(ro,rd);vec3 col=vec3(.018,.024,.032);
+  ${pass==='surface'?`
+  vec2 hit=march(ro,rd);float key=hit.y>.5&&hit.x<MAX_DIST?gHitKey:0.;
+  float depth=floor(clamp(hit.x/MAX_DIST,0.,1.)*65535.+.5);
+  gl_FragColor=vec4(packSurfaceWord(depth),packSurfaceWord(key));
+}`:`
+  ${pass==='shade'?`
+  vec4 surface=texture2D(uSurfaceHits,gl_FragCoord.xy/uRes);
+  float key=unpackSurfaceWord(surface.ba);
+  float depth=unpackSurfaceWord(surface.rg)*MAX_DIST/65535.;
+  vec2 hit=vec2(depth,floor(key/100.));
+  if(key>0.){
+    // Select the recorded instance, not a foreground with the same material.
+    // Secondary rays regain the complete union immediately after this lookup.
+    gForcedCandidate=key;ReliefCandidate c=reliefCandidate(ro,rd,hit);
+    gHitNormal=candidateNormal(c,hit.x);gHitNormalValid=true;
+    gHitPoint=ro+rd*hit.x;gHitCoordinates=c.origin+c.direction*hit.x+c.pigmentOffset;
+    gHitExtent=c.extent;gHitSeed=c.seed;gHitMaterial=hit.y;gHitKey=key;
+    gForcedCandidate=0.;
+    gReliefFootprint=clamp(hit.x*rayCone/max(abs(dot(gHitNormal,rd)),.22),.0005,.10);
+  }
+  `:'vec2 hit=march(ro,rd);'}
+  vec3 col=vec3(.018,.024,.032);
   if(hit.y>.5&&hit.x<MAX_DIST){
-    vec3 p=ro+rd*hit.x,geometric=normalAt(p);
+    vec3 p=ro+rd*hit.x,geometric=gHitNormal;
     gFootprint=clamp(hit.x*rayCone/max(abs(dot(geometric,rd)),.22),.0005,.10);
     col=shade(p,geometric,hit.y,rd);
   }
@@ -926,5 +1078,6 @@ void main(){
   // Fine, static display-space dither: no time-dependent film-grain crawling.
   outputColor+=(hash(gl_FragCoord.xy)-.5)*${tier==='cinematic'?'.0007':'.0012'};
   gl_FragColor=vec4(clamp(outputColor,0.,1.),1.);
-}`;
+}`}
+`;
 }
