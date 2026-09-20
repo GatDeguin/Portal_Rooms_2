@@ -14,7 +14,9 @@ test('wood has one shared anatomical field for growth rings, fibre and pores',()
 test('wood detail has per-board identity and footprint-aware latewood filtering',()=>{
  assert.match(fragmentShader('cinematic'),/float woodRingFilter\(/);
  assert.match(fragmentShader('cinematic'),/woodBoardCoordinates\(/);
- const body=block('float woodRingFilter(', 'void carpetMaterial(');
+ // Only timber evaluators belong to this guard; the intervening silhouette
+ // height cache may sample its GPU lattice without texturing the wood anatomy.
+ const body=block('float woodRingFilter(', '// A virtual color lattice')+block('void woodMaterial(', 'void carpetMaterial(')+block('void platformMaterial(', 'void jumpMaterial(');
  assert.doesNotMatch(body,/effectTime\(|uTime|texture2D|mapScene\(|fwidth\(/);
 });
 test('wood change preserves all non-timber evaluators byte for byte',()=>{

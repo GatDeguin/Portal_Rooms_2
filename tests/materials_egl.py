@@ -1,17 +1,20 @@
 #!/usr/bin/env python3
-"""Execute production material/BRDF functions through native EGL/GLES.
-Not a GPU/browser test. Test-only main() replacement does not alter shipped geometry.
+"""Execute production material/BRDF functions through EGL or --webgl Chromium.
+Test-only main() replacement does not alter shipped geometry.
 """
-import json, subprocess, sys
+import argparse, json, subprocess, sys
 from pathlib import Path
 import numpy as np
 from PIL import Image
 ROOT=Path(__file__).resolve().parents[1]
 OUT=ROOT/'test-results'/'materials'
 def main():
+    parser=argparse.ArgumentParser()
+    parser.add_argument('--webgl',action='store_true',help='Run identical material diagnostics via Chromium WebGL instead of native EGL')
+    args=parser.parse_args()
     OUT.mkdir(parents=True,exist_ok=True)
     packet=OUT/'packet.json';packet.write_bytes(subprocess.check_output(['node','tests/export-material-fixtures.mjs'],cwd=ROOT))
-    subprocess.run([sys.executable,'tests/shaders_egl.py','--packet',str(packet),'--output',str(OUT)],cwd=ROOT,check=True)
+    subprocess.run([sys.executable,'tests/shaders_egl.py','--packet',str(packet),'--output',str(OUT)]+(['--webgl'] if args.webgl else []),cwd=ROOT,check=True)
     checks=[]
     def check(label,condition,**data):
         assert condition,(label,data)
@@ -45,5 +48,5 @@ def main():
         check(name+' white-furnace energy is bounded',bool(energy.min()>.15 and energy.max()<1.07),minimum=float(energy.min()),maximum=float(energy.max()))
     wear=image('wear')[:,:,0]/255
     check('hero paint has sparse subtle wear rather than broad exposed metal',bool(wear.max()<=.20 and wear.mean()<.02),maximum=float(wear.max()),mean=float(wear.mean()))
-    (OUT/'checks.json').write_text(json.dumps({'status':'passed','backend':'native EGL/GLES material diagnostics, not physical GPU','checks':checks},indent=2))
+    (OUT/'checks.json').write_text(json.dumps({'status':'passed','backend':'Chromium WebGL material diagnostics via ANGLE SwiftShader (software; not physical GPU)' if args.webgl else 'native EGL/GLES material diagnostics, not physical GPU','checks':checks},indent=2))
 if __name__=='__main__':main()

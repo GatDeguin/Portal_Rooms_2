@@ -118,4 +118,6 @@ for(const precision of ['highp','mediump']){
  const key='hits-'+precision;fragments[key]=replaceMain(fragmentShader('low',precision),hitMain);
  const f={...structuredClone(template),name:key,tier:key,width:160,height:90,diagnostic:true};f.uniforms.uRes.args=[160,90];fixtures.push(f);
 }
-console.log(JSON.stringify({vertex:packet.vertex,fragments,fixtures,comparisons:[]}));
+// These custom mains call combined shader helpers directly; never attach a surface pass.
+const surfaceFragments=Object.fromEntries(Object.entries(packet.surfaceFragments??{}).filter(([key])=>fragments[key]===packet.fragments[key]));
+console.log(JSON.stringify({vertex:packet.vertex,fragments,surfaceFragments,fixtures,comparisons:[],reliefNoise:packet.reliefNoise}));

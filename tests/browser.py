@@ -3,7 +3,7 @@
 The offline import map loads the delivered modules without HTTP navigation.
 Storage and orientation APIs are test adapters, not physical-device validation.
 """
-import argparse
+import argparse,os
 import base64
 import json
 import re
@@ -14,9 +14,16 @@ OUT=ROOT/'test-results'/'browser'
 STUB=r"""
 (() => {
  const original=HTMLCanvasElement.prototype.getContext;let next=1;const constants=new Map();window.__glCalls={draws:0,programs:0};
+ const timer={TIME_ELAPSED_EXT:37300,QUERY_RESULT_AVAILABLE_EXT:37301,QUERY_RESULT_EXT:37302,GPU_DISJOINT_EXT:37303,createQueryEXT:()=>({}),beginQueryEXT(){},endQueryEXT(){},deleteQueryEXT(){},getQueryObjectEXT:(q,p)=>p===37301?true:1000000};
  const gl=new Proxy({}, {get:(_,key)=>{
+  if(key==='checkFramebufferStatus')return ()=>gl.FRAMEBUFFER_COMPLETE;
+  if(key==='shaderSource')return (shader,source)=>shader.source=source;
+  if(key==='attachShader')return (program,shader)=>(program.shaders??=[]).push(shader);
   if(key==='getShaderPrecisionFormat')return ()=>({precision:23});
-  if(key==='getParameter')return ()=>[16384,16384];
+  if(key==='getParameter')return p=>p===37303?false:[16384,16384];
+  if(key==='NO_ERROR')return 0;
+  if(key==='getError')return ()=>0;
+  if(key==='getExtension')return name=>name==='KHR_parallel_shader_compile'?{COMPLETION_STATUS_KHR:37297}:name==='EXT_disjoint_timer_query'?timer:null;
   if(key==='getShaderParameter'||key==='getProgramParameter')return ()=>true;
   if(key==='getShaderInfoLog'||key==='getProgramInfoLog')return ()=>'';
   if(key==='getAttribLocation')return ()=>0;
@@ -54,7 +61,7 @@ def load_page(page,ui_only,reload=False,blocked=False,fallback=False):
     page.set_content(offline_html(),wait_until='load')
     if ui_only and not fallback:page.evaluate('window.__addTestBadge?.()')
 def main():
-    parser=argparse.ArgumentParser();parser.add_argument('--ui-only',action='store_true');parser.add_argument('--chromium',default='/usr/bin/chromium');args=parser.parse_args();OUT.mkdir(parents=True,exist_ok=True)
+    parser=argparse.ArgumentParser();parser.add_argument('--ui-only',action='store_true');parser.add_argument('--chromium',default=os.environ.get('CHROMIUM_PATH','/usr/bin/chromium'));args=parser.parse_args();OUT.mkdir(parents=True,exist_ok=True)
     checks=[];errors=[];shots=[]
     def check(name,condition=True):
         assert condition,name
@@ -65,8 +72,10 @@ def main():
     report={'mode':'ui-only' if args.ui_only else 'webgl','checks':checks,'screenshots':shots,'errors':errors,'transport':'offline import map','storage':'in-memory adapter','sensors':'synthetic orientation and permissions','goal_checks':'UI state fixtures, not route completion evidence'}
     try:
       with sync_playwright() as p:
-        browser=p.chromium.launch(executable_path=args.chromium,headless=True,args=['--no-sandbox','--disable-dev-shm-usage','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader'])
-        probe=browser.new_page();report['browser_webgl_available']=probe.evaluate("() => Boolean(document.createElement('canvas').getContext('webgl'))");probe.close()
+        browser=p.chromium.launch(executable_path=args.chromium,headless=True,args=['--no-sandbox','--disable-dev-shm-usage']+(['--disable-gpu','--disable-software-rasterizer'] if args.ui_only else ['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']))
+        report['browser_webgl_available']=None
+        if not args.ui_only:
+            probe=browser.new_page();report['browser_webgl_available']=probe.evaluate("() => Boolean(document.createElement('canvas').getContext('webgl'))");probe.close()
         if not args.ui_only and not report['browser_webgl_available']:raise RuntimeError('WebGL unavailable. Run --ui-only explicitly; do not count it as renderer validation.')
         context=browser.new_context(viewport={'width':1100,'height':760});page=context.new_page();observe(page);load_page(page,args.ui_only);phase(page,'menu');page.evaluate(INSTRUMENT)
         check('start screen is actionable and contains 42-room progress',page.locator('#startBtn').is_visible() and '42' in page.locator('#startProgress').inner_text());shot(page,'desktop-start')

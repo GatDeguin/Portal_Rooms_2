@@ -64,7 +64,8 @@ export class UI {
     this.pendingQuality=mode;
     this.el('quality').setAttribute('aria-busy',String(mode!==null));
     this.el('cancelQualityBtn').hidden=mode===null;
-    this.text('qualityState',message);
+    this.text('qualityState',message);this.text('startupQualityState',message);
+    const cancel=this.el('startupCancelQualityBtn');if(cancel)cancel.hidden=mode===null;
   }
   sensor(status){this.text('sensorStatus',SENSOR_MESSAGES[status]??SENSOR_MESSAGES.manual);this.text('controlMode',status==='active'?'Inclinación activa':status==='calibrating'?'Calibrando…':'Control manual');}
   campaignUpdate(engine,store){

@@ -3,7 +3,7 @@
 Slow compiler work runs synchronously in the worker to reproduce the UI hazard.
 This does not validate a GPU, shader output, or physical-device performance.
 """
-import base64,json,re
+import base64,json,re,os
 from pathlib import Path
 from playwright.sync_api import sync_playwright
 import browser as flows
@@ -17,6 +17,7 @@ self.OffscreenCanvas=class extends NativeCanvas {
     if(kind!=='webgl')return super.getContext(kind,...args);
     const ctx=super.getContext('2d');let n=1;const constants=new Map();
     return new Proxy({}, {get:(_,key)=>{
+      if(key==='checkFramebufferStatus')return ()=>{if(!constants.has('FRAMEBUFFER_COMPLETE'))constants.set('FRAMEBUFFER_COMPLETE',n++);return constants.get('FRAMEBUFFER_COMPLETE');};
       if(key==='NO_ERROR')return 0;
       if(key==='getError')return ()=>0;
       if(key==='getExtension')return ()=>null;
@@ -53,7 +54,7 @@ def html():
     for path in (ROOT/'src').glob('*.js'):
         src=path.read_text()
         src=src.replace("new URL('./renderer-worker.js',import.meta.url)",json.dumps(url))
-        if path.name=='renderer-client.js':src=src.replace('timeoutMs=12000','timeoutMs=1000')
+        if path.name=='renderer-client.js':src=src.replace('RENDER_TIMEOUTS.frame','1000').replace('preparationTimeout(tier??quality)','1000')
         src=re.sub(r"from (['\"])\./([^'\"]+)\1",r"from 'portal/\2'",src)
         imports['portal/'+path.name]=data_url(src)
     text=(ROOT/'index.html').read_text().replace('<link rel="stylesheet" href="./styles/game.css">','<style>'+(ROOT/'styles/game.css').read_text()+'</style>')
@@ -66,7 +67,7 @@ def main():
     report={'backend':'Chromium with real worker and simulated slow WebGL driver','checks':checks,'errors':errors}
     try:
       with sync_playwright() as p:
-        b=p.chromium.launch(executable_path='/usr/bin/chromium',headless=True,args=['--no-sandbox','--disable-dev-shm-usage'])
+        b=p.chromium.launch(executable_path=os.environ.get('CHROMIUM_PATH','/usr/bin/chromium'),headless=True,args=['--no-sandbox','--disable-dev-shm-usage','--disable-gpu','--disable-software-rasterizer'])
         page=b.new_page(viewport={'width':1100,'height':760});page.on('pageerror',lambda e:errors.append(str(e)))
         page.goto('about:blank');page.evaluate('''() => {
           const map=new Map([['roomTiltGame.settings.v2',JSON.stringify({quality:'low'})]]);
@@ -88,7 +89,7 @@ def main():
         page.locator('#startSettingsBtn').click();page.locator('#tab-scene').click();page.locator('#quality').select_option('high')
         page.wait_for_function("JSON.parse(localStorage.getItem('roomTiltGame.settings.v2')).quality==='high'")
         check('successful preparation saves exactly the chosen quality');check('quality changes do not touch progress',before==page.evaluate("localStorage.getItem('roomTiltGame.progress.v2')"))
-        check('menu changes do not submit full-resolution scene frames',frames==page.evaluate('__frames'))
+        check('menu changes validate candidates without starting a continuous frame loop',frames==page.evaluate('__frames'))
         page.locator('#quality').select_option('cinematic');page.wait_for_function("document.getElementById('quality').getAttribute('aria-busy')==='false'")
         check('failed compilation restores the previous choice',page.locator('#quality').input_value()=='high' and page.evaluate("JSON.parse(localStorage.getItem('roomTiltGame.settings.v2')).quality")=='high')
         page.locator('#quality').select_option('medium');page.wait_for_timeout(1200)
@@ -110,13 +111,14 @@ def main():
         fallback.evaluate("""() => {const map=new Map([['roomTiltGame.settings.v2',JSON.stringify({quality:'cinematic'})]]);Object.defineProperty(window,'localStorage',{configurable:true,value:{getItem:k=>map.get(k)??null,setItem:(k,v)=>map.set(k,String(v))}});}""")
         fallback.evaluate(flows.STUB);fallback.set_content(html(),wait_until='load')
         fallback.wait_for_function("document.getElementById('app').dataset.phase==='menu'")
-        check('failed saved quality boots safely in low instead of recompiling cinematic on the UI thread',fallback.evaluate("JSON.parse(localStorage.getItem('roomTiltGame.settings.v2')).quality==='low'"))
+        fallback.locator('#startSettingsBtn').click();fallback.locator('#tab-scene').click()
+        check('failed saved quality boots visibly in low while preserving the saved preference',fallback.evaluate("JSON.parse(localStorage.getItem('roomTiltGame.settings.v2')).quality==='cinematic'") and 'Baja' in fallback.locator('#qualityActual').inner_text() and 'preferencia' in fallback.locator('#qualityState').inner_text())
         fallback.close()
         # Exercise the main-thread KHR path independently of the worker path.
         parallel=b.new_page();parallel.on('pageerror',lambda e:errors.append(str(e)));parallel.goto('about:blank')
         parallel.evaluate("""() => {window.Worker=undefined;window.__busyCompiler=false;window.__beats=0;setInterval(()=>window.__beats++,10);const map=new Map([['roomTiltGame.settings.v2',JSON.stringify({quality:'low'})]]);Object.defineProperty(window,'localStorage',{configurable:true,value:{getItem:k=>map.get(k)??null,setItem:(k,v)=>map.set(k,String(v))}});}""")
         parallel.evaluate(flows.STUB)
-        parallel.evaluate("""() => {const original=HTMLCanvasElement.prototype.getContext;HTMLCanvasElement.prototype.getContext=function(type,...args){const gl=original.call(this,type,...args);if(type!=='webgl')return gl;return new Proxy(gl,{get:(g,key)=>{if(key==='getExtension')return name=>name==='KHR_parallel_shader_compile'?{COMPLETION_STATUS_KHR:37297}:null;if(key==='getProgramParameter')return (p,param)=>{if(param===37297)return !window.__busyCompiler;if(window.__busyCompiler)throw Error('blocking link query');return true;};if(key==='getShaderParameter')return ()=>{if(window.__busyCompiler)throw Error('blocking shader query');return true;};return g[key];}});};}""")
+        parallel.evaluate("""() => {const original=HTMLCanvasElement.prototype.getContext;HTMLCanvasElement.prototype.getContext=function(type,...args){const gl=original.call(this,type,...args);if(type!=='webgl')return gl;return new Proxy(gl,{get:(g,key)=>{if(key==='getExtension')return name=>name==='KHR_parallel_shader_compile'?{COMPLETION_STATUS_KHR:37297}:g.getExtension(name);if(key==='getProgramParameter')return (p,param)=>{if(!p.shaders?.some(s=>s.source?.includes('#define STEPS')))return true;if(param===37297)return !window.__busyCompiler;if(window.__busyCompiler)throw Error('blocking link query');return true;};if(key==='getShaderParameter')return shader=>{if(!shader.source?.includes('#define STEPS'))return true;if(window.__busyCompiler)throw Error('blocking shader query');return true;};return g[key];}});};}""")
         parallel.set_content(html(),wait_until='load');parallel.wait_for_function("document.getElementById('app').dataset.phase==='menu'")
         parallel.locator('#startSettingsBtn').click();parallel.locator('#tab-scene').click();parallel.evaluate('window.__busyCompiler=true')
         heart=parallel.evaluate('__beats');parallel.locator('#quality').select_option('high');parallel.wait_for_timeout(130)

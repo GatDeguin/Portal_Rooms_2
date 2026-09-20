@@ -3,7 +3,7 @@
   "version": "4.0.0",
   "private": true,
   "type": "module",
-  "description": "42 salas: Dominio de la gravedad y presentación Cinemática",
+  "description": "42 salas: Dominio de la gravedad y presentaciÃ³n CinemÃ¡tica",
   "scripts": {
     "test": "node --test tests/*.test.js",
     "check": "node scripts/check.mjs",
@@ -15,7 +15,12 @@
     "test:render": "python3 tests/shaders_egl.py",
     "test:static": "python3 scripts/verify-static.py",
     "test:quality": "python3 tests/quality-browser.py",
-    "test:materials": "python3 tests/materials_egl.py"
+    "test:materials": "python3 tests/materials_egl.py",
+    "test:relief": "node tests/relief-webgl.mjs",
+    "test:stability": "node tests/render-stability-browser.mjs",
+    "test:webgl": "python3 tests/shaders_egl.py --webgl",
+    "test:materials:webgl": "python3 tests/materials_egl.py --webgl",
+    "benchmark:render": "node tests/render-benchmark.mjs"
   },
   "engines": {
     "node": ">=22"

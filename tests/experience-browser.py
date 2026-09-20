@@ -3,7 +3,7 @@
 WebGL is explicitly stubbed; clock scheduling and storage are test adapters.
 This validates gameplay/UI integration, not browser rendering or physical sensors.
 """
-import argparse,json,subprocess
+import argparse,json,subprocess,os
 from pathlib import Path
 from playwright.sync_api import sync_playwright
 from browser import ROOT,STUB,offline_html
@@ -48,7 +48,7 @@ def main():
     report={'mode':'DOM gameplay replay; WebGL explicitly simulated','clock':'controlled requestAnimationFrame; production fixed-step engine and InputController','storage':'in-memory adapter seeded before spawn','sensor_validation':False,'checks':checks,'errors':errors}
     try:
       with sync_playwright() as p:
-        browser=p.chromium.launch(executable_path='/usr/bin/chromium',headless=True,args=['--no-sandbox','--disable-dev-shm-usage'])
+        browser=p.chromium.launch(executable_path=os.environ.get('CHROMIUM_PATH','/usr/bin/chromium'),headless=True,args=['--no-sandbox','--disable-dev-shm-usage','--disable-gpu','--disable-software-rasterizer'])
         context=browser.new_context(viewport={'width':1000,'height':720},reduced_motion='reduce');page=context.new_page();page.on('pageerror',lambda error:errors.append(str(error)))
         html=offline_html()
         for run in runs:
