@@ -32,6 +32,10 @@ WASD o flechas inclinan; Escape pausa, R reinicia y H muestra la pista de la sal
 
 La partida se pausa al perder foco. Los menús detienen la simulación. Movimiento reducido y efectos desactivados afectan la decoración, no el transporte ni las compuertas.
 
+## Relieve y color de materiales
+
+Alta y Cinemática incorporan relieve con silueta, intersección de mapas de profundidad procedurales y autooclusión local. Todos los perfiles incorporan variación de color interpolada en el espacio de cada objeto, equivalente a vertex paint para este renderer sin mallas. Configuración, límites y prueba WebGL: [docs/RELIEF.md](docs/RELIEF.md).
+
 ## Pruebas
 
 Node.js 22 o posterior:

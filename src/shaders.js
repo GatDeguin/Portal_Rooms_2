@@ -34,8 +34,13 @@ ${uniforms('uBump',3)}
 #define REFLECTION_SAMPLES ${portable?1:q.reflectionSamples}
 #define PORTAL_LAYERS ${portable?Math.min(q.portalLayers,3):q.portalLayers}
 #define HAS_DERIVATIVES ${derivatives?1:0}
+// Inward-only relief preserves the collision envelope. Half precision uses bump only.
+#define POM_STEPS ${portable||q.detail<2?0:q.detail===2?40:64}
+#define POM_REFINE ${q.detail===3?6:4}
 const float PI=3.14159265;
 float gFootprint=.002;
+float gReliefFootprint=.002;
+float gRayCone=0.;
 float effectTime(){return uTime*uLook.w;}
 // Bounded arithmetic also works with mediump: no enormous sine/hash products.
 float hash(vec2 p){p=mod(p,251.);return fract(17.*fract(p.x*.1031+p.y*.11369)*fract(p.y*.13787+p.x*.09987));}
@@ -103,7 +108,7 @@ vec2 mapScene(vec3 p){
 }
 vec3 normalAt(vec3 p){vec2 e=vec2(.0022,0.);return normalize(vec3(mapScene(p+e.xyy).x-mapScene(p-e.xyy).x,mapScene(p+e.yxy).x-mapScene(p-e.yxy).x,mapScene(p+e.yyx).x-mapScene(p-e.yyx).x));}
 
-// Shading never changes mapScene: silhouette, physical size and ramp contracts stay intact.
+// mapScene remains the collision envelope; primary rays refine its visible surface below.
 vec3 cubeLocal(vec3 p){return qrot(vec4(-uCubeQ.xyz,uCubeQ.w),p-vec3(uCube.x,.255+uCubeY,uCube.y));}
 float cubeEdge(vec3 local){vec3 a=abs(local);float middle=a.x+a.y+a.z-min(a.x,min(a.y,a.z))-max(a.x,max(a.y,a.z));return smoothstep(.185,.232,middle);}
 float softShadow(vec3 ro,vec3 rd,float mint,float maxt){
@@ -147,7 +152,7 @@ vec3 portalEnergy(vec3 p,vec3 rd){
   }
   return vec3(.025,.85,.34)*(.10+energy*1.85)+vec3(.08,1.3,.66)*rim*.75;
 }
-// Authored Materials V2. Microstructure belongs to shading, never to mapScene().
+// Authored materials. Relief refines visual hits; mapScene keeps the original envelope.
 // A compact response vector: metal coverage, coat weight, coat roughness, cloth sheen.
 #define MAT_ARGS float m,vec3 p,vec3 n,vec3 extent,float seed,inout vec3 albedo,inout float rough,inout float spec,inout vec3 emit,inout vec4 layers,inout vec3 relief
 #define MAT_PASS m,q,ng,extent,seed,albedo,rough,spec,emit,layers,relief
@@ -274,6 +279,195 @@ vec4 woodAnatomy(vec2 uv,float identity,out vec2 slope){
 #endif
 #endif
   return vec4(latewood,fibre,pores,broad);
+}
+// A virtual color lattice supplies vertex-paint-style interpolation to implicit surfaces.
+// RGB is a linear pigment multiplier; alpha controls accumulated dirt/roughness.
+// This renderer has no mesh vertices: never attach colors to the full-screen triangle.
+vec4 colorVertex(vec3 cell,float seed){
+  float value=hash(vec2(cell.x+cell.z*17.,cell.y+seed*7.));
+  float dirt=hash(vec2(cell.z+cell.y*11.+3.2,cell.x+seed*13.));
+  return vec4(mix(vec3(.83,.85,.87),vec3(1.,.985,.95),value),dirt);
+}
+vec4 materialVertexColor(float m,vec3 q,vec3 extent,float seed){
+  // Emissive goal markings keep their authored signal colors.
+  if((m>9.5&&m<13.5)||(m>14.5&&m<18.5)||(m>19.5&&m<20.5))return vec4(1,1,1,0);
+  vec3 grid=q/(m>6.5&&m<7.5?.28:.72),cell=floor(grid),f=fract(grid);
+  vec4 a=mix(colorVertex(cell,seed),colorVertex(cell+vec3(1,0,0),seed),f.x);
+  vec4 b=mix(colorVertex(cell+vec3(0,1,0),seed),colorVertex(cell+vec3(1,1,0),seed),f.x);
+  vec4 c=mix(colorVertex(cell+vec3(0,0,1),seed),colorVertex(cell+vec3(1,0,1),seed),f.x);
+  vec4 d=mix(colorVertex(cell+vec3(0,1,1),seed),colorVertex(cell+vec3(1,1,1),seed),f.x);
+  return mix(mix(a,b,f.y),mix(c,d,f.y),f.z);
+}
+float reliefDepth(float m){
+  if(m<1.5)return .009;
+  if(m<2.5)return .0035;
+  if(m<6.5)return .0025;
+  if(m<7.5)return .0024;
+  if(m<8.5)return .003;
+  if(m>13.5&&m<14.5)return .0015;
+  if(m>18.5&&m<19.5)return .007;
+  if(m>21.5)return .002;
+  return 0.;
+}
+// Continuous object-space height fields avoid face-projection seams on rounded edges.
+// The map stores depth below the original surface, in world units.
+float surfaceInset(float m,vec3 q,vec3 extent,float seed){
+  float depth=reliefDepth(m);
+  if(depth==0.)return 0.;
+  float footprint=gFootprint;gFootprint=gReliefFootprint;
+  float h;
+  if(m<1.5){
+    vec2 local,id;woodBoardCoordinates(q.xz,local,id);
+    float offset=hash(vec2(id.x,2.7));
+    float joint=max(filteredStripe(q.x+3.25,.54,.006),filteredStripe(q.z+3.25+offset*1.8,1.8,.005));
+    float fibre=filteredNoise(local*vec2(65.,4.)+hash(id)*7.,65.);
+    h=.12+.26*fibre+.62*joint;
+  }else if(m<2.5){
+    float yarn=.5+.5*sin(q.x*440.)*sin(q.z*360.);
+    h=.20+.80*mix(.5,yarn,detailWeight(70.));
+  }else if(m>18.5&&m<19.5){
+    vec3 grain=extent.z>=extent.x?q:q.zyx;
+    h=.22+.78*filteredNoise(vec2(grain.x*42.+grain.y*31.,grain.z*4.)+seed,52.);
+  }else{
+    float frequency=m<6.5?38.:(m<8.5?27.:34.);
+    h=.18+.82*(filteredNoise(q.xz*frequency+seed,frequency)+filteredNoise(q.xy*frequency+seed+5.7,frequency))*.5;
+  }
+  gFootprint=footprint;return depth*clamp(h,0.,1.);
+}
+// Work only within the shallow relief shell; most scene candidates need no height sample.
+vec2 reliefSample(float d,float m,vec3 q,vec3 extent,float seed){
+  float depth=reliefDepth(m);
+  if(d<.001&&d> -depth-.001)d+=surfaceInset(m,q,extent,seed);
+  return vec2(d,m);
+}
+vec2 reliefObstacle(vec3 p,vec4 o,float seed){
+  if(o.z<=.001)return vec2(100,0);
+  vec3 q=p-vec3(o.x,.245,o.y),e=vec3(o.z*.5,.245,o.w*.5);
+  return reliefSample(sdRoundBox(q,e,.045),8.,q,e,seed);
+}
+vec2 reliefPlatform(vec3 p,vec4 r,vec4 meta,float seed){
+  if(r.z<=.001)return vec2(100,0);
+  float h=max(meta.x,.03);vec3 q=p-vec3(r.x,h*.5,r.y),e=vec3(r.z*.5,h*.5,r.w*.5);
+  return reliefSample(sdRoundBox(q,e,.018),19.,q,e,seed);
+}
+vec2 reliefRamp(vec3 p,vec4 r,vec4 meta,float seed){
+  if(r.z<=.001)return vec2(100,0);
+  vec3 q=p-vec3(r.x,(meta.x+meta.w)*.5,r.y),e=vec3(r.z*.5,(meta.x-meta.w)*.5,r.w*.5);
+  return reliefSample(rampObj(p,r,meta).x,19.,q,e,seed);
+}
+vec2 reliefBumper(vec3 p,vec4 b,float seed){
+  if(b.z<.01)return vec2(100,0);
+  float h=max(b.w,.34);vec3 q=p-vec3(b.x,h*.5,b.y),e=vec3(b.z,h*.5,b.z);
+  return reliefSample(sdCyl(q,b.z,h*.5),22.,q,e,seed);
+}
+// Union AFTER displacement: a clipped foreground must expose the next actual surface.
+// Applying depth only to mapScene's closest ID would hide overlapping objects.
+vec2 mapReliefScene(vec3 p){
+  vec3 e=vec3(1);vec2 r=vec2(100,0);
+  r=opU(r,reliefSample(sdBox(p-vec3(0,-.055,0),vec3(3.25,.055,3.25)),1.,p,e,0.));
+  r=opU(r,reliefSample(sdRoundBox(p-vec3(0,.005,.78),vec3(2.08,.005,1.27),.004),2.,p,e,0.));
+  r=opU(r,reliefSample(sdBox(p-vec3(0,1.58,-3.23),vec3(3.25,1.62,.045)),3.,p,e,0.));
+  r=opU(r,reliefSample(sdBox(p-vec3(-3.23,1.58,0),vec3(.045,1.62,3.25)),4.,p,e,0.));
+  r=opU(r,reliefSample(sdBox(p-vec3(3.23,1.58,0),vec3(.045,1.62,3.25)),5.,p,e,0.));
+  r=opU(r,reliefSample(sdBox(p-vec3(0,3.18,0),vec3(3.25,.045,3.25)),6.,p,e,0.));
+  r=opU(r,reliefSample(sdRoundBox(p-vec3(0,.115,-3.155),vec3(3.18,.105,.045),.020),14.,p,e,0.));
+  r=opU(r,reliefSample(sdRoundBox(p-vec3(-3.155,.115,0),vec3(.045,.105,3.18),.020),14.,p,e,0.));
+  r=opU(r,reliefSample(sdRoundBox(p-vec3(3.155,.115,0),vec3(.045,.105,3.18),.020),14.,p,e,0.));
+  r=opU(r,vec2(sdRoundBox(p-vec3(0,3.095,-1.65),vec3(1.95,.025,.032),.012),13.));
+  r=opU(r,vec2(sdRoundBox(p-vec3(-1.95,3.095,-.40),vec3(.032,.025,1.30),.012),13.));
+  r=opU(r,vec2(sdRoundBox(p-vec3(1.95,3.095,-.40),vec3(.032,.025,1.30),.012),13.));
+  ${objects(8,i=>`zoneObj(p,uZone${i})`)}
+  ${objects(3,i=>`reliefRamp(p,uRamp${i},uRampMeta${i},${21+i}.)`)}
+  ${objects(4,i=>`reliefPlatform(p,uPlat${i},uPlatMeta${i},${11+i}.)`)}
+  if(uTargetType<3.5){vec3 tp=p-vec3(uTarget.x,.035+uTargetY,uTarget.y);float d=uTargetType<2.5?sdCyl(tp,.49,.020):sdRing(tp);r=opU(r,vec2(d,9.+uTargetType));}
+  else{
+    r=opU(r,vec2(sdRoundBox(p-vec3(uTarget.x,.74+uTargetY,-3.185),vec3(.58,.70,.030),.045),15.));
+    r=opU(r,vec2(sdRing(p-vec3(uTarget.x,.03+uTargetY,uTarget.y)),15.));
+  }
+  ${objects(6,i=>`reliefObstacle(p,uObs${i},${1+i}.)`)}
+  ${objects(3,i=>`reliefBumper(p,uBump${i},${41+i}.)`)}
+  vec3 cp=cubeLocal(p);
+  return opU(r,reliefSample(sdRoundBox(cp,vec3(.245),.038),7.,cp,vec3(.245),0.));
+}
+// Length of the candidate's finite envelope along this ray. Layered traversal must
+// cross the entire envelope at a grazing angle, rather than stall on its flat side.
+float reliefRaySpan(float m,vec3 p,vec3 rd){
+  vec3 q,e;float seed;materialCoordinates(m,p,q,e,seed);
+  if(m<1.5){q=p-vec3(0,-.055,0);e=vec3(3.25,.055,3.25);}
+  else if(m<2.5){q=p-vec3(0,.005,.78);e=vec3(2.08,.005,1.27);}
+  else if(m<3.5){q=p-vec3(0,1.58,-3.23);e=vec3(3.25,1.62,.045);}
+  else if(m<4.5){q=p-vec3(-3.23,1.58,0);e=vec3(.045,1.62,3.25);}
+  else if(m<5.5){q=p-vec3(3.23,1.58,0);e=vec3(.045,1.62,3.25);}
+  else if(m<6.5){q=p-vec3(0,3.18,0);e=vec3(3.25,.045,3.25);}
+  else if(m<7.5)rd=qrot(vec4(-uCubeQ.xyz,uCubeQ.w),rd);
+  else if(m>13.5&&m<14.5){
+    if(abs(p.x)>3.1){q=p-vec3(sign(p.x)*3.155,.115,0);e=vec3(.045,.105,3.18);}
+    else{q=p-vec3(0,.115,-3.155);e=vec3(3.18,.105,.045);}
+  }
+  float span=MAX_DIST;
+  if(abs(rd.x)>.00001)span=min(span,(sign(rd.x)*e.x-q.x)/rd.x);
+  if(abs(rd.y)>.00001)span=min(span,(sign(rd.y)*e.y-q.y)/rd.y);
+  if(abs(rd.z)>.00001)span=min(span,(sign(rd.z)*e.z-q.z)/rd.z);
+  return max(span,0.);
+}
+vec2 parallaxOcclusion(vec3 ro,vec3 rd,vec2 baseHit){
+#if POM_STEPS > 0
+  if(baseHit.y<.5||reliefDepth(baseHit.y)<=0.)return baseHit;
+  float t=max(0.,baseHit.x-.002),previous=t;vec2 h=vec2(1,0);
+  float span=reliefRaySpan(baseHit.y,ro+rd*t,rd);
+  // Reserve iterations for the surface revealed behind a rejected silhouette.
+  float layer=max(.00015,span/(float(POM_STEPS)-16.)),envelopeEnd=t+span;
+  // Bounded height gradients require conservative shell steps. No division by N.V.
+  for(int i=0;i<POM_STEPS;i++){
+    h=mapReliefScene(ro+rd*t);
+    if(h.x<=0.)break;
+    previous=t;
+    // Land exactly on the candidate exit before switching to fine background steps.
+    // Carrying a thick object's layer spacing forward can tunnel through the carpet.
+    float next=t+max(h.x*.65,t<envelopeEnd?layer:.00015);
+    t=t<envelopeEnd?min(next,envelopeEnd):next;
+    if(t>MAX_DIST)return vec2(t,0.);
+  }
+  if(h.x<=0.){
+    float lo=previous,hi=t;
+    for(int j=0;j<POM_REFINE;j++){
+      float mid=(lo+hi)*.5;vec2 candidate=mapReliefScene(ro+rd*mid);
+      if(candidate.x>0.)lo=mid;else{hi=mid;h=candidate;}
+    }
+    return vec2(hi,h.y);
+  }
+  // The finite foreground interval was crossed without a hit. Continue in the
+  // background, never resurrect the clipped foreground when the budget runs out.
+  return vec2(t,-1.);
+#endif
+  return baseHit;
+}
+vec3 reliefGradient(float m,vec3 q,vec3 extent,float seed){
+#if POM_STEPS > 0
+  if(reliefDepth(m)>0.){
+    float e=max(.0015,gReliefFootprint*.5);vec2 d=vec2(e,0.);
+    return vec3(surfaceInset(m,q+d.xyy,extent,seed)-surfaceInset(m,q-d.xyy,extent,seed),
+      surfaceInset(m,q+d.yxy,extent,seed)-surfaceInset(m,q-d.yxy,extent,seed),
+      surfaceInset(m,q+d.yyx,extent,seed)-surfaceInset(m,q-d.yyx,extent,seed))/(2.*e);
+  }
+#endif
+  return vec3(0);
+}
+float reliefVisibility(float m,vec3 p,vec3 n,vec3 light){
+#if POM_STEPS > 0
+  if(reliefDepth(m)>0.){
+    vec3 q,e;float seed;materialCoordinates(m,p,q,e,seed);
+    if(m>6.5&&m<7.5){vec4 iq=vec4(-uCubeQ.xyz,uCubeQ.w);n=qrot(iq,n);light=qrot(iq,light);}
+    float depth=surfaceInset(m,q,e,seed),visibility=1.;
+    for(int i=1;i<=4;i++){
+      float distance=float(i)*.004;
+      float clearance=dot(n,light)*distance+surfaceInset(m,q+light*distance,e,seed)-depth;
+      visibility=min(visibility,smoothstep(-.0015,.0005,clearance));
+    }
+    return mix(.4,1.,visibility);
+  }
+#endif
+  return 1.;
 }
 void woodMaterial(MAT_ARGS){
   vec2 uv=faceUV(p,n),local,id;woodBoardCoordinates(uv,local,id);
@@ -481,10 +675,13 @@ void surfaceMaterial(float m,vec3 p,vec3 geometric,out vec3 albedo,out float rou
   else if(a.x>=a.z){t=vec3(0,0,1);b=vec3(0,1,0);}
   else{t=vec3(1,0,0);b=vec3(0,1,0);}
   vec3 slope=t*relief.x+b*relief.y;slope-=ng*dot(ng,slope);
-  normal=normalize(ng-slope);if(cube)normal=qrot(uCubeQ,normal);
+  vec3 gradient=reliefGradient(m,q,extent,seed);gradient-=ng*dot(ng,gradient);
+  normal=normalize(ng-slope+gradient);if(cube)normal=qrot(uCubeQ,normal);
+  vec4 paint=materialVertexColor(m,q,extent,seed);
+  rough+=paint.a*.025;layers.y*=1.-paint.a*.08;
   // Preserve unresolved normal energy as roughness instead of sparkling detail.
   rough=clamp(sqrt(rough*rough+relief.z*2.),.18,1.);
-  albedo=pow(clamp(albedo,vec3(.001),vec3(.95)),vec3(2.2));
+  albedo=pow(clamp(albedo,vec3(.001),vec3(.95)),vec3(2.2))*paint.rgb;
 }
 // Stable compatibility surface for fixture callers and old integrations.
 void material(float m,vec3 p,vec3 n,out vec3 albedo,out float rough,out float spec,out vec3 emit){
@@ -560,7 +757,16 @@ vec3 quickMat(float m,vec3 p){
   return pow(a,vec3(2.2))*.55+e;
 }
 // mediump hit tolerance tracks representable ray distance, preventing stalled steps and holes.
-vec2 march(vec3 ro,vec3 rd){float t=0.;for(int i=0;i<STEPS;i++){vec2 h=mapScene(ro+rd*t);if(h.x<${portable?'max(SURF_DIST,t*.0012)':'SURF_DIST'})return vec2(t,h.y);if(t>MAX_DIST)break;t+=h.x*.80;}return vec2(t,0.);}
+vec2 marchEnvelope(vec3 ro,vec3 rd){float t=0.;for(int i=0;i<STEPS;i++){vec2 h=mapScene(ro+rd*t);if(h.x<${portable?'max(SURF_DIST,t*.0012)':'SURF_DIST'})return vec2(t,h.y);if(t>MAX_DIST)break;t+=h.x*.80;}return vec2(t,0.);}
+vec2 march(vec3 ro,vec3 rd){
+  vec2 base=marchEnvelope(ro,rd);
+#if POM_STEPS > 0
+  if(base.y>.5&&gRayCone>0.)gReliefFootprint=clamp(base.x*gRayCone/max(abs(dot(normalAt(ro+rd*base.x),rd)),.22),.0005,.10);
+#endif
+  vec2 hit=parallaxOcclusion(ro,rd,base);
+  if(hit.y<0.){vec2 background=marchEnvelope(ro+rd*hit.x,rd);return vec2(hit.x+background.x,background.y);}
+  return hit;
+}
 vec3 reflectionProbe(vec3 ro,vec3 rd,float rough){
   float t=.025;vec3 fallback=environment(rd,rough);
   for(int i=0;i<REFLECTION_STEPS;i++){
@@ -614,6 +820,7 @@ vec3 shade(vec3 p,vec3 geometric,float m,vec3 rd){
   float coat=layers.y,coatRough=layers.z;
   vec3 key=vec3(1.,.86,.68)+vec3(uLook.y,0.,-uLook.y);
   vec3 lp=vec3(0,3.045,-.70),ld=lp-p;float visibility=softShadow(p+geometric*.009,normalize(ld),.014,length(ld)-.04);
+  visibility*=reliefVisibility(m,p,geometric,normalize(ld));
   vec3 col=albedo*(1.-metallic)*(1.-f)*roomBounce(p,geometric)*amb;
   col+=direct(p,n,v,lp,key,5.7,rough,f0,albedo,metallic,visibility,coat,coatRough,geometric);
   col+=direct(p,n,v,vec3(-1.80,2.60,3.0),vec3(.72,.82,1.),2.2,rough,f0,albedo,metallic,.85,coat,coatRough,geometric);
@@ -621,6 +828,7 @@ vec3 shade(vec3 p,vec3 geometric,float m,vec3 rd){
 #if DETAIL_LEVEL >= 2
   rimShadow=softShadow(p+geometric*.009,normalize(rl),.014,length(rl)-.04);
 #endif
+  rimShadow*=reliefVisibility(m,p,geometric,normalize(rl));
   col+=direct(p,n,v,rim,vec3(1.,.86,.69),1.7,rough,f0,albedo,metallic,rimShadow,coat,coatRough,geometric);
   col+=albedo*layers.w*pow(1.-nv,4.)*roomBounce(p,geometric)*amb;
   col*=.88+.12*amb;
@@ -702,6 +910,7 @@ void main(){
 #if HAS_DERIVATIVES
   rayCone=max(rayCone,length(fwidth(rd))*.5);
 #endif
+  gRayCone=rayCone;
   vec2 hit=march(ro,rd);vec3 col=vec3(.018,.024,.032);
   if(hit.y>.5&&hit.x<MAX_DIST){
     vec3 p=ro+rd*hit.x,geometric=normalAt(p);
