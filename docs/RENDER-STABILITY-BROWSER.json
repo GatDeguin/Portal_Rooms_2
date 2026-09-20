@@ -1,0 +1,142 @@
+{
+  "schema": 1,
+  "executedAt": "2026-09-20T20:03:12.146Z",
+  "backend": "Real Chromium app + real Worker; simulated WebGL driver using software Canvas2D; GPU disabled",
+  "runtimeTestTimeoutMs": 600,
+  "diagnostics": [],
+  "checks": [
+    {
+      "name": "stored auto starts with usable image and preserved progress",
+      "actual": "Render: Baja · 692 × 519. Automática adapta efectos y resolución; la física no cambia.",
+      "firstBitmap": [
+        692,
+        519
+      ]
+    },
+    {
+      "name": "stored auto matches actual selection"
+    },
+    {
+      "name": "stored auto made no real main-thread WebGL call"
+    },
+    {
+      "name": "stored low starts with usable image and preserved progress",
+      "actual": "Render: Baja · 692 × 519. Automática adapta efectos y resolución; la física no cambia.",
+      "firstBitmap": [
+        692,
+        519
+      ]
+    },
+    {
+      "name": "stored low matches actual selection"
+    },
+    {
+      "name": "stored low made no real main-thread WebGL call"
+    },
+    {
+      "name": "stored medium starts with usable image and preserved progress",
+      "actual": "Render: Media · 800 × 600. Automática adapta efectos y resolución; la física no cambia.",
+      "firstBitmap": [
+        692,
+        519
+      ]
+    },
+    {
+      "name": "stored medium matches actual selection"
+    },
+    {
+      "name": "stored medium made no real main-thread WebGL call"
+    },
+    {
+      "name": "stored high starts with usable image and preserved progress",
+      "actual": "Render: Alta · 800 × 600. Automática adapta efectos y resolución; la física no cambia.",
+      "firstBitmap": [
+        692,
+        519
+      ]
+    },
+    {
+      "name": "stored high matches actual selection"
+    },
+    {
+      "name": "stored high made no real main-thread WebGL call"
+    },
+    {
+      "name": "stored cinematic starts with usable image and preserved progress",
+      "actual": "Render: Cinemática · 800 × 600. Automática adapta efectos y resolución; la física no cambia.",
+      "firstBitmap": [
+        692,
+        519
+      ]
+    },
+    {
+      "name": "stored cinematic matches actual selection"
+    },
+    {
+      "name": "stored cinematic made no real main-thread WebGL call"
+    },
+    {
+      "name": "Auto recovery pauses gameplay and warns before the replacement worker is ready"
+    },
+    {
+      "name": "resume and restart remain paused during recovery without adding an attempt"
+    },
+    {
+      "name": "successful Auto recovery stays paused and preserves elapsed display, saved mode and progress"
+    },
+    {
+      "name": "playing continues to draw Low while the saved Cinematic candidate compiles"
+    },
+    {
+      "name": "saved startup candidate survives gameplay and replaces Low without rewriting preference or progress"
+    },
+    {
+      "name": "saved heavy quality shows usable Low and a cancellable pending preference in the menu"
+    },
+    {
+      "name": "cancelling saved startup preparation retains Low and the saved preference without retries"
+    },
+    {
+      "name": "main UI heartbeat continues while the first Low worker is compiling"
+    },
+    {
+      "name": "pagehide aborts startup before a renderer is assigned and starts no recovery"
+    },
+    {
+      "name": "saved Cinematic fail visibly recovers Low without rewriting preference or progress"
+    },
+    {
+      "name": "saved Cinematic timeout visibly recovers Low without rewriting preference or progress"
+    },
+    {
+      "name": "UI heartbeat and settings tabs respond while candidate Worker is synchronously hung",
+      "heartbeatTicks": 19
+    },
+    {
+      "name": "Cinematic first-draw timeout retains working renderer and saved data"
+    },
+    {
+      "name": "explicit cancel preserves working selection and progress"
+    },
+    {
+      "name": "playing backpressure sends at most one frame per worker while retaining latest resize",
+      "frames": 7,
+      "maxPending": 1
+    },
+    {
+      "name": "paused busy Auto worker watchdog recovers once and keeps UI responsive",
+      "workers": 2
+    },
+    {
+      "name": "worker recovery preserves progress after the legitimate attempt start"
+    },
+    {
+      "name": "second Auto worker failure ends bounded recovery without creating worker loop"
+    },
+    {
+      "name": "no uncaught app exceptions",
+      "errors": []
+    }
+  ],
+  "errors": []
+}

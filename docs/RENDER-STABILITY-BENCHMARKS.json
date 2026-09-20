@@ -1,0 +1,5935 @@
+{
+  "schema": "portal-render-stability-evidence/v2",
+  "generated_at": "2026-09-20T20:06:37.179046+00:00",
+  "revisions": {
+    "before9fb": "9fb2194c200b694a8b340219507894c55970ae3b",
+    "regression9e": "9e3716927e03d2861cb1f6508676fb350106fe76",
+    "fixed": "WORKTREE"
+  },
+  "measurement": {
+    "timer": "performance.now",
+    "gpu_synchronization": [
+      "gl.finish",
+      "one-pixel readPixels"
+    ],
+    "watchdog": "external child-tree termination with JSONL phase preservation",
+    "program_cache": "one program or surface/shade pair per revision/profile/tier group",
+    "cache_state": "fresh browser process per profile/tier group; driver shader cache was not cleared",
+    "dynamic_pixel_budgets": {
+      "high": 1500000,
+      "cinematic": 2200000
+    },
+    "predeclared_release_guards_ms": {
+      "high_approximately_1_5mp": 35,
+      "cinematic_approximately_2_2mp": 50
+    },
+    "predeclared_software_guard_ms": 1600
+  },
+  "series": [
+    {
+      "id": "historical_software_matrix",
+      "label": "Exact historical snapshots on SwiftShader (software)",
+      "source_file": "test-results/stability/archives/benchmarks/2026-09-20/historical-software-matrix.json",
+      "source_sha256": "d42011e64d95cc322b6e0caadd6f681dfca996a1f2525c87f9d291eaa646e565",
+      "configuration": {
+        "warm_samples": 5,
+        "group_timeout_ms": 150000,
+        "profiles": [
+          "matrix"
+        ],
+        "tiers": null,
+        "scenes": null,
+        "revisions": {
+          "before9fb": "9fb2194c200b694a8b340219507894c55970ae3b",
+          "regression9e": "9e3716927e03d2861cb1f6508676fb350106fe76"
+        }
+      },
+      "groups": [
+        {
+          "revision": "before9fb",
+          "revision_ref": "9fb2194c200b694a8b340219507894c55970ae3b",
+          "profile": "matrix",
+          "tier": "low",
+          "diagnostic": null,
+          "size": [
+            640,
+            360
+          ],
+          "pixels": 230400,
+          "status": "passed",
+          "wall_ms": 44912,
+          "censored_lower_bound_ms": null,
+          "last_phase": "portal_final:warm_draws",
+          "backend": {
+            "vendor": "Google Inc. (Google)",
+            "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+            "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)",
+            "shading_language": "WebGL GLSL ES 1.0 (OpenGL ES GLSL ES 1.0 Chromium)",
+            "precision": "highp",
+            "derivatives": true
+          },
+          "relief_noise_prepare": null,
+          "shaders": [],
+          "translations": [],
+          "program_prepares": [],
+          "surface_target_prepares": [],
+          "warm_limit_violations": [],
+          "prepare": {
+            "prepare_ms": 18.100000023841858,
+            "variant": "low-highp-derivatives",
+            "fragment_bytes": 40998
+          },
+          "scenes": [
+            {
+              "scene": "simple",
+              "first_draw_ms": 32732.600000023842,
+              "first_usable_ms": 32754.799999952316,
+              "warm": {
+                "samples": 5,
+                "mean_ms": 445.7,
+                "p95_ms": 447.6999999284744,
+                "worst_ms": 447.6999999284744
+              },
+              "center_rgba": [
+                183,
+                123,
+                50,
+                255
+              ]
+            },
+            {
+              "scene": "obstacles",
+              "first_draw_ms": 443,
+              "first_usable_ms": 443,
+              "warm": {
+                "samples": 5,
+                "mean_ms": 566.7200000047684,
+                "p95_ms": 626.6000000238419,
+                "worst_ms": 626.6000000238419
+              },
+              "center_rgba": [
+                181,
+                121,
+                50,
+                255
+              ]
+            },
+            {
+              "scene": "ramps_platforms",
+              "first_draw_ms": 612.1999999284744,
+              "first_usable_ms": 612.1999999284744,
+              "warm": {
+                "samples": 5,
+                "mean_ms": 442.05999999046327,
+                "p95_ms": 444,
+                "worst_ms": 444
+              },
+              "center_rgba": [
+                184,
+                123,
+                50,
+                255
+              ]
+            },
+            {
+              "scene": "portal_final",
+              "first_draw_ms": 452.90000009536743,
+              "first_usable_ms": 452.90000009536743,
+              "warm": {
+                "samples": 5,
+                "mean_ms": 479,
+                "p95_ms": 614,
+                "worst_ms": 614
+              },
+              "center_rgba": [
+                147,
+                88,
+                46,
+                255
+              ]
+            }
+          ],
+          "error": null
+        },
+        {
+          "revision": "before9fb",
+          "revision_ref": "9fb2194c200b694a8b340219507894c55970ae3b",
+          "profile": "matrix",
+          "tier": "medium",
+          "diagnostic": null,
+          "size": [
+            640,
+            360
+          ],
+          "pixels": 230400,
+          "status": "passed",
+          "wall_ms": 50156,
+          "censored_lower_bound_ms": null,
+          "last_phase": "portal_final:warm_draws",
+          "backend": {
+            "vendor": "Google Inc. (Google)",
+            "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+            "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)",
+            "shading_language": "WebGL GLSL ES 1.0 (OpenGL ES GLSL ES 1.0 Chromium)",
+            "precision": "highp",
+            "derivatives": true
+          },
+          "relief_noise_prepare": null,
+          "shaders": [],
+          "translations": [],
+          "program_prepares": [],
+          "surface_target_prepares": [],
+          "warm_limit_violations": [],
+          "prepare": {
+            "prepare_ms": 18.699999928474426,
+            "variant": "medium-highp-derivatives",
+            "fragment_bytes": 40999
+          },
+          "scenes": [
+            {
+              "scene": "simple",
+              "first_draw_ms": 35079.700000047684,
+              "first_usable_ms": 35102.89999997616,
+              "warm": {
+                "samples": 5,
+                "mean_ms": 681.6800000190735,
+                "p95_ms": 726.8999999761581,
+                "worst_ms": 726.8999999761581
+              },
+              "center_rgba": [
+                182,
+                123,
+                55,
+                255
+              ]
+            },
+            {
+              "scene": "obstacles",
+              "first_draw_ms": 526.7000000476837,
+              "first_usable_ms": 526.7000000476837,
+              "warm": {
+                "samples": 5,
+                "mean_ms": 607.2400000095367,
+                "p95_ms": 728.3999999761581,
+                "worst_ms": 728.3999999761581
+              },
+              "center_rgba": [
+                180,
+                121,
+                54,
+                255
+              ]
+            },
+            {
+              "scene": "ramps_platforms",
+              "first_draw_ms": 714.6999999284744,
+              "first_usable_ms": 714.6999999284744,
+              "warm": {
+                "samples": 5,
+                "mean_ms": 607.7600000143051,
+                "p95_ms": 733.1000000238419,
+                "worst_ms": 733.1000000238419
+              },
+              "center_rgba": [
+                183,
+                123,
+                54,
+                255
+              ]
+            },
+            {
+              "scene": "portal_final",
+              "first_draw_ms": 723.3999999761581,
+              "first_usable_ms": 723.3999999761581,
+              "warm": {
+                "samples": 5,
+                "mean_ms": 524.2599999904633,
+                "p95_ms": 526.8999999761581,
+                "worst_ms": 526.8999999761581
+              },
+              "center_rgba": [
+                146,
+                90,
+                50,
+                255
+              ]
+            }
+          ],
+          "error": null
+        },
+        {
+          "revision": "before9fb",
+          "revision_ref": "9fb2194c200b694a8b340219507894c55970ae3b",
+          "profile": "matrix",
+          "tier": "high",
+          "diagnostic": null,
+          "size": [
+            640,
+            360
+          ],
+          "pixels": 230400,
+          "status": "passed",
+          "wall_ms": 70615,
+          "censored_lower_bound_ms": null,
+          "last_phase": "portal_final:warm_draws",
+          "backend": {
+            "vendor": "Google Inc. (Google)",
+            "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+            "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)",
+            "shading_language": "WebGL GLSL ES 1.0 (OpenGL ES GLSL ES 1.0 Chromium)",
+            "precision": "highp",
+            "derivatives": true
+          },
+          "relief_noise_prepare": null,
+          "shaders": [],
+          "translations": [],
+          "program_prepares": [],
+          "surface_target_prepares": [],
+          "warm_limit_violations": [],
+          "prepare": {
+            "prepare_ms": 19.5,
+            "variant": "high-highp-derivatives",
+            "fragment_bytes": 40999
+          },
+          "scenes": [
+            {
+              "scene": "simple",
+              "first_draw_ms": 45727,
+              "first_usable_ms": 45751.699999928474,
+              "warm": {
+                "samples": 5,
+                "mean_ms": 1011.6200000047684,
+                "p95_ms": 1223.3000000715256,
+                "worst_ms": 1223.3000000715256
+              },
+              "center_rgba": [
+                182,
+                123,
+                55,
+                255
+              ]
+            },
+            {
+              "scene": "obstacles",
+              "first_draw_ms": 914.2999999523163,
+              "first_usable_ms": 914.2999999523163,
+              "warm": {
+                "samples": 5,
+                "mean_ms": 1043.5199999809265,
+                "p95_ms": 1184.2999999523163,
+                "worst_ms": 1184.2999999523163
+              },
+              "center_rgba": [
+                180,
+                121,
+                54,
+                255
+              ]
+            },
+            {
+              "scene": "ramps_platforms",
+              "first_draw_ms": 838.8999999761581,
+              "first_usable_ms": 838.8999999761581,
+              "warm": {
+                "samples": 5,
+                "mean_ms": 1037.8,
+                "p95_ms": 1175.1999999284744,
+                "worst_ms": 1175.1999999284744
+              },
+              "center_rgba": [
+                183,
+                123,
+                54,
+                255
+              ]
+            },
+            {
+              "scene": "portal_final",
+              "first_draw_ms": 846.2999999523163,
+              "first_usable_ms": 846.2999999523163,
+              "warm": {
+                "samples": 5,
+                "mean_ms": 1161.8,
+                "p95_ms": 1325.3000000715256,
+                "worst_ms": 1325.3000000715256
+              },
+              "center_rgba": [
+                138,
+                84,
+                47,
+                255
+              ]
+            }
+          ],
+          "error": null
+        },
+        {
+          "revision": "before9fb",
+          "revision_ref": "9fb2194c200b694a8b340219507894c55970ae3b",
+          "profile": "matrix",
+          "tier": "cinematic",
+          "diagnostic": null,
+          "size": [
+            640,
+            360
+          ],
+          "pixels": 230400,
+          "status": "passed",
+          "wall_ms": 92261,
+          "censored_lower_bound_ms": null,
+          "last_phase": "portal_final:warm_draws",
+          "backend": {
+            "vendor": "Google Inc. (Google)",
+            "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+            "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)",
+            "shading_language": "WebGL GLSL ES 1.0 (OpenGL ES GLSL ES 1.0 Chromium)",
+            "precision": "highp",
+            "derivatives": true
+          },
+          "relief_noise_prepare": null,
+          "shaders": [],
+          "translations": [],
+          "program_prepares": [],
+          "surface_target_prepares": [],
+          "warm_limit_violations": [],
+          "prepare": {
+            "prepare_ms": 19.300000071525574,
+            "variant": "cinematic-highp-derivatives",
+            "fragment_bytes": 41000
+          },
+          "scenes": [
+            {
+              "scene": "simple",
+              "first_draw_ms": 60701.799999952316,
+              "first_usable_ms": 60725.39999997616,
+              "warm": {
+                "samples": 5,
+                "mean_ms": 1270.3,
+                "p95_ms": 1438.0999999046326,
+                "worst_ms": 1438.0999999046326
+              },
+              "center_rgba": [
+                182,
+                123,
+                55,
+                255
+              ]
+            },
+            {
+              "scene": "obstacles",
+              "first_draw_ms": 1010.8999999761581,
+              "first_usable_ms": 1010.8999999761581,
+              "warm": {
+                "samples": 5,
+                "mean_ms": 1445.6799999952316,
+                "p95_ms": 1501.6999999284744,
+                "worst_ms": 1501.6999999284744
+              },
+              "center_rgba": [
+                180,
+                121,
+                54,
+                255
+              ]
+            },
+            {
+              "scene": "ramps_platforms",
+              "first_draw_ms": 1390.5,
+              "first_usable_ms": 1390.5,
+              "warm": {
+                "samples": 5,
+                "mean_ms": 1270.2,
+                "p95_ms": 1546,
+                "worst_ms": 1546
+              },
+              "center_rgba": [
+                183,
+                123,
+                54,
+                255
+              ]
+            },
+            {
+              "scene": "portal_final",
+              "first_draw_ms": 1187,
+              "first_usable_ms": 1187,
+              "warm": {
+                "samples": 5,
+                "mean_ms": 1400.4400000095368,
+                "p95_ms": 1589.3000000715256,
+                "worst_ms": 1589.3000000715256
+              },
+              "center_rgba": [
+                138,
+                84,
+                47,
+                255
+              ]
+            }
+          ],
+          "error": null
+        },
+        {
+          "revision": "regression9e",
+          "revision_ref": "9e3716927e03d2861cb1f6508676fb350106fe76",
+          "profile": "matrix",
+          "tier": "low",
+          "diagnostic": null,
+          "size": [
+            640,
+            360
+          ],
+          "pixels": 230400,
+          "status": "passed",
+          "wall_ms": 50442,
+          "censored_lower_bound_ms": null,
+          "last_phase": "portal_final:warm_draws",
+          "backend": {
+            "vendor": "Google Inc. (Google)",
+            "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+            "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)",
+            "shading_language": "WebGL GLSL ES 1.0 (OpenGL ES GLSL ES 1.0 Chromium)",
+            "precision": "highp",
+            "derivatives": true
+          },
+          "relief_noise_prepare": null,
+          "shaders": [],
+          "translations": [],
+          "program_prepares": [],
+          "surface_target_prepares": [],
+          "warm_limit_violations": [],
+          "prepare": {
+            "prepare_ms": 19.5,
+            "variant": "low-highp-derivatives",
+            "fragment_bytes": 51756
+          },
+          "scenes": [
+            {
+              "scene": "simple",
+              "first_draw_ms": 37606.200000047684,
+              "first_usable_ms": 37630.800000071526,
+              "warm": {
+                "samples": 5,
+                "mean_ms": 585.6399999856949,
+                "p95_ms": 659.2000000476837,
+                "worst_ms": 659.2000000476837
+              },
+              "center_rgba": [
+                180,
+                119,
+                48,
+                255
+              ]
+            },
+            {
+              "scene": "obstacles",
+              "first_draw_ms": 477.5,
+              "first_usable_ms": 477.5,
+              "warm": {
+                "samples": 5,
+                "mean_ms": 511.7799999952316,
+                "p95_ms": 653.2000000476837,
+                "worst_ms": 653.2000000476837
+              },
+              "center_rgba": [
+                177,
+                116,
+                48,
+                255
+              ]
+            },
+            {
+              "scene": "ramps_platforms",
+              "first_draw_ms": 470.5,
+              "first_usable_ms": 470.5,
+              "warm": {
+                "samples": 5,
+                "mean_ms": 473.4199999809265,
+                "p95_ms": 476.2999999523163,
+                "worst_ms": 476.2999999523163
+              },
+              "center_rgba": [
+                180,
+                118,
+                48,
+                255
+              ]
+            },
+            {
+              "scene": "portal_final",
+              "first_draw_ms": 470.1999999284744,
+              "first_usable_ms": 470.1999999284744,
+              "warm": {
+                "samples": 5,
+                "mean_ms": 510.5799999952316,
+                "p95_ms": 651.8999999761581,
+                "worst_ms": 651.8999999761581
+              },
+              "center_rgba": [
+                139,
+                83,
+                44,
+                255
+              ]
+            }
+          ],
+          "error": null
+        },
+        {
+          "revision": "regression9e",
+          "revision_ref": "9e3716927e03d2861cb1f6508676fb350106fe76",
+          "profile": "matrix",
+          "tier": "medium",
+          "diagnostic": null,
+          "size": [
+            640,
+            360
+          ],
+          "pixels": 230400,
+          "status": "passed",
+          "wall_ms": 54492,
+          "censored_lower_bound_ms": null,
+          "last_phase": "portal_final:warm_draws",
+          "backend": {
+            "vendor": "Google Inc. (Google)",
+            "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+            "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)",
+            "shading_language": "WebGL GLSL ES 1.0 (OpenGL ES GLSL ES 1.0 Chromium)",
+            "precision": "highp",
+            "derivatives": true
+          },
+          "relief_noise_prepare": null,
+          "shaders": [],
+          "translations": [],
+          "program_prepares": [],
+          "surface_target_prepares": [],
+          "warm_limit_violations": [],
+          "prepare": {
+            "prepare_ms": 19.700000047683716,
+            "variant": "medium-highp-derivatives",
+            "fragment_bytes": 51757
+          },
+          "scenes": [
+            {
+              "scene": "simple",
+              "first_draw_ms": 38899.89999997616,
+              "first_usable_ms": 38924.10000002384,
+              "warm": {
+                "samples": 5,
+                "mean_ms": 597.8400000095368,
+                "p95_ms": 768.4000000953674,
+                "worst_ms": 768.4000000953674
+              },
+              "center_rgba": [
+                178,
+                119,
+                53,
+                255
+              ]
+            },
+            {
+              "scene": "obstacles",
+              "first_draw_ms": 770.8999999761581,
+              "first_usable_ms": 770.8999999761581,
+              "warm": {
+                "samples": 5,
+                "mean_ms": 694.0199999809265,
+                "p95_ms": 801.1999999284744,
+                "worst_ms": 801.1999999284744
+              },
+              "center_rgba": [
+                176,
+                117,
+                52,
+                255
+              ]
+            },
+            {
+              "scene": "ramps_platforms",
+              "first_draw_ms": 549.6000000238419,
+              "first_usable_ms": 549.6000000238419,
+              "warm": {
+                "samples": 5,
+                "mean_ms": 552.1400000095367,
+                "p95_ms": 557.6000000238419,
+                "worst_ms": 557.6000000238419
+              },
+              "center_rgba": [
+                179,
+                119,
+                52,
+                255
+              ]
+            },
+            {
+              "scene": "portal_final",
+              "first_draw_ms": 769.8000000715256,
+              "first_usable_ms": 769.8000000715256,
+              "warm": {
+                "samples": 5,
+                "mean_ms": 652.7199999809266,
+                "p95_ms": 771.3000000715256,
+                "worst_ms": 771.3000000715256
+              },
+              "center_rgba": [
+                138,
+                85,
+                48,
+                255
+              ]
+            }
+          ],
+          "error": null
+        },
+        {
+          "revision": "regression9e",
+          "revision_ref": "9e3716927e03d2861cb1f6508676fb350106fe76",
+          "profile": "matrix",
+          "tier": "high",
+          "diagnostic": null,
+          "size": [
+            640,
+            360
+          ],
+          "pixels": 230400,
+          "status": "passed",
+          "wall_ms": 95582,
+          "censored_lower_bound_ms": null,
+          "last_phase": "portal_final:warm_draws",
+          "backend": {
+            "vendor": "Google Inc. (Google)",
+            "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+            "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)",
+            "shading_language": "WebGL GLSL ES 1.0 (OpenGL ES GLSL ES 1.0 Chromium)",
+            "precision": "highp",
+            "derivatives": true
+          },
+          "relief_noise_prepare": null,
+          "shaders": [],
+          "translations": [],
+          "program_prepares": [],
+          "surface_target_prepares": [],
+          "warm_limit_violations": [],
+          "prepare": {
+            "prepare_ms": 24.300000071525574,
+            "variant": "high-highp-derivatives",
+            "fragment_bytes": 51758
+          },
+          "scenes": [
+            {
+              "scene": "simple",
+              "first_draw_ms": 55189,
+              "first_usable_ms": 55217.60000002384,
+              "warm": {
+                "samples": 5,
+                "mean_ms": 1741.7399999856948,
+                "p95_ms": 1997.6999999284744,
+                "worst_ms": 1997.6999999284744
+              },
+              "center_rgba": [
+                178,
+                118,
+                53,
+                255
+              ]
+            },
+            {
+              "scene": "obstacles",
+              "first_draw_ms": 1400,
+              "first_usable_ms": 1400,
+              "warm": {
+                "samples": 5,
+                "mean_ms": 1536.3199999809265,
+                "p95_ms": 2072.1999999284744,
+                "worst_ms": 2072.1999999284744
+              },
+              "center_rgba": [
+                176,
+                116,
+                52,
+                255
+              ]
+            },
+            {
+              "scene": "ramps_platforms",
+              "first_draw_ms": 1554.8999999761581,
+              "first_usable_ms": 1554.8999999761581,
+              "warm": {
+                "samples": 5,
+                "mean_ms": 1793.4799999952315,
+                "p95_ms": 2135.5999999046326,
+                "worst_ms": 2135.5999999046326
+              },
+              "center_rgba": [
+                178,
+                118,
+                52,
+                255
+              ]
+            },
+            {
+              "scene": "portal_final",
+              "first_draw_ms": 1540.5999999046326,
+              "first_usable_ms": 1540.5999999046326,
+              "warm": {
+                "samples": 5,
+                "mean_ms": 1903.4400000095368,
+                "p95_ms": 2201.3000000715256,
+                "worst_ms": 2201.3000000715256
+              },
+              "center_rgba": [
+                93,
+                58,
+                38,
+                255
+              ]
+            }
+          ],
+          "error": null
+        },
+        {
+          "revision": "regression9e",
+          "revision_ref": "9e3716927e03d2861cb1f6508676fb350106fe76",
+          "profile": "matrix",
+          "tier": "cinematic",
+          "diagnostic": null,
+          "size": [
+            640,
+            360
+          ],
+          "pixels": 230400,
+          "status": "passed",
+          "wall_ms": 116741,
+          "censored_lower_bound_ms": null,
+          "last_phase": "portal_final:warm_draws",
+          "backend": {
+            "vendor": "Google Inc. (Google)",
+            "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+            "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)",
+            "shading_language": "WebGL GLSL ES 1.0 (OpenGL ES GLSL ES 1.0 Chromium)",
+            "precision": "highp",
+            "derivatives": true
+          },
+          "relief_noise_prepare": null,
+          "shaders": [],
+          "translations": [],
+          "program_prepares": [],
+          "surface_target_prepares": [],
+          "warm_limit_violations": [],
+          "prepare": {
+            "prepare_ms": 22.899999976158142,
+            "variant": "cinematic-highp-derivatives",
+            "fragment_bytes": 51759
+          },
+          "scenes": [
+            {
+              "scene": "simple",
+              "first_draw_ms": 69840.70000004768,
+              "first_usable_ms": 69868,
+              "warm": {
+                "samples": 5,
+                "mean_ms": 1996.0600000143052,
+                "p95_ms": 2251.600000023842,
+                "worst_ms": 2251.600000023842
+              },
+              "center_rgba": [
+                178,
+                118,
+                53,
+                255
+              ]
+            },
+            {
+              "scene": "obstacles",
+              "first_draw_ms": 1616,
+              "first_usable_ms": 1616,
+              "warm": {
+                "samples": 5,
+                "mean_ms": 1924.7799999952317,
+                "p95_ms": 2413.6999999284744,
+                "worst_ms": 2413.6999999284744
+              },
+              "center_rgba": [
+                176,
+                116,
+                52,
+                255
+              ]
+            },
+            {
+              "scene": "ramps_platforms",
+              "first_draw_ms": 1874.1000000238419,
+              "first_usable_ms": 1874.1000000238419,
+              "warm": {
+                "samples": 5,
+                "mean_ms": 2132.1800000190733,
+                "p95_ms": 2489.9000000953674,
+                "worst_ms": 2489.9000000953674
+              },
+              "center_rgba": [
+                178,
+                118,
+                52,
+                255
+              ]
+            },
+            {
+              "scene": "portal_final",
+              "first_draw_ms": 1877,
+              "first_usable_ms": 1877,
+              "warm": {
+                "samples": 5,
+                "mean_ms": 2049.1599999904633,
+                "p95_ms": 2595.100000023842,
+                "worst_ms": 2595.100000023842
+              },
+              "center_rgba": [
+                99,
+                61,
+                39,
+                255
+              ]
+            }
+          ],
+          "error": null
+        }
+      ],
+      "notes": "Five warm samples per scene; p95 equals worst at n=5."
+    },
+    {
+      "id": "historical_hardware_matrix",
+      "label": "Exact historical snapshots on NVIDIA RTX 3060 Ti D3D11",
+      "source_file": "test-results/stability/archives/benchmarks/2026-09-20/RENDER-STABILITY-BENCHMARKS.hardware.json",
+      "source_sha256": "e1e0a598837144fd77e514587213118639d693daff3a0ea753a641bb252a9a59",
+      "configuration": {
+        "warm_samples": 10,
+        "discarded_warmup_draws": 2,
+        "group_timeout_ms": 120000,
+        "profiles": [
+          "matrix"
+        ],
+        "tiers": null,
+        "scenes": null,
+        "revisions": {
+          "before9fb": "9fb2194c200b694a8b340219507894c55970ae3b",
+          "regression9e": "9e3716927e03d2861cb1f6508676fb350106fe76",
+          "fixed": "WORKTREE"
+        }
+      },
+      "groups": [
+        {
+          "revision": "before9fb",
+          "revision_ref": "9fb2194c200b694a8b340219507894c55970ae3b",
+          "profile": "matrix",
+          "tier": "low",
+          "diagnostic": null,
+          "size": [
+            640,
+            360
+          ],
+          "pixels": 230400,
+          "status": "passed",
+          "wall_ms": 32241,
+          "censored_lower_bound_ms": null,
+          "last_phase": "portal_final:warm_draws",
+          "backend": {
+            "vendor": "Google Inc. (NVIDIA)",
+            "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Ti (0x00002489) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+            "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)",
+            "shading_language": "WebGL GLSL ES 1.0 (OpenGL ES GLSL ES 1.0 Chromium)",
+            "precision": "highp",
+            "derivatives": true
+          },
+          "relief_noise_prepare": null,
+          "shaders": [],
+          "translations": [],
+          "program_prepares": [],
+          "surface_target_prepares": [],
+          "warm_limit_violations": [],
+          "prepare": {
+            "prepare_ms": 30264.799999952316,
+            "variant": "low-highp-derivatives",
+            "fragment_bytes": 40998
+          },
+          "scenes": [
+            {
+              "scene": "simple",
+              "first_draw_ms": 712.5,
+              "first_usable_ms": 30986.600000023842,
+              "discarded_warmup_draws": 2,
+              "warm": {
+                "samples": 10,
+                "mean_ms": 2.4200000047683714,
+                "p95_ms": 3.8000000715255737,
+                "worst_ms": 3.8000000715255737
+              },
+              "center_rgba": [
+                183,
+                123,
+                50,
+                255
+              ]
+            },
+            {
+              "scene": "obstacles",
+              "first_draw_ms": 2.6999999284744263,
+              "first_usable_ms": 2.6999999284744263,
+              "discarded_warmup_draws": 2,
+              "warm": {
+                "samples": 10,
+                "mean_ms": 2.6700000047683714,
+                "p95_ms": 4,
+                "worst_ms": 4
+              },
+              "center_rgba": [
+                181,
+                121,
+                50,
+                255
+              ]
+            },
+            {
+              "scene": "ramps_platforms",
+              "first_draw_ms": 2.5,
+              "first_usable_ms": 2.5,
+              "discarded_warmup_draws": 2,
+              "warm": {
+                "samples": 10,
+                "mean_ms": 3.810000002384186,
+                "p95_ms": 7.799999952316284,
+                "worst_ms": 7.799999952316284
+              },
+              "center_rgba": [
+                184,
+                122,
+                50,
+                255
+              ]
+            },
+            {
+              "scene": "portal_final",
+              "first_draw_ms": 2.899999976158142,
+              "first_usable_ms": 2.899999976158142,
+              "discarded_warmup_draws": 2,
+              "warm": {
+                "samples": 10,
+                "mean_ms": 3.1299999952316284,
+                "p95_ms": 4.700000047683716,
+                "worst_ms": 4.700000047683716
+              },
+              "center_rgba": [
+                147,
+                88,
+                46,
+                255
+              ]
+            }
+          ],
+          "error": null
+        },
+        {
+          "revision": "before9fb",
+          "revision_ref": "9fb2194c200b694a8b340219507894c55970ae3b",
+          "profile": "matrix",
+          "tier": "medium",
+          "diagnostic": null,
+          "size": [
+            640,
+            360
+          ],
+          "pixels": 230400,
+          "status": "passed",
+          "wall_ms": 36565,
+          "censored_lower_bound_ms": null,
+          "last_phase": "portal_final:warm_draws",
+          "backend": {
+            "vendor": "Google Inc. (NVIDIA)",
+            "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Ti (0x00002489) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+            "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)",
+            "shading_language": "WebGL GLSL ES 1.0 (OpenGL ES GLSL ES 1.0 Chromium)",
+            "precision": "highp",
+            "derivatives": true
+          },
+          "relief_noise_prepare": null,
+          "shaders": [],
+          "translations": [],
+          "program_prepares": [],
+          "surface_target_prepares": [],
+          "warm_limit_violations": [],
+          "prepare": {
+            "prepare_ms": 34292.299999952316,
+            "variant": "medium-highp-derivatives",
+            "fragment_bytes": 40999
+          },
+          "scenes": [
+            {
+              "scene": "simple",
+              "first_draw_ms": 874.5999999046326,
+              "first_usable_ms": 35173.59999990463,
+              "discarded_warmup_draws": 2,
+              "warm": {
+                "samples": 10,
+                "mean_ms": 3.4,
+                "p95_ms": 5.899999976158142,
+                "worst_ms": 5.899999976158142
+              },
+              "center_rgba": [
+                182,
+                123,
+                55,
+                255
+              ]
+            },
+            {
+              "scene": "obstacles",
+              "first_draw_ms": 9.799999952316284,
+              "first_usable_ms": 9.799999952316284,
+              "discarded_warmup_draws": 2,
+              "warm": {
+                "samples": 10,
+                "mean_ms": 4.710000002384186,
+                "p95_ms": 10.600000023841858,
+                "worst_ms": 10.600000023841858
+              },
+              "center_rgba": [
+                180,
+                121,
+                54,
+                255
+              ]
+            },
+            {
+              "scene": "ramps_platforms",
+              "first_draw_ms": 2.700000047683716,
+              "first_usable_ms": 2.700000047683716,
+              "discarded_warmup_draws": 2,
+              "warm": {
+                "samples": 10,
+                "mean_ms": 3.209999990463257,
+                "p95_ms": 7,
+                "worst_ms": 7
+              },
+              "center_rgba": [
+                183,
+                123,
+                54,
+                255
+              ]
+            },
+            {
+              "scene": "portal_final",
+              "first_draw_ms": 3.100000023841858,
+              "first_usable_ms": 3.100000023841858,
+              "discarded_warmup_draws": 2,
+              "warm": {
+                "samples": 10,
+                "mean_ms": 4.2,
+                "p95_ms": 7.5,
+                "worst_ms": 7.5
+              },
+              "center_rgba": [
+                146,
+                90,
+                50,
+                255
+              ]
+            }
+          ],
+          "error": null
+        },
+        {
+          "revision": "before9fb",
+          "revision_ref": "9fb2194c200b694a8b340219507894c55970ae3b",
+          "profile": "matrix",
+          "tier": "high",
+          "diagnostic": null,
+          "size": [
+            640,
+            360
+          ],
+          "pixels": 230400,
+          "status": "passed",
+          "wall_ms": 63154,
+          "censored_lower_bound_ms": null,
+          "last_phase": "portal_final:warm_draws",
+          "backend": {
+            "vendor": "Google Inc. (NVIDIA)",
+            "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Ti (0x00002489) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+            "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)",
+            "shading_language": "WebGL GLSL ES 1.0 (OpenGL ES GLSL ES 1.0 Chromium)",
+            "precision": "highp",
+            "derivatives": true
+          },
+          "relief_noise_prepare": null,
+          "shaders": [],
+          "translations": [],
+          "program_prepares": [],
+          "surface_target_prepares": [],
+          "warm_limit_violations": [],
+          "prepare": {
+            "prepare_ms": 60314.5,
+            "variant": "high-highp-derivatives",
+            "fragment_bytes": 40999
+          },
+          "scenes": [
+            {
+              "scene": "simple",
+              "first_draw_ms": 1075.6999999284744,
+              "first_usable_ms": 61397.60000002384,
+              "discarded_warmup_draws": 2,
+              "warm": {
+                "samples": 10,
+                "mean_ms": 5.55,
+                "p95_ms": 7,
+                "worst_ms": 7
+              },
+              "center_rgba": [
+                182,
+                123,
+                55,
+                255
+              ]
+            },
+            {
+              "scene": "obstacles",
+              "first_draw_ms": 4.700000047683716,
+              "first_usable_ms": 4.700000047683716,
+              "discarded_warmup_draws": 2,
+              "warm": {
+                "samples": 10,
+                "mean_ms": 5.320000004768372,
+                "p95_ms": 7,
+                "worst_ms": 7
+              },
+              "center_rgba": [
+                180,
+                121,
+                54,
+                255
+              ]
+            },
+            {
+              "scene": "ramps_platforms",
+              "first_draw_ms": 4.700000047683716,
+              "first_usable_ms": 4.700000047683716,
+              "discarded_warmup_draws": 2,
+              "warm": {
+                "samples": 10,
+                "mean_ms": 5.479999995231628,
+                "p95_ms": 7.099999904632568,
+                "worst_ms": 7.099999904632568
+              },
+              "center_rgba": [
+                183,
+                123,
+                54,
+                255
+              ]
+            },
+            {
+              "scene": "portal_final",
+              "first_draw_ms": 5.300000071525574,
+              "first_usable_ms": 5.300000071525574,
+              "discarded_warmup_draws": 2,
+              "warm": {
+                "samples": 10,
+                "mean_ms": 5.7,
+                "p95_ms": 7.5,
+                "worst_ms": 7.5
+              },
+              "center_rgba": [
+                138,
+                84,
+                47,
+                255
+              ]
+            }
+          ],
+          "error": null
+        },
+        {
+          "revision": "before9fb",
+          "revision_ref": "9fb2194c200b694a8b340219507894c55970ae3b",
+          "profile": "matrix",
+          "tier": "cinematic",
+          "diagnostic": null,
+          "size": [
+            640,
+            360
+          ],
+          "pixels": 230400,
+          "status": "passed",
+          "wall_ms": 87441,
+          "censored_lower_bound_ms": null,
+          "last_phase": "portal_final:warm_draws",
+          "backend": {
+            "vendor": "Google Inc. (NVIDIA)",
+            "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Ti (0x00002489) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+            "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)",
+            "shading_language": "WebGL GLSL ES 1.0 (OpenGL ES GLSL ES 1.0 Chromium)",
+            "precision": "highp",
+            "derivatives": true
+          },
+          "relief_noise_prepare": null,
+          "shaders": [],
+          "translations": [],
+          "program_prepares": [],
+          "surface_target_prepares": [],
+          "warm_limit_violations": [],
+          "prepare": {
+            "prepare_ms": 84597.29999995232,
+            "variant": "cinematic-highp-derivatives",
+            "fragment_bytes": 41000
+          },
+          "scenes": [
+            {
+              "scene": "simple",
+              "first_draw_ms": 1320.1000000238419,
+              "first_usable_ms": 85924,
+              "discarded_warmup_draws": 2,
+              "warm": {
+                "samples": 10,
+                "mean_ms": 6.289999997615814,
+                "p95_ms": 8.099999904632568,
+                "worst_ms": 8.099999904632568
+              },
+              "center_rgba": [
+                182,
+                123,
+                55,
+                255
+              ]
+            },
+            {
+              "scene": "obstacles",
+              "first_draw_ms": 5.799999952316284,
+              "first_usable_ms": 5.799999952316284,
+              "discarded_warmup_draws": 2,
+              "warm": {
+                "samples": 10,
+                "mean_ms": 6.169999992847442,
+                "p95_ms": 8.200000047683716,
+                "worst_ms": 8.200000047683716
+              },
+              "center_rgba": [
+                180,
+                121,
+                54,
+                255
+              ]
+            },
+            {
+              "scene": "ramps_platforms",
+              "first_draw_ms": 5.5,
+              "first_usable_ms": 5.5,
+              "discarded_warmup_draws": 2,
+              "warm": {
+                "samples": 10,
+                "mean_ms": 6.35,
+                "p95_ms": 8.199999928474426,
+                "worst_ms": 8.199999928474426
+              },
+              "center_rgba": [
+                183,
+                123,
+                54,
+                255
+              ]
+            },
+            {
+              "scene": "portal_final",
+              "first_draw_ms": 6.799999952316284,
+              "first_usable_ms": 6.799999952316284,
+              "discarded_warmup_draws": 2,
+              "warm": {
+                "samples": 10,
+                "mean_ms": 7.3,
+                "p95_ms": 9.100000023841858,
+                "worst_ms": 9.100000023841858
+              },
+              "center_rgba": [
+                138,
+                84,
+                47,
+                255
+              ]
+            }
+          ],
+          "error": null
+        },
+        {
+          "revision": "regression9e",
+          "revision_ref": "9e3716927e03d2861cb1f6508676fb350106fe76",
+          "profile": "matrix",
+          "tier": "low",
+          "diagnostic": null,
+          "size": [
+            640,
+            360
+          ],
+          "pixels": 230400,
+          "status": "passed",
+          "wall_ms": 40571,
+          "censored_lower_bound_ms": null,
+          "last_phase": "portal_final:warm_draws",
+          "backend": {
+            "vendor": "Google Inc. (NVIDIA)",
+            "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Ti (0x00002489) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+            "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)",
+            "shading_language": "WebGL GLSL ES 1.0 (OpenGL ES GLSL ES 1.0 Chromium)",
+            "precision": "highp",
+            "derivatives": true
+          },
+          "relief_noise_prepare": null,
+          "shaders": [],
+          "translations": [],
+          "program_prepares": [],
+          "surface_target_prepares": [],
+          "warm_limit_violations": [],
+          "prepare": {
+            "prepare_ms": 38558.5,
+            "variant": "low-highp-derivatives",
+            "fragment_bytes": 51756
+          },
+          "scenes": [
+            {
+              "scene": "simple",
+              "first_draw_ms": 612.6999999284744,
+              "first_usable_ms": 39180.699999928474,
+              "discarded_warmup_draws": 2,
+              "warm": {
+                "samples": 10,
+                "mean_ms": 2.6900000095367433,
+                "p95_ms": 4.600000023841858,
+                "worst_ms": 4.600000023841858
+              },
+              "center_rgba": [
+                180,
+                119,
+                48,
+                255
+              ]
+            },
+            {
+              "scene": "obstacles",
+              "first_draw_ms": 3.399999976158142,
+              "first_usable_ms": 3.399999976158142,
+              "discarded_warmup_draws": 2,
+              "warm": {
+                "samples": 10,
+                "mean_ms": 2.9699999928474425,
+                "p95_ms": 4.799999952316284,
+                "worst_ms": 4.799999952316284
+              },
+              "center_rgba": [
+                177,
+                116,
+                48,
+                255
+              ]
+            },
+            {
+              "scene": "ramps_platforms",
+              "first_draw_ms": 2.799999952316284,
+              "first_usable_ms": 2.799999952316284,
+              "discarded_warmup_draws": 2,
+              "warm": {
+                "samples": 10,
+                "mean_ms": 2.9699999928474425,
+                "p95_ms": 4.799999952316284,
+                "worst_ms": 4.799999952316284
+              },
+              "center_rgba": [
+                180,
+                118,
+                48,
+                255
+              ]
+            },
+            {
+              "scene": "portal_final",
+              "first_draw_ms": 2.6999999284744263,
+              "first_usable_ms": 2.6999999284744263,
+              "discarded_warmup_draws": 2,
+              "warm": {
+                "samples": 10,
+                "mean_ms": 2.75,
+                "p95_ms": 3.899999976158142,
+                "worst_ms": 3.899999976158142
+              },
+              "center_rgba": [
+                139,
+                83,
+                44,
+                255
+              ]
+            }
+          ],
+          "error": null
+        },
+        {
+          "revision": "regression9e",
+          "revision_ref": "9e3716927e03d2861cb1f6508676fb350106fe76",
+          "profile": "matrix",
+          "tier": "medium",
+          "diagnostic": null,
+          "size": [
+            640,
+            360
+          ],
+          "pixels": 230400,
+          "status": "passed",
+          "wall_ms": 39465,
+          "censored_lower_bound_ms": null,
+          "last_phase": "portal_final:warm_draws",
+          "backend": {
+            "vendor": "Google Inc. (NVIDIA)",
+            "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Ti (0x00002489) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+            "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)",
+            "shading_language": "WebGL GLSL ES 1.0 (OpenGL ES GLSL ES 1.0 Chromium)",
+            "precision": "highp",
+            "derivatives": true
+          },
+          "relief_noise_prepare": null,
+          "shaders": [],
+          "translations": [],
+          "program_prepares": [],
+          "surface_target_prepares": [],
+          "warm_limit_violations": [],
+          "prepare": {
+            "prepare_ms": 37367.700000047684,
+            "variant": "medium-highp-derivatives",
+            "fragment_bytes": 51757
+          },
+          "scenes": [
+            {
+              "scene": "simple",
+              "first_draw_ms": 856.1999999284744,
+              "first_usable_ms": 38230.799999952316,
+              "discarded_warmup_draws": 2,
+              "warm": {
+                "samples": 10,
+                "mean_ms": 3.0700000047683718,
+                "p95_ms": 5,
+                "worst_ms": 5
+              },
+              "center_rgba": [
+                178,
+                119,
+                53,
+                255
+              ]
+            },
+            {
+              "scene": "obstacles",
+              "first_draw_ms": 3.0999999046325684,
+              "first_usable_ms": 3.0999999046325684,
+              "discarded_warmup_draws": 2,
+              "warm": {
+                "samples": 10,
+                "mean_ms": 3.160000002384186,
+                "p95_ms": 5.100000023841858,
+                "worst_ms": 5.100000023841858
+              },
+              "center_rgba": [
+                176,
+                117,
+                52,
+                255
+              ]
+            },
+            {
+              "scene": "ramps_platforms",
+              "first_draw_ms": 5.100000023841858,
+              "first_usable_ms": 5.100000023841858,
+              "discarded_warmup_draws": 2,
+              "warm": {
+                "samples": 10,
+                "mean_ms": 3.239999997615814,
+                "p95_ms": 5,
+                "worst_ms": 5
+              },
+              "center_rgba": [
+                179,
+                118,
+                52,
+                255
+              ]
+            },
+            {
+              "scene": "portal_final",
+              "first_draw_ms": 5.300000071525574,
+              "first_usable_ms": 5.300000071525574,
+              "discarded_warmup_draws": 2,
+              "warm": {
+                "samples": 10,
+                "mean_ms": 3.35,
+                "p95_ms": 5.100000023841858,
+                "worst_ms": 5.100000023841858
+              },
+              "center_rgba": [
+                138,
+                85,
+                48,
+                255
+              ]
+            }
+          ],
+          "error": null
+        },
+        {
+          "revision": "regression9e",
+          "revision_ref": "9e3716927e03d2861cb1f6508676fb350106fe76",
+          "profile": "matrix",
+          "tier": "high",
+          "diagnostic": null,
+          "size": [
+            640,
+            360
+          ],
+          "pixels": 230400,
+          "status": "censored_timeout",
+          "wall_ms": 120128,
+          "censored_lower_bound_ms": 120128,
+          "last_phase": "prepare_begin",
+          "backend": {
+            "vendor": "Google Inc. (NVIDIA)",
+            "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Ti (0x00002489) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+            "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)",
+            "shading_language": "WebGL GLSL ES 1.0 (OpenGL ES GLSL ES 1.0 Chromium)",
+            "precision": "highp",
+            "derivatives": true
+          },
+          "relief_noise_prepare": null,
+          "shaders": [],
+          "translations": [],
+          "program_prepares": [],
+          "surface_target_prepares": [],
+          "warm_limit_violations": [],
+          "prepare": null,
+          "scenes": [],
+          "error": null
+        },
+        {
+          "revision": "regression9e",
+          "revision_ref": "9e3716927e03d2861cb1f6508676fb350106fe76",
+          "profile": "matrix",
+          "tier": "cinematic",
+          "diagnostic": null,
+          "size": [
+            640,
+            360
+          ],
+          "pixels": 230400,
+          "status": "censored_timeout",
+          "wall_ms": 120103,
+          "censored_lower_bound_ms": 120103,
+          "last_phase": "prepare_begin",
+          "backend": {
+            "vendor": "Google Inc. (NVIDIA)",
+            "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Ti (0x00002489) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+            "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)",
+            "shading_language": "WebGL GLSL ES 1.0 (OpenGL ES GLSL ES 1.0 Chromium)",
+            "precision": "highp",
+            "derivatives": true
+          },
+          "relief_noise_prepare": null,
+          "shaders": [],
+          "translations": [],
+          "program_prepares": [],
+          "surface_target_prepares": [],
+          "warm_limit_violations": [],
+          "prepare": null,
+          "scenes": [],
+          "error": null
+        }
+      ],
+      "notes": "Regression High and Cinematic are externally censored lower bounds. Obsolete fixed-candidate entries in the raw source are excluded."
+    },
+    {
+      "id": "final_candidate_software_matrix",
+      "label": "Final worktree candidate on SwiftShader (software)",
+      "source_file": "test-results/stability/archives/benchmarks/2026-09-20/final-candidate-software-matrix.json",
+      "source_sha256": "39a71028818dc5791b0a2c25e0846c3f2ebf2d32424ef19b55cec9cdb70b71bc",
+      "configuration": {
+        "warm_samples": 5,
+        "discarded_warmup_draws": 0,
+        "scene_rounds": 1,
+        "max_warm_ms": 1600,
+        "group_timeout_ms": 240000,
+        "profiles": [
+          "matrix"
+        ],
+        "tiers": [
+          "low",
+          "medium",
+          "high",
+          "cinematic"
+        ],
+        "scenes": [
+          "simple",
+          "obstacles",
+          "ramps_platforms",
+          "portal_final"
+        ],
+        "revisions": {
+          "fixed": "WORKTREE"
+        }
+      },
+      "groups": [
+        {
+          "revision": "fixed",
+          "revision_ref": "WORKTREE",
+          "profile": "matrix",
+          "tier": "low",
+          "diagnostic": null,
+          "size": [
+            640,
+            360
+          ],
+          "pixels": 230400,
+          "status": "passed",
+          "wall_ms": 65946,
+          "censored_lower_bound_ms": null,
+          "last_phase": "portal_final:round_1:warm_draws",
+          "backend": {
+            "vendor": "Google Inc. (Google)",
+            "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+            "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)",
+            "shading_language": "WebGL GLSL ES 1.0 (OpenGL ES GLSL ES 1.0 Chromium)",
+            "precision": "highp",
+            "derivatives": true
+          },
+          "relief_noise_prepare": null,
+          "shaders": [
+            {
+              "pass": "shade",
+              "diagnostic": "production",
+              "source_hash_fnv1a": "d5c17a71",
+              "pom_steps": 0,
+              "fragment_bytes": 59529
+            }
+          ],
+          "translations": [
+            {
+              "pass": "shade",
+              "translated_bytes": 471936,
+              "angle_uses_nested_break": false,
+              "loop_for_count": 0,
+              "flatten_count": 0,
+              "angle_enable_loop_flatten": false
+            }
+          ],
+          "program_prepares": [
+            {
+              "pass": "shade",
+              "prepare_ms": 46.200000047683716
+            }
+          ],
+          "surface_target_prepares": [],
+          "warm_limit_violations": [],
+          "prepare": {
+            "prepare_ms": 56.90000009536743,
+            "program_prepare_ms": 56.800000071525574,
+            "programs": 1,
+            "variant": "low-highp-derivatives",
+            "fragment_bytes": 59529
+          },
+          "scenes": [
+            {
+              "scene": "simple",
+              "round": 1,
+              "size": [
+                640,
+                360
+              ],
+              "passes": 1,
+              "first_draw_ms": 38730.89999997616,
+              "first_usable_ms": 38794.800000071526,
+              "discarded_warmup_draws": 0,
+              "warm": {
+                "samples": 5,
+                "mean_ms": 1028.4,
+                "p95_ms": 1218.8999999761581,
+                "worst_ms": 1218.8999999761581
+              },
+              "center_rgba": [
+                180,
+                119,
+                48,
+                255
+              ]
+            },
+            {
+              "scene": "obstacles",
+              "round": 1,
+              "size": [
+                640,
+                360
+              ],
+              "passes": 1,
+              "first_draw_ms": 862.1000000238419,
+              "first_usable_ms": 862.1000000238419,
+              "discarded_warmup_draws": 0,
+              "warm": {
+                "samples": 5,
+                "mean_ms": 1071.2599999904633,
+                "p95_ms": 1410.5999999046326,
+                "worst_ms": 1410.5999999046326
+              },
+              "center_rgba": [
+                177,
+                116,
+                48,
+                255
+              ]
+            },
+            {
+              "scene": "ramps_platforms",
+              "round": 1,
+              "size": [
+                640,
+                360
+              ],
+              "passes": 1,
+              "first_draw_ms": 1164.8999999761581,
+              "first_usable_ms": 1164.8999999761581,
+              "discarded_warmup_draws": 0,
+              "warm": {
+                "samples": 5,
+                "mean_ms": 1205.660000014305,
+                "p95_ms": 1498.4000000953674,
+                "worst_ms": 1498.4000000953674
+              },
+              "center_rgba": [
+                180,
+                118,
+                48,
+                255
+              ]
+            },
+            {
+              "scene": "portal_final",
+              "round": 1,
+              "size": [
+                640,
+                360
+              ],
+              "passes": 1,
+              "first_draw_ms": 1205.0999999046326,
+              "first_usable_ms": 1205.0999999046326,
+              "discarded_warmup_draws": 0,
+              "warm": {
+                "samples": 5,
+                "mean_ms": 1098.9599999904633,
+                "p95_ms": 1296.6000000238419,
+                "worst_ms": 1296.6000000238419
+              },
+              "center_rgba": [
+                139,
+                83,
+                44,
+                255
+              ]
+            }
+          ],
+          "error": null
+        },
+        {
+          "revision": "fixed",
+          "revision_ref": "WORKTREE",
+          "profile": "matrix",
+          "tier": "medium",
+          "diagnostic": null,
+          "size": [
+            640,
+            360
+          ],
+          "pixels": 230400,
+          "status": "passed",
+          "wall_ms": 59437,
+          "censored_lower_bound_ms": null,
+          "last_phase": "portal_final:round_1:warm_draws",
+          "backend": {
+            "vendor": "Google Inc. (Google)",
+            "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+            "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)",
+            "shading_language": "WebGL GLSL ES 1.0 (OpenGL ES GLSL ES 1.0 Chromium)",
+            "precision": "highp",
+            "derivatives": true
+          },
+          "relief_noise_prepare": null,
+          "shaders": [
+            {
+              "pass": "shade",
+              "diagnostic": "production",
+              "source_hash_fnv1a": "8c988311",
+              "pom_steps": 0,
+              "fragment_bytes": 59530
+            }
+          ],
+          "translations": [
+            {
+              "pass": "shade",
+              "translated_bytes": 490129,
+              "angle_uses_nested_break": false,
+              "loop_for_count": 0,
+              "flatten_count": 0,
+              "angle_enable_loop_flatten": false
+            }
+          ],
+          "program_prepares": [
+            {
+              "pass": "shade",
+              "prepare_ms": 38.199999928474426
+            }
+          ],
+          "surface_target_prepares": [],
+          "warm_limit_violations": [],
+          "prepare": {
+            "prepare_ms": 42.299999952316284,
+            "program_prepare_ms": 42.299999952316284,
+            "programs": 1,
+            "variant": "medium-highp-derivatives",
+            "fragment_bytes": 59530
+          },
+          "scenes": [
+            {
+              "scene": "simple",
+              "round": 1,
+              "size": [
+                640,
+                360
+              ],
+              "passes": 1,
+              "first_draw_ms": 39204.700000047684,
+              "first_usable_ms": 39252.10000002384,
+              "discarded_warmup_draws": 0,
+              "warm": {
+                "samples": 5,
+                "mean_ms": 837.6600000143051,
+                "p95_ms": 952.5,
+                "worst_ms": 952.5
+              },
+              "center_rgba": [
+                178,
+                119,
+                53,
+                255
+              ]
+            },
+            {
+              "scene": "obstacles",
+              "round": 1,
+              "size": [
+                640,
+                360
+              ],
+              "passes": 1,
+              "first_draw_ms": 955.2999999523163,
+              "first_usable_ms": 955.2999999523163,
+              "discarded_warmup_draws": 0,
+              "warm": {
+                "samples": 5,
+                "mean_ms": 846.4800000190735,
+                "p95_ms": 975.8000000715256,
+                "worst_ms": 975.8000000715256
+              },
+              "center_rgba": [
+                176,
+                117,
+                52,
+                255
+              ]
+            },
+            {
+              "scene": "ramps_platforms",
+              "round": 1,
+              "size": [
+                640,
+                360
+              ],
+              "passes": 1,
+              "first_draw_ms": 731.7000000476837,
+              "first_usable_ms": 731.7000000476837,
+              "discarded_warmup_draws": 0,
+              "warm": {
+                "samples": 5,
+                "mean_ms": 817.3199999809265,
+                "p95_ms": 962.8999999761581,
+                "worst_ms": 962.8999999761581
+              },
+              "center_rgba": [
+                179,
+                119,
+                52,
+                255
+              ]
+            },
+            {
+              "scene": "portal_final",
+              "round": 1,
+              "size": [
+                640,
+                360
+              ],
+              "passes": 1,
+              "first_draw_ms": 1014,
+              "first_usable_ms": 1014,
+              "discarded_warmup_draws": 0,
+              "warm": {
+                "samples": 5,
+                "mean_ms": 766.1400000095367,
+                "p95_ms": 974.3000000715256,
+                "worst_ms": 974.3000000715256
+              },
+              "center_rgba": [
+                138,
+                85,
+                48,
+                255
+              ]
+            }
+          ],
+          "error": null
+        },
+        {
+          "revision": "fixed",
+          "revision_ref": "WORKTREE",
+          "profile": "matrix",
+          "tier": "high",
+          "diagnostic": null,
+          "size": [
+            640,
+            360
+          ],
+          "pixels": 230400,
+          "status": "failed",
+          "wall_ms": 105611,
+          "censored_lower_bound_ms": null,
+          "last_phase": "portal_final:round_1:warm_draws",
+          "backend": {
+            "vendor": "Google Inc. (Google)",
+            "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+            "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)",
+            "shading_language": "WebGL GLSL ES 1.0 (OpenGL ES GLSL ES 1.0 Chromium)",
+            "precision": "highp",
+            "derivatives": true
+          },
+          "relief_noise_prepare": {
+            "prepare_ms": 5.300000071525574,
+            "width": 256,
+            "height": 256,
+            "implementation": "snapshot createReliefNoiseTexture"
+          },
+          "shaders": [
+            {
+              "pass": "surface",
+              "diagnostic": "production",
+              "source_hash_fnv1a": "37ca7b70",
+              "pom_steps": 8,
+              "fragment_bytes": 58978
+            },
+            {
+              "pass": "shade",
+              "diagnostic": "production",
+              "source_hash_fnv1a": "e3c51a23",
+              "pom_steps": 8,
+              "fragment_bytes": 60690
+            }
+          ],
+          "translations": [
+            {
+              "pass": "surface",
+              "translated_bytes": 277120,
+              "angle_uses_nested_break": false,
+              "loop_for_count": 0,
+              "flatten_count": 0,
+              "angle_enable_loop_flatten": false
+            },
+            {
+              "pass": "shade",
+              "translated_bytes": 573712,
+              "angle_uses_nested_break": false,
+              "loop_for_count": 0,
+              "flatten_count": 0,
+              "angle_enable_loop_flatten": false
+            }
+          ],
+          "program_prepares": [
+            {
+              "pass": "surface",
+              "prepare_ms": 32.199999928474426
+            },
+            {
+              "pass": "shade",
+              "prepare_ms": 45.5
+            }
+          ],
+          "surface_target_prepares": [
+            {
+              "size": [
+                640,
+                360
+              ],
+              "prepare_ms": 0.20000004768371582
+            }
+          ],
+          "warm_limit_violations": [
+            {
+              "scene": "simple",
+              "round": 1,
+              "size": [
+                640,
+                360
+              ],
+              "worst_ms": 2983.5,
+              "limit_ms": 1600
+            },
+            {
+              "scene": "obstacles",
+              "round": 1,
+              "size": [
+                640,
+                360
+              ],
+              "worst_ms": 3721.600000023842,
+              "limit_ms": 1600
+            },
+            {
+              "scene": "ramps_platforms",
+              "round": 1,
+              "size": [
+                640,
+                360
+              ],
+              "worst_ms": 2573.100000023842,
+              "limit_ms": 1600
+            },
+            {
+              "scene": "portal_final",
+              "round": 1,
+              "size": [
+                640,
+                360
+              ],
+              "worst_ms": 2086.2000000476837,
+              "limit_ms": 1600
+            }
+          ],
+          "prepare": {
+            "prepare_ms": 94.40000009536743,
+            "program_prepare_ms": 85.10000002384186,
+            "programs": 2,
+            "variant": "high-highp-derivatives",
+            "fragment_bytes": 60690
+          },
+          "scenes": [
+            {
+              "scene": "simple",
+              "round": 1,
+              "size": [
+                640,
+                360
+              ],
+              "passes": 2,
+              "first_draw_ms": 51370.700000047684,
+              "first_usable_ms": 51471.800000071526,
+              "discarded_warmup_draws": 0,
+              "warm": {
+                "samples": 5,
+                "mean_ms": 2503.5799999952314,
+                "p95_ms": 2983.5,
+                "worst_ms": 2983.5
+              },
+              "center_rgba": [
+                178,
+                118,
+                53,
+                255
+              ]
+            },
+            {
+              "scene": "obstacles",
+              "round": 1,
+              "size": [
+                640,
+                360
+              ],
+              "passes": 2,
+              "first_draw_ms": 2575,
+              "first_usable_ms": 2575,
+              "discarded_warmup_draws": 0,
+              "warm": {
+                "samples": 5,
+                "mean_ms": 2711.8199999809267,
+                "p95_ms": 3721.600000023842,
+                "worst_ms": 3721.600000023842
+              },
+              "center_rgba": [
+                176,
+                116,
+                52,
+                255
+              ]
+            },
+            {
+              "scene": "ramps_platforms",
+              "round": 1,
+              "size": [
+                640,
+                360
+              ],
+              "passes": 2,
+              "first_draw_ms": 2593.899999976158,
+              "first_usable_ms": 2593.899999976158,
+              "discarded_warmup_draws": 0,
+              "warm": {
+                "samples": 5,
+                "mean_ms": 2131.2400000095367,
+                "p95_ms": 2573.100000023842,
+                "worst_ms": 2573.100000023842
+              },
+              "center_rgba": [
+                178,
+                118,
+                52,
+                255
+              ]
+            },
+            {
+              "scene": "portal_final",
+              "round": 1,
+              "size": [
+                640,
+                360
+              ],
+              "passes": 2,
+              "first_draw_ms": 1639.5,
+              "first_usable_ms": 1639.5,
+              "discarded_warmup_draws": 0,
+              "warm": {
+                "samples": 5,
+                "mean_ms": 1739.5799999952317,
+                "p95_ms": 2086.2000000476837,
+                "worst_ms": 2086.2000000476837
+              },
+              "center_rgba": [
+                99,
+                61,
+                39,
+                255
+              ]
+            }
+          ],
+          "error": "page.evaluate: Error: 4 warm draw cell(s) exceeded 1600ms limit; worst 3721.60ms\n    at eval (eval at evaluate (:311:30), <anonymous>:33:35)\n    at async <anonymous>:337:30\n    at worker (D:\\2026\\PortalRooms2\\test-results\\stability-fix\\tests\\render-benchmark.mjs:72:14)\n    at async file:///D:/2026/PortalRooms2/test-results/stability-fix/tests/render-benchmark.mjs:108:103"
+        },
+        {
+          "revision": "fixed",
+          "revision_ref": "WORKTREE",
+          "profile": "matrix",
+          "tier": "cinematic",
+          "diagnostic": null,
+          "size": [
+            640,
+            360
+          ],
+          "pixels": 230400,
+          "status": "failed",
+          "wall_ms": 118573,
+          "censored_lower_bound_ms": null,
+          "last_phase": "portal_final:round_1:warm_draws",
+          "backend": {
+            "vendor": "Google Inc. (Google)",
+            "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+            "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)",
+            "shading_language": "WebGL GLSL ES 1.0 (OpenGL ES GLSL ES 1.0 Chromium)",
+            "precision": "highp",
+            "derivatives": true
+          },
+          "relief_noise_prepare": {
+            "prepare_ms": 5.200000047683716,
+            "width": 256,
+            "height": 256,
+            "implementation": "snapshot createReliefNoiseTexture"
+          },
+          "shaders": [
+            {
+              "pass": "surface",
+              "diagnostic": "production",
+              "source_hash_fnv1a": "c08f3a24",
+              "pom_steps": 14,
+              "fragment_bytes": 58980
+            },
+            {
+              "pass": "shade",
+              "diagnostic": "production",
+              "source_hash_fnv1a": "41700531",
+              "pom_steps": 14,
+              "fragment_bytes": 60692
+            }
+          ],
+          "translations": [
+            {
+              "pass": "surface",
+              "translated_bytes": 277120,
+              "angle_uses_nested_break": false,
+              "loop_for_count": 0,
+              "flatten_count": 0,
+              "angle_enable_loop_flatten": false
+            },
+            {
+              "pass": "shade",
+              "translated_bytes": 581482,
+              "angle_uses_nested_break": false,
+              "loop_for_count": 0,
+              "flatten_count": 0,
+              "angle_enable_loop_flatten": false
+            }
+          ],
+          "program_prepares": [
+            {
+              "pass": "surface",
+              "prepare_ms": 32.09999990463257
+            },
+            {
+              "pass": "shade",
+              "prepare_ms": 48.39999997615814
+            }
+          ],
+          "surface_target_prepares": [
+            {
+              "size": [
+                640,
+                360
+              ],
+              "prepare_ms": 0.19999992847442627
+            }
+          ],
+          "warm_limit_violations": [
+            {
+              "scene": "simple",
+              "round": 1,
+              "size": [
+                640,
+                360
+              ],
+              "worst_ms": 2415.100000023842,
+              "limit_ms": 1600
+            },
+            {
+              "scene": "obstacles",
+              "round": 1,
+              "size": [
+                640,
+                360
+              ],
+              "worst_ms": 2540.600000023842,
+              "limit_ms": 1600
+            },
+            {
+              "scene": "ramps_platforms",
+              "round": 1,
+              "size": [
+                640,
+                360
+              ],
+              "worst_ms": 2512.5999999046326,
+              "limit_ms": 1600
+            },
+            {
+              "scene": "portal_final",
+              "round": 1,
+              "size": [
+                640,
+                360
+              ],
+              "worst_ms": 2396.100000023842,
+              "limit_ms": 1600
+            }
+          ],
+          "prepare": {
+            "prepare_ms": 97.19999992847443,
+            "program_prepare_ms": 88,
+            "programs": 2,
+            "variant": "cinematic-highp-derivatives",
+            "fragment_bytes": 60692
+          },
+          "scenes": [
+            {
+              "scene": "simple",
+              "round": 1,
+              "size": [
+                640,
+                360
+              ],
+              "passes": 2,
+              "first_draw_ms": 68476.70000004768,
+              "first_usable_ms": 68580.79999995232,
+              "discarded_warmup_draws": 0,
+              "warm": {
+                "samples": 5,
+                "mean_ms": 1911.3599999904632,
+                "p95_ms": 2415.100000023842,
+                "worst_ms": 2415.100000023842
+              },
+              "center_rgba": [
+                178,
+                118,
+                53,
+                255
+              ]
+            },
+            {
+              "scene": "obstacles",
+              "round": 1,
+              "size": [
+                640,
+                360
+              ],
+              "passes": 2,
+              "first_draw_ms": 2448.100000023842,
+              "first_usable_ms": 2448.100000023842,
+              "discarded_warmup_draws": 0,
+              "warm": {
+                "samples": 5,
+                "mean_ms": 2263.7,
+                "p95_ms": 2540.600000023842,
+                "worst_ms": 2540.600000023842
+              },
+              "center_rgba": [
+                176,
+                116,
+                52,
+                255
+              ]
+            },
+            {
+              "scene": "ramps_platforms",
+              "round": 1,
+              "size": [
+                640,
+                360
+              ],
+              "passes": 2,
+              "first_draw_ms": 1854.3000000715256,
+              "first_usable_ms": 1854.3000000715256,
+              "discarded_warmup_draws": 0,
+              "warm": {
+                "samples": 5,
+                "mean_ms": 2290.2400000095367,
+                "p95_ms": 2512.5999999046326,
+                "worst_ms": 2512.5999999046326
+              },
+              "center_rgba": [
+                178,
+                118,
+                52,
+                255
+              ]
+            },
+            {
+              "scene": "portal_final",
+              "round": 1,
+              "size": [
+                640,
+                360
+              ],
+              "passes": 2,
+              "first_draw_ms": 1813.7999999523163,
+              "first_usable_ms": 1813.7999999523163,
+              "discarded_warmup_draws": 0,
+              "warm": {
+                "samples": 5,
+                "mean_ms": 2072.5799999952314,
+                "p95_ms": 2396.100000023842,
+                "worst_ms": 2396.100000023842
+              },
+              "center_rgba": [
+                99,
+                61,
+                39,
+                255
+              ]
+            }
+          ],
+          "error": "page.evaluate: Error: 4 warm draw cell(s) exceeded 1600ms limit; worst 2540.60ms\n    at eval (eval at evaluate (:311:30), <anonymous>:33:35)\n    at async <anonymous>:337:30\n    at worker (D:\\2026\\PortalRooms2\\test-results\\stability-fix\\tests\\render-benchmark.mjs:72:14)\n    at async file:///D:/2026/PortalRooms2/test-results/stability-fix/tests/render-benchmark.mjs:108:103"
+        }
+      ],
+      "source_runs": [
+        {
+          "file": "final-candidate-software-matrix-initial-guard.json",
+          "sha256": "0eb708c6ed3a2b9da67c463f89463aa25678d47e467ce24fa4e9728d8da274ba",
+          "note": "Original predeclared guard run; later tiers stopped at their first violation."
+        },
+        {
+          "file": "final-candidate-software-matrix-completion-run.json",
+          "sha256": "c11fa23f2e7dd2130242f679a8ae2726a404247328ce1cb7e75d310522011953",
+          "note": "Guard evaluation deferred until all scenes; supplies Medium, High, and Cinematic."
+        }
+      ],
+      "notes": "Five draws, no discarded warmup, one round, 240-second timeout, and predeclared 1600 ms worst-warm guard. High and Cinematic failed after every scene was measured."
+    },
+    {
+      "id": "final_candidate_hardware_matrix",
+      "label": "Final worktree candidate on NVIDIA RTX 3060 Ti D3D11, two scene rounds",
+      "source_file": "test-results/stability/archives/benchmarks/2026-09-20/final-candidate-hardware-matrix.json",
+      "source_sha256": "d95a80d604873a05f73b1015501c841d6008cdf6fb1184681f7c5aa56f2d9bb2",
+      "configuration": {
+        "warm_samples": 10,
+        "discarded_warmup_draws": 3,
+        "scene_rounds": 2,
+        "max_warm_ms": null,
+        "group_timeout_ms": 180000,
+        "profiles": [
+          "matrix"
+        ],
+        "tiers": [
+          "low",
+          "medium",
+          "high",
+          "cinematic"
+        ],
+        "scenes": [
+          "simple",
+          "obstacles",
+          "ramps_platforms",
+          "portal_final"
+        ],
+        "revisions": {
+          "fixed": "WORKTREE"
+        }
+      },
+      "groups": [
+        {
+          "revision": "fixed",
+          "revision_ref": "WORKTREE",
+          "profile": "matrix",
+          "tier": "low",
+          "diagnostic": null,
+          "size": [
+            640,
+            360
+          ],
+          "pixels": 230400,
+          "status": "passed",
+          "wall_ms": 25000,
+          "censored_lower_bound_ms": null,
+          "last_phase": "portal_final:round_2:warm_draws",
+          "backend": {
+            "vendor": "Google Inc. (NVIDIA)",
+            "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Ti (0x00002489) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+            "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)",
+            "shading_language": "WebGL GLSL ES 1.0 (OpenGL ES GLSL ES 1.0 Chromium)",
+            "precision": "highp",
+            "derivatives": true
+          },
+          "relief_noise_prepare": null,
+          "shaders": [
+            {
+              "pass": "shade",
+              "diagnostic": "production",
+              "source_hash_fnv1a": "d5c17a71",
+              "pom_steps": 0,
+              "fragment_bytes": 59529
+            }
+          ],
+          "translations": [
+            {
+              "pass": "shade",
+              "translated_bytes": 80285,
+              "angle_uses_nested_break": false,
+              "loop_for_count": 0,
+              "flatten_count": 3,
+              "angle_enable_loop_flatten": true
+            }
+          ],
+          "program_prepares": [
+            {
+              "pass": "shade",
+              "prepare_ms": 22190.299999952316
+            }
+          ],
+          "surface_target_prepares": [],
+          "warm_limit_violations": [],
+          "prepare": {
+            "prepare_ms": 22195,
+            "program_prepare_ms": 22195,
+            "programs": 1,
+            "variant": "low-highp-derivatives",
+            "fragment_bytes": 59529
+          },
+          "scenes": [
+            {
+              "scene": "simple",
+              "round": 1,
+              "size": [
+                640,
+                360
+              ],
+              "passes": 1,
+              "first_draw_ms": 604,
+              "first_usable_ms": 22804.300000071526,
+              "discarded_warmup_draws": 3,
+              "warm": {
+                "samples": 10,
+                "mean_ms": 10.250000011920928,
+                "p95_ms": 16,
+                "worst_ms": 16
+              },
+              "center_rgba": [
+                180,
+                119,
+                48,
+                255
+              ]
+            },
+            {
+              "scene": "obstacles",
+              "round": 1,
+              "size": [
+                640,
+                360
+              ],
+              "passes": 1,
+              "first_draw_ms": 12.5,
+              "first_usable_ms": 12.5,
+              "discarded_warmup_draws": 3,
+              "warm": {
+                "samples": 10,
+                "mean_ms": 8.42999999523163,
+                "p95_ms": 15.399999976158142,
+                "worst_ms": 15.399999976158142
+              },
+              "center_rgba": [
+                177,
+                116,
+                48,
+                255
+              ]
+            },
+            {
+              "scene": "ramps_platforms",
+              "round": 1,
+              "size": [
+                640,
+                360
+              ],
+              "passes": 1,
+              "first_draw_ms": 3.3000000715255737,
+              "first_usable_ms": 3.3000000715255737,
+              "discarded_warmup_draws": 3,
+              "warm": {
+                "samples": 10,
+                "mean_ms": 8.420000004768372,
+                "p95_ms": 14.600000023841858,
+                "worst_ms": 14.600000023841858
+              },
+              "center_rgba": [
+                180,
+                118,
+                48,
+                255
+              ]
+            },
+            {
+              "scene": "portal_final",
+              "round": 1,
+              "size": [
+                640,
+                360
+              ],
+              "passes": 1,
+              "first_draw_ms": 2,
+              "first_usable_ms": 2,
+              "discarded_warmup_draws": 3,
+              "warm": {
+                "samples": 10,
+                "mean_ms": 9.930000007152557,
+                "p95_ms": 17.899999976158142,
+                "worst_ms": 17.899999976158142
+              },
+              "center_rgba": [
+                139,
+                83,
+                44,
+                255
+              ]
+            },
+            {
+              "scene": "simple",
+              "round": 2,
+              "size": [
+                640,
+                360
+              ],
+              "passes": 1,
+              "first_draw_ms": 7.200000047683716,
+              "first_usable_ms": 7.200000047683716,
+              "discarded_warmup_draws": 3,
+              "warm": {
+                "samples": 10,
+                "mean_ms": 9.67999999523163,
+                "p95_ms": 16.100000023841858,
+                "worst_ms": 16.100000023841858
+              },
+              "center_rgba": [
+                180,
+                119,
+                48,
+                255
+              ]
+            },
+            {
+              "scene": "obstacles",
+              "round": 2,
+              "size": [
+                640,
+                360
+              ],
+              "passes": 1,
+              "first_draw_ms": 8.600000023841858,
+              "first_usable_ms": 8.600000023841858,
+              "discarded_warmup_draws": 3,
+              "warm": {
+                "samples": 10,
+                "mean_ms": 8.35,
+                "p95_ms": 15.799999952316284,
+                "worst_ms": 15.799999952316284
+              },
+              "center_rgba": [
+                177,
+                116,
+                48,
+                255
+              ]
+            },
+            {
+              "scene": "ramps_platforms",
+              "round": 2,
+              "size": [
+                640,
+                360
+              ],
+              "passes": 1,
+              "first_draw_ms": 9.900000095367432,
+              "first_usable_ms": 9.900000095367432,
+              "discarded_warmup_draws": 3,
+              "warm": {
+                "samples": 10,
+                "mean_ms": 10.230000007152558,
+                "p95_ms": 16.700000047683716,
+                "worst_ms": 16.700000047683716
+              },
+              "center_rgba": [
+                180,
+                118,
+                48,
+                255
+              ]
+            },
+            {
+              "scene": "portal_final",
+              "round": 2,
+              "size": [
+                640,
+                360
+              ],
+              "passes": 1,
+              "first_draw_ms": 8.800000071525574,
+              "first_usable_ms": 8.800000071525574,
+              "discarded_warmup_draws": 3,
+              "warm": {
+                "samples": 10,
+                "mean_ms": 9.220000004768371,
+                "p95_ms": 13.799999952316284,
+                "worst_ms": 13.799999952316284
+              },
+              "center_rgba": [
+                139,
+                83,
+                44,
+                255
+              ]
+            }
+          ],
+          "error": null
+        },
+        {
+          "revision": "fixed",
+          "revision_ref": "WORKTREE",
+          "profile": "matrix",
+          "tier": "medium",
+          "diagnostic": null,
+          "size": [
+            640,
+            360
+          ],
+          "pixels": 230400,
+          "status": "passed",
+          "wall_ms": 56254,
+          "censored_lower_bound_ms": null,
+          "last_phase": "portal_final:round_2:warm_draws",
+          "backend": {
+            "vendor": "Google Inc. (NVIDIA)",
+            "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Ti (0x00002489) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+            "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)",
+            "shading_language": "WebGL GLSL ES 1.0 (OpenGL ES GLSL ES 1.0 Chromium)",
+            "precision": "highp",
+            "derivatives": true
+          },
+          "relief_noise_prepare": null,
+          "shaders": [
+            {
+              "pass": "shade",
+              "diagnostic": "production",
+              "source_hash_fnv1a": "8c988311",
+              "pom_steps": 0,
+              "fragment_bytes": 59530
+            }
+          ],
+          "translations": [
+            {
+              "pass": "shade",
+              "translated_bytes": 83366,
+              "angle_uses_nested_break": false,
+              "loop_for_count": 0,
+              "flatten_count": 3,
+              "angle_enable_loop_flatten": true
+            }
+          ],
+          "program_prepares": [
+            {
+              "pass": "shade",
+              "prepare_ms": 53102
+            }
+          ],
+          "surface_target_prepares": [],
+          "warm_limit_violations": [],
+          "prepare": {
+            "prepare_ms": 53109.800000071526,
+            "program_prepare_ms": 53109.800000071526,
+            "programs": 1,
+            "variant": "medium-highp-derivatives",
+            "fragment_bytes": 59530
+          },
+          "scenes": [
+            {
+              "scene": "simple",
+              "round": 1,
+              "size": [
+                640,
+                360
+              ],
+              "passes": 1,
+              "first_draw_ms": 839.3000000715256,
+              "first_usable_ms": 53954.300000071526,
+              "discarded_warmup_draws": 3,
+              "warm": {
+                "samples": 10,
+                "mean_ms": 14.92999999523163,
+                "p95_ms": 22.90000009536743,
+                "worst_ms": 22.90000009536743
+              },
+              "center_rgba": [
+                178,
+                119,
+                53,
+                255
+              ]
+            },
+            {
+              "scene": "obstacles",
+              "round": 1,
+              "size": [
+                640,
+                360
+              ],
+              "passes": 1,
+              "first_draw_ms": 2.600000023841858,
+              "first_usable_ms": 2.600000023841858,
+              "discarded_warmup_draws": 3,
+              "warm": {
+                "samples": 10,
+                "mean_ms": 18.939999997615814,
+                "p95_ms": 35.199999928474426,
+                "worst_ms": 35.199999928474426
+              },
+              "center_rgba": [
+                176,
+                117,
+                52,
+                255
+              ]
+            },
+            {
+              "scene": "ramps_platforms",
+              "round": 1,
+              "size": [
+                640,
+                360
+              ],
+              "passes": 1,
+              "first_draw_ms": 29.90000009536743,
+              "first_usable_ms": 29.90000009536743,
+              "discarded_warmup_draws": 3,
+              "warm": {
+                "samples": 10,
+                "mean_ms": 6.249999988079071,
+                "p95_ms": 19.59999990463257,
+                "worst_ms": 19.59999990463257
+              },
+              "center_rgba": [
+                179,
+                118,
+                52,
+                255
+              ]
+            },
+            {
+              "scene": "portal_final",
+              "round": 1,
+              "size": [
+                640,
+                360
+              ],
+              "passes": 1,
+              "first_draw_ms": 10,
+              "first_usable_ms": 10,
+              "discarded_warmup_draws": 3,
+              "warm": {
+                "samples": 10,
+                "mean_ms": 5.860000002384186,
+                "p95_ms": 14.199999928474426,
+                "worst_ms": 14.199999928474426
+              },
+              "center_rgba": [
+                138,
+                85,
+                48,
+                255
+              ]
+            },
+            {
+              "scene": "simple",
+              "round": 2,
+              "size": [
+                640,
+                360
+              ],
+              "passes": 1,
+              "first_draw_ms": 2.700000047683716,
+              "first_usable_ms": 2.700000047683716,
+              "discarded_warmup_draws": 3,
+              "warm": {
+                "samples": 10,
+                "mean_ms": 2.4199999928474427,
+                "p95_ms": 3.1999999284744263,
+                "worst_ms": 3.1999999284744263
+              },
+              "center_rgba": [
+                178,
+                119,
+                53,
+                255
+              ]
+            },
+            {
+              "scene": "obstacles",
+              "round": 2,
+              "size": [
+                640,
+                360
+              ],
+              "passes": 1,
+              "first_draw_ms": 2.5999999046325684,
+              "first_usable_ms": 2.5999999046325684,
+              "discarded_warmup_draws": 3,
+              "warm": {
+                "samples": 10,
+                "mean_ms": 2.3799999952316284,
+                "p95_ms": 3.1999999284744263,
+                "worst_ms": 3.1999999284744263
+              },
+              "center_rgba": [
+                176,
+                117,
+                52,
+                255
+              ]
+            },
+            {
+              "scene": "ramps_platforms",
+              "round": 2,
+              "size": [
+                640,
+                360
+              ],
+              "passes": 1,
+              "first_draw_ms": 2.899999976158142,
+              "first_usable_ms": 2.899999976158142,
+              "discarded_warmup_draws": 3,
+              "warm": {
+                "samples": 10,
+                "mean_ms": 2.160000002384186,
+                "p95_ms": 2.899999976158142,
+                "worst_ms": 2.899999976158142
+              },
+              "center_rgba": [
+                179,
+                118,
+                52,
+                255
+              ]
+            },
+            {
+              "scene": "portal_final",
+              "round": 2,
+              "size": [
+                640,
+                360
+              ],
+              "passes": 1,
+              "first_draw_ms": 2.299999952316284,
+              "first_usable_ms": 2.299999952316284,
+              "discarded_warmup_draws": 3,
+              "warm": {
+                "samples": 10,
+                "mean_ms": 2.2100000023841857,
+                "p95_ms": 3,
+                "worst_ms": 3
+              },
+              "center_rgba": [
+                138,
+                85,
+                48,
+                255
+              ]
+            }
+          ],
+          "error": null
+        },
+        {
+          "revision": "fixed",
+          "revision_ref": "WORKTREE",
+          "profile": "matrix",
+          "tier": "high",
+          "diagnostic": null,
+          "size": [
+            640,
+            360
+          ],
+          "pixels": 230400,
+          "status": "passed",
+          "wall_ms": 98397,
+          "censored_lower_bound_ms": null,
+          "last_phase": "portal_final:round_2:warm_draws",
+          "backend": {
+            "vendor": "Google Inc. (NVIDIA)",
+            "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Ti (0x00002489) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+            "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)",
+            "shading_language": "WebGL GLSL ES 1.0 (OpenGL ES GLSL ES 1.0 Chromium)",
+            "precision": "highp",
+            "derivatives": true
+          },
+          "relief_noise_prepare": {
+            "prepare_ms": 6,
+            "width": 256,
+            "height": 256,
+            "implementation": "snapshot createReliefNoiseTexture"
+          },
+          "shaders": [
+            {
+              "pass": "surface",
+              "diagnostic": "production",
+              "source_hash_fnv1a": "37ca7b70",
+              "pom_steps": 8,
+              "fragment_bytes": 58978
+            },
+            {
+              "pass": "shade",
+              "diagnostic": "production",
+              "source_hash_fnv1a": "e3c51a23",
+              "pom_steps": 8,
+              "fragment_bytes": 60690
+            }
+          ],
+          "translations": [
+            {
+              "pass": "surface",
+              "translated_bytes": 52494,
+              "angle_uses_nested_break": false,
+              "loop_for_count": 3,
+              "flatten_count": 3,
+              "angle_enable_loop_flatten": true
+            },
+            {
+              "pass": "shade",
+              "translated_bytes": 102620,
+              "angle_uses_nested_break": false,
+              "loop_for_count": 1,
+              "flatten_count": 5,
+              "angle_enable_loop_flatten": true
+            }
+          ],
+          "program_prepares": [
+            {
+              "pass": "surface",
+              "prepare_ms": 28530
+            },
+            {
+              "pass": "shade",
+              "prepare_ms": 67339.39999997616
+            }
+          ],
+          "surface_target_prepares": [
+            {
+              "size": [
+                640,
+                360
+              ],
+              "prepare_ms": 0.3999999761581421
+            }
+          ],
+          "warm_limit_violations": [],
+          "prepare": {
+            "prepare_ms": 95888.89999997616,
+            "program_prepare_ms": 95879.20000004768,
+            "programs": 2,
+            "variant": "high-highp-derivatives",
+            "fragment_bytes": 60690
+          },
+          "scenes": [
+            {
+              "scene": "simple",
+              "round": 1,
+              "size": [
+                640,
+                360
+              ],
+              "passes": 2,
+              "first_draw_ms": 33,
+              "first_usable_ms": 95929.69999992847,
+              "discarded_warmup_draws": 3,
+              "warm": {
+                "samples": 10,
+                "mean_ms": 9.970000004768371,
+                "p95_ms": 33.200000047683716,
+                "worst_ms": 33.200000047683716
+              },
+              "center_rgba": [
+                178,
+                118,
+                53,
+                255
+              ]
+            },
+            {
+              "scene": "obstacles",
+              "round": 1,
+              "size": [
+                640,
+                360
+              ],
+              "passes": 2,
+              "first_draw_ms": 5.100000023841858,
+              "first_usable_ms": 5.100000023841858,
+              "discarded_warmup_draws": 3,
+              "warm": {
+                "samples": 10,
+                "mean_ms": 4.05,
+                "p95_ms": 4.5,
+                "worst_ms": 4.5
+              },
+              "center_rgba": [
+                176,
+                116,
+                52,
+                255
+              ]
+            },
+            {
+              "scene": "ramps_platforms",
+              "round": 1,
+              "size": [
+                640,
+                360
+              ],
+              "passes": 2,
+              "first_draw_ms": 4.700000047683716,
+              "first_usable_ms": 4.700000047683716,
+              "discarded_warmup_draws": 3,
+              "warm": {
+                "samples": 10,
+                "mean_ms": 3.9199999928474427,
+                "p95_ms": 4.600000023841858,
+                "worst_ms": 4.600000023841858
+              },
+              "center_rgba": [
+                178,
+                118,
+                52,
+                255
+              ]
+            },
+            {
+              "scene": "portal_final",
+              "round": 1,
+              "size": [
+                640,
+                360
+              ],
+              "passes": 2,
+              "first_draw_ms": 4.899999976158142,
+              "first_usable_ms": 4.899999976158142,
+              "discarded_warmup_draws": 3,
+              "warm": {
+                "samples": 10,
+                "mean_ms": 3.8300000071525573,
+                "p95_ms": 4.399999976158142,
+                "worst_ms": 4.399999976158142
+              },
+              "center_rgba": [
+                99,
+                61,
+                39,
+                255
+              ]
+            },
+            {
+              "scene": "simple",
+              "round": 2,
+              "size": [
+                640,
+                360
+              ],
+              "passes": 2,
+              "first_draw_ms": 4,
+              "first_usable_ms": 4,
+              "discarded_warmup_draws": 3,
+              "warm": {
+                "samples": 10,
+                "mean_ms": 3.4799999952316285,
+                "p95_ms": 4.100000023841858,
+                "worst_ms": 4.100000023841858
+              },
+              "center_rgba": [
+                178,
+                118,
+                53,
+                255
+              ]
+            },
+            {
+              "scene": "obstacles",
+              "round": 2,
+              "size": [
+                640,
+                360
+              ],
+              "passes": 2,
+              "first_draw_ms": 3.5,
+              "first_usable_ms": 3.5,
+              "discarded_warmup_draws": 3,
+              "warm": {
+                "samples": 10,
+                "mean_ms": 3.5200000047683715,
+                "p95_ms": 4.199999928474426,
+                "worst_ms": 4.199999928474426
+              },
+              "center_rgba": [
+                176,
+                116,
+                52,
+                255
+              ]
+            },
+            {
+              "scene": "ramps_platforms",
+              "round": 2,
+              "size": [
+                640,
+                360
+              ],
+              "passes": 2,
+              "first_draw_ms": 3.5,
+              "first_usable_ms": 3.5,
+              "discarded_warmup_draws": 3,
+              "warm": {
+                "samples": 10,
+                "mean_ms": 3.5900000095367433,
+                "p95_ms": 4.100000023841858,
+                "worst_ms": 4.100000023841858
+              },
+              "center_rgba": [
+                178,
+                118,
+                52,
+                255
+              ]
+            },
+            {
+              "scene": "portal_final",
+              "round": 2,
+              "size": [
+                640,
+                360
+              ],
+              "passes": 2,
+              "first_draw_ms": 3.799999952316284,
+              "first_usable_ms": 3.799999952316284,
+              "discarded_warmup_draws": 3,
+              "warm": {
+                "samples": 10,
+                "mean_ms": 3.8300000071525573,
+                "p95_ms": 4.600000023841858,
+                "worst_ms": 4.600000023841858
+              },
+              "center_rgba": [
+                99,
+                61,
+                39,
+                255
+              ]
+            }
+          ],
+          "error": null
+        },
+        {
+          "revision": "fixed",
+          "revision_ref": "WORKTREE",
+          "profile": "matrix",
+          "tier": "cinematic",
+          "diagnostic": null,
+          "size": [
+            640,
+            360
+          ],
+          "pixels": 230400,
+          "status": "passed",
+          "wall_ms": 101261,
+          "censored_lower_bound_ms": null,
+          "last_phase": "portal_final:round_2:warm_draws",
+          "backend": {
+            "vendor": "Google Inc. (NVIDIA)",
+            "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Ti (0x00002489) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+            "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)",
+            "shading_language": "WebGL GLSL ES 1.0 (OpenGL ES GLSL ES 1.0 Chromium)",
+            "precision": "highp",
+            "derivatives": true
+          },
+          "relief_noise_prepare": {
+            "prepare_ms": 7.100000023841858,
+            "width": 256,
+            "height": 256,
+            "implementation": "snapshot createReliefNoiseTexture"
+          },
+          "shaders": [
+            {
+              "pass": "surface",
+              "diagnostic": "production",
+              "source_hash_fnv1a": "c08f3a24",
+              "pom_steps": 14,
+              "fragment_bytes": 58980
+            },
+            {
+              "pass": "shade",
+              "diagnostic": "production",
+              "source_hash_fnv1a": "41700531",
+              "pom_steps": 14,
+              "fragment_bytes": 60692
+            }
+          ],
+          "translations": [
+            {
+              "pass": "surface",
+              "translated_bytes": 52498,
+              "angle_uses_nested_break": false,
+              "loop_for_count": 3,
+              "flatten_count": 3,
+              "angle_enable_loop_flatten": true
+            },
+            {
+              "pass": "shade",
+              "translated_bytes": 103846,
+              "angle_uses_nested_break": false,
+              "loop_for_count": 1,
+              "flatten_count": 5,
+              "angle_enable_loop_flatten": true
+            }
+          ],
+          "program_prepares": [
+            {
+              "pass": "surface",
+              "prepare_ms": 17396.199999928474
+            },
+            {
+              "pass": "shade",
+              "prepare_ms": 81899.5
+            }
+          ],
+          "surface_target_prepares": [
+            {
+              "size": [
+                640,
+                360
+              ],
+              "prepare_ms": 0.10000002384185791
+            }
+          ],
+          "warm_limit_violations": [],
+          "prepare": {
+            "prepare_ms": 99315.70000004768,
+            "program_prepare_ms": 99304.89999997616,
+            "programs": 2,
+            "variant": "cinematic-highp-derivatives",
+            "fragment_bytes": 60692
+          },
+          "scenes": [
+            {
+              "scene": "simple",
+              "round": 1,
+              "size": [
+                640,
+                360
+              ],
+              "passes": 2,
+              "first_draw_ms": 41.60000002384186,
+              "first_usable_ms": 99363.20000004768,
+              "discarded_warmup_draws": 3,
+              "warm": {
+                "samples": 10,
+                "mean_ms": 5.340000009536743,
+                "p95_ms": 6.5,
+                "worst_ms": 6.5
+              },
+              "center_rgba": [
+                178,
+                118,
+                52,
+                255
+              ]
+            },
+            {
+              "scene": "obstacles",
+              "round": 1,
+              "size": [
+                640,
+                360
+              ],
+              "passes": 2,
+              "first_draw_ms": 5.899999976158142,
+              "first_usable_ms": 5.899999976158142,
+              "discarded_warmup_draws": 3,
+              "warm": {
+                "samples": 10,
+                "mean_ms": 5.170000004768371,
+                "p95_ms": 5.899999976158142,
+                "worst_ms": 5.899999976158142
+              },
+              "center_rgba": [
+                176,
+                116,
+                52,
+                255
+              ]
+            },
+            {
+              "scene": "ramps_platforms",
+              "round": 1,
+              "size": [
+                640,
+                360
+              ],
+              "passes": 2,
+              "first_draw_ms": 5.600000023841858,
+              "first_usable_ms": 5.600000023841858,
+              "discarded_warmup_draws": 3,
+              "warm": {
+                "samples": 10,
+                "mean_ms": 4.730000007152557,
+                "p95_ms": 5.599999904632568,
+                "worst_ms": 5.599999904632568
+              },
+              "center_rgba": [
+                178,
+                118,
+                52,
+                255
+              ]
+            },
+            {
+              "scene": "portal_final",
+              "round": 1,
+              "size": [
+                640,
+                360
+              ],
+              "passes": 2,
+              "first_draw_ms": 4.600000023841858,
+              "first_usable_ms": 4.600000023841858,
+              "discarded_warmup_draws": 3,
+              "warm": {
+                "samples": 10,
+                "mean_ms": 4.85,
+                "p95_ms": 5.5,
+                "worst_ms": 5.5
+              },
+              "center_rgba": [
+                99,
+                61,
+                39,
+                255
+              ]
+            },
+            {
+              "scene": "simple",
+              "round": 2,
+              "size": [
+                640,
+                360
+              ],
+              "passes": 2,
+              "first_draw_ms": 4.5,
+              "first_usable_ms": 4.5,
+              "discarded_warmup_draws": 3,
+              "warm": {
+                "samples": 10,
+                "mean_ms": 4.420000004768371,
+                "p95_ms": 5.100000023841858,
+                "worst_ms": 5.100000023841858
+              },
+              "center_rgba": [
+                178,
+                118,
+                52,
+                255
+              ]
+            },
+            {
+              "scene": "obstacles",
+              "round": 2,
+              "size": [
+                640,
+                360
+              ],
+              "passes": 2,
+              "first_draw_ms": 4.399999976158142,
+              "first_usable_ms": 4.399999976158142,
+              "discarded_warmup_draws": 3,
+              "warm": {
+                "samples": 10,
+                "mean_ms": 4.55,
+                "p95_ms": 5.199999928474426,
+                "worst_ms": 5.199999928474426
+              },
+              "center_rgba": [
+                176,
+                116,
+                52,
+                255
+              ]
+            },
+            {
+              "scene": "ramps_platforms",
+              "round": 2,
+              "size": [
+                640,
+                360
+              ],
+              "passes": 2,
+              "first_draw_ms": 4.199999928474426,
+              "first_usable_ms": 4.199999928474426,
+              "discarded_warmup_draws": 3,
+              "warm": {
+                "samples": 10,
+                "mean_ms": 4.45,
+                "p95_ms": 5.200000047683716,
+                "worst_ms": 5.200000047683716
+              },
+              "center_rgba": [
+                178,
+                118,
+                52,
+                255
+              ]
+            },
+            {
+              "scene": "portal_final",
+              "round": 2,
+              "size": [
+                640,
+                360
+              ],
+              "passes": 2,
+              "first_draw_ms": 5.399999976158142,
+              "first_usable_ms": 5.399999976158142,
+              "discarded_warmup_draws": 3,
+              "warm": {
+                "samples": 10,
+                "mean_ms": 4.769999992847443,
+                "p95_ms": 5.5,
+                "worst_ms": 5.5
+              },
+              "center_rgba": [
+                99,
+                61,
+                39,
+                255
+              ]
+            }
+          ],
+          "error": null
+        }
+      ],
+      "source_runs": [
+        {
+          "file": "final-candidate-hardware-low-medium-rounds2.json",
+          "sha256": "8450d550c1694242d6d8bb7f6a7c53537a53d14b3a6d568c713948e5a339b934"
+        },
+        {
+          "file": "final-candidate-matrix-rounds2.json",
+          "sha256": "8e5f79d2cc94f51298248902589cc14cdc4d3e500e2603776402dc179870481a"
+        }
+      ],
+      "notes": "Three warmup draws and ten measured draws per scene/round; current-source hashes are recorded for all four tiers."
+    },
+    {
+      "id": "final_candidate_hardware_caps",
+      "label": "Final worktree candidate 16:9 cap stress on NVIDIA RTX 3060 Ti D3D11",
+      "source_file": "test-results/stability/archives/benchmarks/2026-09-20/final-candidate-caps-rounds2.json",
+      "source_sha256": "fbc2399f05275cd24478145775c90403e433720d502c5f47cd787a26b6b5205a",
+      "configuration": {
+        "warm_samples": 10,
+        "discarded_warmup_draws": 3,
+        "scene_rounds": 2,
+        "max_warm_ms": null,
+        "group_timeout_ms": 180000,
+        "profiles": [
+          "high_caps",
+          "cinematic_caps"
+        ],
+        "tiers": null,
+        "scenes": null,
+        "revisions": {
+          "fixed": "WORKTREE"
+        }
+      },
+      "groups": [
+        {
+          "revision": "fixed",
+          "revision_ref": "WORKTREE",
+          "profile": "high_caps",
+          "tier": "high",
+          "diagnostic": null,
+          "size": [
+            1632,
+            918
+          ],
+          "pixels": 1498176,
+          "status": "passed",
+          "wall_ms": 118052,
+          "censored_lower_bound_ms": null,
+          "last_phase": "portal_final:round_2:warm_draws",
+          "backend": {
+            "vendor": "Google Inc. (NVIDIA)",
+            "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Ti (0x00002489) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+            "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)",
+            "shading_language": "WebGL GLSL ES 1.0 (OpenGL ES GLSL ES 1.0 Chromium)",
+            "precision": "highp",
+            "derivatives": true
+          },
+          "relief_noise_prepare": {
+            "prepare_ms": 6.800000071525574,
+            "width": 256,
+            "height": 256,
+            "implementation": "snapshot createReliefNoiseTexture"
+          },
+          "shaders": [
+            {
+              "pass": "surface",
+              "diagnostic": "production",
+              "source_hash_fnv1a": "37ca7b70",
+              "pom_steps": 8,
+              "fragment_bytes": 58978
+            },
+            {
+              "pass": "shade",
+              "diagnostic": "production",
+              "source_hash_fnv1a": "e3c51a23",
+              "pom_steps": 8,
+              "fragment_bytes": 60690
+            }
+          ],
+          "translations": [
+            {
+              "pass": "surface",
+              "translated_bytes": 52494,
+              "angle_uses_nested_break": false,
+              "loop_for_count": 3,
+              "flatten_count": 3,
+              "angle_enable_loop_flatten": true
+            },
+            {
+              "pass": "shade",
+              "translated_bytes": 102620,
+              "angle_uses_nested_break": false,
+              "loop_for_count": 1,
+              "flatten_count": 5,
+              "angle_enable_loop_flatten": true
+            }
+          ],
+          "program_prepares": [
+            {
+              "pass": "surface",
+              "prepare_ms": 21479.700000047684
+            },
+            {
+              "pass": "shade",
+              "prepare_ms": 93932.39999997616
+            }
+          ],
+          "surface_target_prepares": [
+            {
+              "size": [
+                1632,
+                918
+              ],
+              "prepare_ms": 0.40000009536743164
+            },
+            {
+              "size": [
+                1968,
+                1107
+              ],
+              "prepare_ms": 0.20000004768371582
+            }
+          ],
+          "warm_limit_violations": [],
+          "prepare": {
+            "prepare_ms": 115432.29999995232,
+            "program_prepare_ms": 115421.20000004768,
+            "programs": 2,
+            "variant": "high-highp-derivatives",
+            "fragment_bytes": 60690
+          },
+          "scenes": [
+            {
+              "scene": "portal_final",
+              "round": 1,
+              "size": [
+                1632,
+                918
+              ],
+              "passes": 2,
+              "first_draw_ms": 36.59999990463257,
+              "first_usable_ms": 115476.09999990463,
+              "discarded_warmup_draws": 3,
+              "warm": {
+                "samples": 10,
+                "mean_ms": 20.45,
+                "p95_ms": 23.399999976158142,
+                "worst_ms": 23.399999976158142
+              },
+              "center_rgba": [
+                126,
+                77,
+                44,
+                255
+              ]
+            },
+            {
+              "scene": "portal_final",
+              "round": 2,
+              "size": [
+                1632,
+                918
+              ],
+              "passes": 2,
+              "first_draw_ms": 20,
+              "first_usable_ms": 20,
+              "discarded_warmup_draws": 3,
+              "warm": {
+                "samples": 10,
+                "mean_ms": 19.869999992847443,
+                "p95_ms": 20.100000023841858,
+                "worst_ms": 20.100000023841858
+              },
+              "center_rgba": [
+                126,
+                77,
+                44,
+                255
+              ]
+            },
+            {
+              "scene": "portal_final",
+              "round": 1,
+              "size": [
+                1968,
+                1107
+              ],
+              "passes": 2,
+              "first_draw_ms": 29.40000009536743,
+              "first_usable_ms": 29.40000009536743,
+              "discarded_warmup_draws": 3,
+              "warm": {
+                "samples": 10,
+                "mean_ms": 28.060000002384186,
+                "p95_ms": 28.300000071525574,
+                "worst_ms": 28.300000071525574
+              },
+              "center_rgba": [
+                132,
+                80,
+                46,
+                255
+              ]
+            },
+            {
+              "scene": "portal_final",
+              "round": 2,
+              "size": [
+                1968,
+                1107
+              ],
+              "passes": 2,
+              "first_draw_ms": 28.299999952316284,
+              "first_usable_ms": 28.299999952316284,
+              "discarded_warmup_draws": 3,
+              "warm": {
+                "samples": 10,
+                "mean_ms": 28.309999990463258,
+                "p95_ms": 28.600000023841858,
+                "worst_ms": 28.600000023841858
+              },
+              "center_rgba": [
+                132,
+                80,
+                46,
+                255
+              ]
+            }
+          ],
+          "error": null
+        },
+        {
+          "revision": "fixed",
+          "revision_ref": "WORKTREE",
+          "profile": "cinematic_caps",
+          "tier": "cinematic",
+          "diagnostic": null,
+          "size": [
+            1968,
+            1107
+          ],
+          "pixels": 2178576,
+          "status": "passed",
+          "wall_ms": 107192,
+          "censored_lower_bound_ms": null,
+          "last_phase": "portal_final:round_2:warm_draws",
+          "backend": {
+            "vendor": "Google Inc. (NVIDIA)",
+            "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Ti (0x00002489) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+            "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)",
+            "shading_language": "WebGL GLSL ES 1.0 (OpenGL ES GLSL ES 1.0 Chromium)",
+            "precision": "highp",
+            "derivatives": true
+          },
+          "relief_noise_prepare": {
+            "prepare_ms": 9,
+            "width": 256,
+            "height": 256,
+            "implementation": "snapshot createReliefNoiseTexture"
+          },
+          "shaders": [
+            {
+              "pass": "surface",
+              "diagnostic": "production",
+              "source_hash_fnv1a": "c08f3a24",
+              "pom_steps": 14,
+              "fragment_bytes": 58980
+            },
+            {
+              "pass": "shade",
+              "diagnostic": "production",
+              "source_hash_fnv1a": "41700531",
+              "pom_steps": 14,
+              "fragment_bytes": 60692
+            }
+          ],
+          "translations": [
+            {
+              "pass": "surface",
+              "translated_bytes": 52498,
+              "angle_uses_nested_break": false,
+              "loop_for_count": 3,
+              "flatten_count": 3,
+              "angle_enable_loop_flatten": true
+            },
+            {
+              "pass": "shade",
+              "translated_bytes": 103846,
+              "angle_uses_nested_break": false,
+              "loop_for_count": 1,
+              "flatten_count": 5,
+              "angle_enable_loop_flatten": true
+            }
+          ],
+          "program_prepares": [
+            {
+              "pass": "surface",
+              "prepare_ms": 13524.100000023842
+            },
+            {
+              "pass": "shade",
+              "prepare_ms": 88527.89999997616
+            }
+          ],
+          "surface_target_prepares": [
+            {
+              "size": [
+                1968,
+                1107
+              ],
+              "prepare_ms": 0.2999999523162842
+            },
+            {
+              "size": [
+                2064,
+                1161
+              ],
+              "prepare_ms": 0.19999992847442627
+            },
+            {
+              "size": [
+                2384,
+                1341
+              ],
+              "prepare_ms": 0.20000004768371582
+            }
+          ],
+          "warm_limit_violations": [],
+          "prepare": {
+            "prepare_ms": 102073.60000002384,
+            "program_prepare_ms": 102060.89999997616,
+            "programs": 2,
+            "variant": "cinematic-highp-derivatives",
+            "fragment_bytes": 60692
+          },
+          "scenes": [
+            {
+              "scene": "portal_final",
+              "round": 1,
+              "size": [
+                1968,
+                1107
+              ],
+              "passes": 2,
+              "first_draw_ms": 239.5,
+              "first_usable_ms": 102320,
+              "discarded_warmup_draws": 3,
+              "warm": {
+                "samples": 10,
+                "mean_ms": 36.14000000953674,
+                "p95_ms": 39.39999997615814,
+                "worst_ms": 39.39999997615814
+              },
+              "center_rgba": [
+                132,
+                80,
+                46,
+                255
+              ]
+            },
+            {
+              "scene": "portal_final",
+              "round": 2,
+              "size": [
+                1968,
+                1107
+              ],
+              "passes": 2,
+              "first_draw_ms": 34.299999952316284,
+              "first_usable_ms": 34.299999952316284,
+              "discarded_warmup_draws": 3,
+              "warm": {
+                "samples": 10,
+                "mean_ms": 34.52999999523163,
+                "p95_ms": 34.89999997615814,
+                "worst_ms": 34.89999997615814
+              },
+              "center_rgba": [
+                132,
+                80,
+                46,
+                255
+              ]
+            },
+            {
+              "scene": "portal_final",
+              "round": 1,
+              "size": [
+                2064,
+                1161
+              ],
+              "passes": 2,
+              "first_draw_ms": 41,
+              "first_usable_ms": 41,
+              "discarded_warmup_draws": 3,
+              "warm": {
+                "samples": 10,
+                "mean_ms": 38.20999999046326,
+                "p95_ms": 39.299999952316284,
+                "worst_ms": 39.299999952316284
+              },
+              "center_rgba": [
+                131,
+                80,
+                46,
+                255
+              ]
+            },
+            {
+              "scene": "portal_final",
+              "round": 2,
+              "size": [
+                2064,
+                1161
+              ],
+              "passes": 2,
+              "first_draw_ms": 37.800000071525574,
+              "first_usable_ms": 37.800000071525574,
+              "discarded_warmup_draws": 3,
+              "warm": {
+                "samples": 10,
+                "mean_ms": 38.02999999523163,
+                "p95_ms": 38.200000047683716,
+                "worst_ms": 38.200000047683716
+              },
+              "center_rgba": [
+                131,
+                80,
+                46,
+                255
+              ]
+            },
+            {
+              "scene": "portal_final",
+              "round": 1,
+              "size": [
+                2384,
+                1341
+              ],
+              "passes": 2,
+              "first_draw_ms": 55.700000047683716,
+              "first_usable_ms": 55.700000047683716,
+              "discarded_warmup_draws": 3,
+              "warm": {
+                "samples": 10,
+                "mean_ms": 49.97999999523163,
+                "p95_ms": 50.700000047683716,
+                "worst_ms": 50.700000047683716
+              },
+              "center_rgba": [
+                132,
+                80,
+                46,
+                255
+              ]
+            },
+            {
+              "scene": "portal_final",
+              "round": 2,
+              "size": [
+                2384,
+                1341
+              ],
+              "passes": 2,
+              "first_draw_ms": 49.799999952316284,
+              "first_usable_ms": 49.799999952316284,
+              "discarded_warmup_draws": 3,
+              "warm": {
+                "samples": 10,
+                "mean_ms": 49.95,
+                "p95_ms": 50.60000002384186,
+                "worst_ms": 50.60000002384186
+              },
+              "center_rgba": [
+                132,
+                80,
+                46,
+                255
+              ]
+            }
+          ],
+          "error": null
+        }
+      ],
+      "notes": "One program pair is reused across all resolutions within each tier."
+    },
+    {
+      "id": "final_release_hardware_guards",
+      "label": "Final shipping-size physical-GPU guards",
+      "source_file": "test-results/stability/archives/benchmarks/2026-09-20/final-release-guards.json",
+      "source_sha256": "6cb1a827c8f2ecfd3690f74721f985e2546495bb6faa1a8aad0cec62c96bfd78",
+      "configuration": {
+        "warm_samples": 10,
+        "discarded_warmup_draws": 3,
+        "scene_rounds": 1,
+        "group_timeout_ms": 180000,
+        "profiles": [
+          "release_high",
+          "release_cinematic"
+        ],
+        "scenes": [
+          "portal_final"
+        ],
+        "revisions": {
+          "fixed": "WORKTREE"
+        },
+        "max_warm_ms_by_tier": {
+          "high": 35,
+          "cinematic": 50
+        }
+      },
+      "groups": [
+        {
+          "revision": "fixed",
+          "revision_ref": "WORKTREE",
+          "profile": "release_high",
+          "tier": "high",
+          "diagnostic": null,
+          "size": [
+            1632,
+            918
+          ],
+          "pixels": 1498176,
+          "status": "passed",
+          "wall_ms": 83144,
+          "censored_lower_bound_ms": null,
+          "last_phase": "portal_final:round_1:warm_draws",
+          "backend": {
+            "vendor": "Google Inc. (NVIDIA)",
+            "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Ti (0x00002489) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+            "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)",
+            "shading_language": "WebGL GLSL ES 1.0 (OpenGL ES GLSL ES 1.0 Chromium)",
+            "precision": "highp",
+            "derivatives": true
+          },
+          "relief_noise_prepare": {
+            "prepare_ms": 6.300000071525574,
+            "width": 256,
+            "height": 256,
+            "implementation": "snapshot createReliefNoiseTexture"
+          },
+          "shaders": [
+            {
+              "pass": "surface",
+              "diagnostic": "production",
+              "source_hash_fnv1a": "37ca7b70",
+              "pom_steps": 8,
+              "fragment_bytes": 58978
+            },
+            {
+              "pass": "shade",
+              "diagnostic": "production",
+              "source_hash_fnv1a": "e3c51a23",
+              "pom_steps": 8,
+              "fragment_bytes": 60690
+            }
+          ],
+          "translations": [
+            {
+              "pass": "surface",
+              "translated_bytes": 52494,
+              "angle_uses_nested_break": false,
+              "loop_for_count": 3,
+              "flatten_count": 3,
+              "angle_enable_loop_flatten": true
+            },
+            {
+              "pass": "shade",
+              "translated_bytes": 102620,
+              "angle_uses_nested_break": false,
+              "loop_for_count": 1,
+              "flatten_count": 5,
+              "angle_enable_loop_flatten": true
+            }
+          ],
+          "program_prepares": [
+            {
+              "pass": "surface",
+              "prepare_ms": 20349.799999952316
+            },
+            {
+              "pass": "shade",
+              "prepare_ms": 61071.89999997616
+            }
+          ],
+          "surface_target_prepares": [
+            {
+              "size": [
+                1632,
+                918
+              ],
+              "prepare_ms": 0.3999999761581421
+            }
+          ],
+          "warm_limit_violations": [],
+          "prepare": {
+            "prepare_ms": 81440.60000002384,
+            "program_prepare_ms": 81429.30000007153,
+            "programs": 2,
+            "variant": "high-highp-derivatives",
+            "fragment_bytes": 60690
+          },
+          "scenes": [
+            {
+              "scene": "portal_final",
+              "round": 1,
+              "size": [
+                1632,
+                918
+              ],
+              "passes": 2,
+              "first_draw_ms": 143,
+              "first_usable_ms": 81590.39999997616,
+              "discarded_warmup_draws": 3,
+              "warm": {
+                "samples": 10,
+                "mean_ms": 21.789999997615816,
+                "p95_ms": 22.799999952316284,
+                "worst_ms": 22.799999952316284
+              },
+              "pass_timing": null,
+              "center_rgba": [
+                126,
+                77,
+                44,
+                255
+              ]
+            }
+          ],
+          "error": null
+        },
+        {
+          "revision": "fixed",
+          "revision_ref": "WORKTREE",
+          "profile": "release_cinematic",
+          "tier": "cinematic",
+          "diagnostic": null,
+          "size": [
+            1968,
+            1107
+          ],
+          "pixels": 2178576,
+          "status": "passed",
+          "wall_ms": 88177,
+          "censored_lower_bound_ms": null,
+          "last_phase": "portal_final:round_1:warm_draws",
+          "backend": {
+            "vendor": "Google Inc. (NVIDIA)",
+            "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Ti (0x00002489) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+            "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)",
+            "shading_language": "WebGL GLSL ES 1.0 (OpenGL ES GLSL ES 1.0 Chromium)",
+            "precision": "highp",
+            "derivatives": true
+          },
+          "relief_noise_prepare": {
+            "prepare_ms": 7.399999976158142,
+            "width": 256,
+            "height": 256,
+            "implementation": "snapshot createReliefNoiseTexture"
+          },
+          "shaders": [
+            {
+              "pass": "surface",
+              "diagnostic": "production",
+              "source_hash_fnv1a": "c08f3a24",
+              "pom_steps": 14,
+              "fragment_bytes": 58980
+            },
+            {
+              "pass": "shade",
+              "diagnostic": "production",
+              "source_hash_fnv1a": "41700531",
+              "pom_steps": 14,
+              "fragment_bytes": 60692
+            }
+          ],
+          "translations": [
+            {
+              "pass": "surface",
+              "translated_bytes": 52498,
+              "angle_uses_nested_break": false,
+              "loop_for_count": 3,
+              "flatten_count": 3,
+              "angle_enable_loop_flatten": true
+            },
+            {
+              "pass": "shade",
+              "translated_bytes": 103846,
+              "angle_uses_nested_break": false,
+              "loop_for_count": 1,
+              "flatten_count": 5,
+              "angle_enable_loop_flatten": true
+            }
+          ],
+          "program_prepares": [
+            {
+              "pass": "surface",
+              "prepare_ms": 10814.5
+            },
+            {
+              "pass": "shade",
+              "prepare_ms": 75550.10000002384
+            }
+          ],
+          "surface_target_prepares": [
+            {
+              "size": [
+                1968,
+                1107
+              ],
+              "prepare_ms": 0.20000004768371582
+            }
+          ],
+          "warm_limit_violations": [],
+          "prepare": {
+            "prepare_ms": 86386.89999997616,
+            "program_prepare_ms": 86375.89999997616,
+            "programs": 2,
+            "variant": "cinematic-highp-derivatives",
+            "fragment_bytes": 60692
+          },
+          "scenes": [
+            {
+              "scene": "portal_final",
+              "round": 1,
+              "size": [
+                1968,
+                1107
+              ],
+              "passes": 2,
+              "first_draw_ms": 196.10000002384186,
+              "first_usable_ms": 86589.60000002384,
+              "discarded_warmup_draws": 3,
+              "warm": {
+                "samples": 10,
+                "mean_ms": 35.72000000476837,
+                "p95_ms": 39.299999952316284,
+                "worst_ms": 39.299999952316284
+              },
+              "pass_timing": null,
+              "center_rgba": [
+                132,
+                80,
+                46,
+                255
+              ]
+            }
+          ],
+          "error": null
+        }
+      ],
+      "source_runs": [
+        {
+          "file": "final-release-high-guard.json",
+          "sha256": "9a4cbe5da43dc1a62077189d454da13cd75bcb1be1d4d4a365996d9964728781"
+        },
+        {
+          "file": "final-release-cinematic-guard.json",
+          "sha256": "2d8d503fec326d54158337586a66d6ac3d093eea095dd0f82729210910c2b060"
+        }
+      ],
+      "notes": "Predeclared worst-warm limits: High <=35 ms near 1.5 MP; Cinematic <=50 ms near 2.2 MP."
+    }
+  ],
+  "controlled_trials": [
+    {
+      "source_file": "test-results/stability/archives/benchmarks/2026-09-20/RENDER-STABILITY-BENCHMARKS.initial.json",
+      "source_sha256": "addec10511da5a615b4db53ca2d2f3e9e52f439aebb1322e482a6d1ade28f4a5",
+      "configuration": {
+        "warm_samples": 1,
+        "group_timeout_ms": 30000,
+        "profiles": [
+          "matrix"
+        ],
+        "tiers": [
+          "high"
+        ],
+        "scenes": [
+          "simple"
+        ],
+        "revisions": {
+          "before9fb": "9fb2194c200b694a8b340219507894c55970ae3b",
+          "regression9e": "9e3716927e03d2861cb1f6508676fb350106fe76"
+        }
+      },
+      "groups": [
+        {
+          "revision": "before9fb",
+          "revision_ref": "9fb2194c200b694a8b340219507894c55970ae3b",
+          "profile": "matrix",
+          "tier": "high",
+          "diagnostic": null,
+          "size": [
+            640,
+            360
+          ],
+          "pixels": 230400,
+          "status": "censored_timeout",
+          "wall_ms": 30100,
+          "censored_lower_bound_ms": 30100,
+          "last_phase": "simple:first_draw",
+          "backend": {
+            "vendor": "Google Inc. (Google)",
+            "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+            "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)",
+            "shading_language": "WebGL GLSL ES 1.0 (OpenGL ES GLSL ES 1.0 Chromium)",
+            "precision": "highp",
+            "derivatives": true
+          },
+          "relief_noise_prepare": null,
+          "shaders": [],
+          "translations": [],
+          "program_prepares": [],
+          "surface_target_prepares": [],
+          "warm_limit_violations": [],
+          "prepare": {
+            "prepare_ms": 18.899999976158142,
+            "variant": "high-highp-derivatives",
+            "fragment_bytes": 40999
+          },
+          "scenes": [],
+          "error": null
+        },
+        {
+          "revision": "regression9e",
+          "revision_ref": "9e3716927e03d2861cb1f6508676fb350106fe76",
+          "profile": "matrix",
+          "tier": "high",
+          "diagnostic": null,
+          "size": [
+            640,
+            360
+          ],
+          "pixels": 230400,
+          "status": "censored_timeout",
+          "wall_ms": 30078,
+          "censored_lower_bound_ms": 30078,
+          "last_phase": "simple:first_draw",
+          "backend": {
+            "vendor": "Google Inc. (Google)",
+            "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+            "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)",
+            "shading_language": "WebGL GLSL ES 1.0 (OpenGL ES GLSL ES 1.0 Chromium)",
+            "precision": "highp",
+            "derivatives": true
+          },
+          "relief_noise_prepare": null,
+          "shaders": [],
+          "translations": [],
+          "program_prepares": [],
+          "surface_target_prepares": [],
+          "warm_limit_violations": [],
+          "prepare": {
+            "prepare_ms": 23.09999990463257,
+            "variant": "high-highp-derivatives",
+            "fragment_bytes": 51758
+          },
+          "scenes": [],
+          "error": null
+        }
+      ]
+    },
+    {
+      "source_file": "test-results/stability/archives/benchmarks/2026-09-20/RENDER-STABILITY-BENCHMARKS.before9fb-long.json",
+      "source_sha256": "87ad9c3fcd87731fe3285b140b05443ee8b9f31f3387c80f68a7d6a4747b1a06",
+      "configuration": {
+        "warm_samples": 1,
+        "group_timeout_ms": 90000,
+        "profiles": [
+          "matrix"
+        ],
+        "tiers": [
+          "high"
+        ],
+        "scenes": [
+          "simple"
+        ],
+        "revisions": {
+          "before9fb": "9fb2194c200b694a8b340219507894c55970ae3b"
+        }
+      },
+      "groups": [
+        {
+          "revision": "before9fb",
+          "revision_ref": "9fb2194c200b694a8b340219507894c55970ae3b",
+          "profile": "matrix",
+          "tier": "high",
+          "diagnostic": null,
+          "size": [
+            640,
+            360
+          ],
+          "pixels": 230400,
+          "status": "passed",
+          "wall_ms": 47275,
+          "censored_lower_bound_ms": null,
+          "last_phase": "simple:warm_draws",
+          "backend": {
+            "vendor": "Google Inc. (Google)",
+            "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+            "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)",
+            "shading_language": "WebGL GLSL ES 1.0 (OpenGL ES GLSL ES 1.0 Chromium)",
+            "precision": "highp",
+            "derivatives": true
+          },
+          "relief_noise_prepare": null,
+          "shaders": [],
+          "translations": [],
+          "program_prepares": [],
+          "surface_target_prepares": [],
+          "warm_limit_violations": [],
+          "prepare": {
+            "prepare_ms": 18.899999976158142,
+            "variant": "high-highp-derivatives",
+            "fragment_bytes": 40999
+          },
+          "scenes": [
+            {
+              "scene": "simple",
+              "first_draw_ms": 45400.39999997616,
+              "first_usable_ms": 45423.799999952316,
+              "warm": {
+                "samples": 1,
+                "mean_ms": 890.6000000238419,
+                "p95_ms": 890.6000000238419,
+                "worst_ms": 890.6000000238419
+              },
+              "center_rgba": [
+                182,
+                123,
+                55,
+                255
+              ]
+            }
+          ],
+          "error": null
+        }
+      ]
+    },
+    {
+      "source_file": "test-results/stability/archives/benchmarks/2026-09-20/RENDER-STABILITY-BENCHMARKS.regression9e-long.json",
+      "source_sha256": "1842621c8fd99b381d86a100b57a7493b4773fa76fa2d1af38f4c8ba553409ec",
+      "configuration": {
+        "warm_samples": 1,
+        "group_timeout_ms": 90000,
+        "profiles": [
+          "matrix"
+        ],
+        "tiers": [
+          "high"
+        ],
+        "scenes": [
+          "simple"
+        ],
+        "revisions": {
+          "regression9e": "9e3716927e03d2861cb1f6508676fb350106fe76"
+        }
+      },
+      "groups": [
+        {
+          "revision": "regression9e",
+          "revision_ref": "9e3716927e03d2861cb1f6508676fb350106fe76",
+          "profile": "matrix",
+          "tier": "high",
+          "diagnostic": null,
+          "size": [
+            640,
+            360
+          ],
+          "pixels": 230400,
+          "status": "passed",
+          "wall_ms": 57614,
+          "censored_lower_bound_ms": null,
+          "last_phase": "simple:warm_draws",
+          "backend": {
+            "vendor": "Google Inc. (Google)",
+            "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+            "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)",
+            "shading_language": "WebGL GLSL ES 1.0 (OpenGL ES GLSL ES 1.0 Chromium)",
+            "precision": "highp",
+            "derivatives": true
+          },
+          "relief_noise_prepare": null,
+          "shaders": [],
+          "translations": [],
+          "program_prepares": [],
+          "surface_target_prepares": [],
+          "warm_limit_violations": [],
+          "prepare": {
+            "prepare_ms": 23.700000047683716,
+            "variant": "high-highp-derivatives",
+            "fragment_bytes": 51758
+          },
+          "scenes": [
+            {
+              "scene": "simple",
+              "first_draw_ms": 55188.799999952316,
+              "first_usable_ms": 55217.5,
+              "warm": {
+                "samples": 1,
+                "mean_ms": 1428.5,
+                "p95_ms": 1428.5,
+                "worst_ms": 1428.5
+              },
+              "center_rgba": [
+                178,
+                118,
+                53,
+                255
+              ]
+            }
+          ],
+          "error": null
+        }
+      ]
+    },
+    {
+      "source_file": "test-results/stability/archives/benchmarks/2026-09-20/software-paired-control.json",
+      "source_sha256": "b3480f0ac6a923976aba4d108967bad172252cd16770d4bb78f528427c831e73",
+      "configuration": {
+        "warm_samples": 5,
+        "discarded_warmup_draws": 0,
+        "scene_rounds": 1,
+        "max_warm_ms": 1600,
+        "group_timeout_ms": 240000,
+        "profiles": [
+          "matrix"
+        ],
+        "tiers": [
+          "low",
+          "high"
+        ],
+        "scenes": [
+          "simple"
+        ],
+        "revisions": {
+          "before9fb": "9fb2194c200b694a8b340219507894c55970ae3b",
+          "regression9e": "9e3716927e03d2861cb1f6508676fb350106fe76",
+          "fixed": "WORKTREE"
+        }
+      },
+      "groups": [
+        {
+          "revision": "before9fb",
+          "revision_ref": "9fb2194c200b694a8b340219507894c55970ae3b",
+          "profile": "matrix",
+          "tier": "low",
+          "diagnostic": null,
+          "size": [
+            640,
+            360
+          ],
+          "pixels": 230400,
+          "status": "passed",
+          "wall_ms": 37419,
+          "censored_lower_bound_ms": null,
+          "last_phase": "simple:round_1:warm_draws",
+          "backend": {
+            "vendor": "Google Inc. (Google)",
+            "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+            "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)",
+            "shading_language": "WebGL GLSL ES 1.0 (OpenGL ES GLSL ES 1.0 Chromium)",
+            "precision": "highp",
+            "derivatives": true
+          },
+          "relief_noise_prepare": null,
+          "shaders": [
+            {
+              "pass": "shade",
+              "diagnostic": "production",
+              "source_hash_fnv1a": "d277101e",
+              "pom_steps": null,
+              "fragment_bytes": 40998
+            }
+          ],
+          "translations": [
+            {
+              "pass": "shade",
+              "translated_bytes": 429585,
+              "angle_uses_nested_break": false,
+              "loop_for_count": 0,
+              "flatten_count": 0,
+              "angle_enable_loop_flatten": false
+            }
+          ],
+          "program_prepares": [
+            {
+              "pass": "shade",
+              "prepare_ms": 35.799999952316284
+            }
+          ],
+          "surface_target_prepares": [],
+          "warm_limit_violations": [],
+          "prepare": {
+            "prepare_ms": 40.89999997615814,
+            "program_prepare_ms": 40.89999997615814,
+            "programs": 1,
+            "variant": "low-highp-derivatives",
+            "fragment_bytes": 40998
+          },
+          "scenes": [
+            {
+              "scene": "simple",
+              "round": 1,
+              "size": [
+                640,
+                360
+              ],
+              "passes": 1,
+              "first_draw_ms": 33863.5,
+              "first_usable_ms": 33908.89999997616,
+              "discarded_warmup_draws": 0,
+              "warm": {
+                "samples": 5,
+                "mean_ms": 488.0199999809265,
+                "p95_ms": 626.2999999523163,
+                "worst_ms": 626.2999999523163
+              },
+              "center_rgba": [
+                183,
+                123,
+                50,
+                255
+              ]
+            }
+          ],
+          "error": null
+        },
+        {
+          "revision": "before9fb",
+          "revision_ref": "9fb2194c200b694a8b340219507894c55970ae3b",
+          "profile": "matrix",
+          "tier": "high",
+          "diagnostic": null,
+          "size": [
+            640,
+            360
+          ],
+          "pixels": 230400,
+          "status": "passed",
+          "wall_ms": 52012,
+          "censored_lower_bound_ms": null,
+          "last_phase": "simple:round_1:warm_draws",
+          "backend": {
+            "vendor": "Google Inc. (Google)",
+            "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+            "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)",
+            "shading_language": "WebGL GLSL ES 1.0 (OpenGL ES GLSL ES 1.0 Chromium)",
+            "precision": "highp",
+            "derivatives": true
+          },
+          "relief_noise_prepare": null,
+          "shaders": [
+            {
+              "pass": "shade",
+              "diagnostic": "production",
+              "source_hash_fnv1a": "50e5eac8",
+              "pom_steps": null,
+              "fragment_bytes": 40999
+            }
+          ],
+          "translations": [
+            {
+              "pass": "shade",
+              "translated_bytes": 463718,
+              "angle_uses_nested_break": false,
+              "loop_for_count": 0,
+              "flatten_count": 0,
+              "angle_enable_loop_flatten": false
+            }
+          ],
+          "program_prepares": [
+            {
+              "pass": "shade",
+              "prepare_ms": 34.5
+            }
+          ],
+          "surface_target_prepares": [],
+          "warm_limit_violations": [],
+          "prepare": {
+            "prepare_ms": 38.5,
+            "program_prepare_ms": 38.40000009536743,
+            "programs": 1,
+            "variant": "high-highp-derivatives",
+            "fragment_bytes": 40999
+          },
+          "scenes": [
+            {
+              "scene": "simple",
+              "round": 1,
+              "size": [
+                640,
+                360
+              ],
+              "passes": 1,
+              "first_draw_ms": 45673.199999928474,
+              "first_usable_ms": 45716.10000002384,
+              "discarded_warmup_draws": 0,
+              "warm": {
+                "samples": 5,
+                "mean_ms": 1054.0800000190734,
+                "p95_ms": 1192.9000000953674,
+                "worst_ms": 1192.9000000953674
+              },
+              "center_rgba": [
+                182,
+                123,
+                55,
+                255
+              ]
+            }
+          ],
+          "error": null
+        },
+        {
+          "revision": "regression9e",
+          "revision_ref": "9e3716927e03d2861cb1f6508676fb350106fe76",
+          "profile": "matrix",
+          "tier": "low",
+          "diagnostic": null,
+          "size": [
+            640,
+            360
+          ],
+          "pixels": 230400,
+          "status": "passed",
+          "wall_ms": 48559,
+          "censored_lower_bound_ms": null,
+          "last_phase": "simple:round_1:warm_draws",
+          "backend": {
+            "vendor": "Google Inc. (Google)",
+            "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+            "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)",
+            "shading_language": "WebGL GLSL ES 1.0 (OpenGL ES GLSL ES 1.0 Chromium)",
+            "precision": "highp",
+            "derivatives": true
+          },
+          "relief_noise_prepare": null,
+          "shaders": [
+            {
+              "pass": "shade",
+              "diagnostic": "production",
+              "source_hash_fnv1a": "d30872fb",
+              "pom_steps": 0,
+              "fragment_bytes": 51756
+            }
+          ],
+          "translations": [
+            {
+              "pass": "shade",
+              "translated_bytes": 449033,
+              "angle_uses_nested_break": false,
+              "loop_for_count": 0,
+              "flatten_count": 0,
+              "angle_enable_loop_flatten": false
+            }
+          ],
+          "program_prepares": [
+            {
+              "pass": "shade",
+              "prepare_ms": 40.5
+            }
+          ],
+          "surface_target_prepares": [],
+          "warm_limit_violations": [],
+          "prepare": {
+            "prepare_ms": 45.799999952316284,
+            "program_prepare_ms": 45.799999952316284,
+            "programs": 1,
+            "variant": "low-highp-derivatives",
+            "fragment_bytes": 51756
+          },
+          "scenes": [
+            {
+              "scene": "simple",
+              "round": 1,
+              "size": [
+                640,
+                360
+              ],
+              "passes": 1,
+              "first_draw_ms": 41588.39999997616,
+              "first_usable_ms": 41645.10000002384,
+              "discarded_warmup_draws": 0,
+              "warm": {
+                "samples": 5,
+                "mean_ms": 782.5399999856949,
+                "p95_ms": 1011.6999999284744,
+                "worst_ms": 1011.6999999284744
+              },
+              "center_rgba": [
+                180,
+                119,
+                48,
+                255
+              ]
+            }
+          ],
+          "error": null
+        },
+        {
+          "revision": "regression9e",
+          "revision_ref": "9e3716927e03d2861cb1f6508676fb350106fe76",
+          "profile": "matrix",
+          "tier": "high",
+          "diagnostic": null,
+          "size": [
+            640,
+            360
+          ],
+          "pixels": 230400,
+          "status": "failed",
+          "wall_ms": 84118,
+          "censored_lower_bound_ms": null,
+          "last_phase": "simple:round_1:warm_draws",
+          "backend": {
+            "vendor": "Google Inc. (Google)",
+            "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+            "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)",
+            "shading_language": "WebGL GLSL ES 1.0 (OpenGL ES GLSL ES 1.0 Chromium)",
+            "precision": "highp",
+            "derivatives": true
+          },
+          "relief_noise_prepare": null,
+          "shaders": [
+            {
+              "pass": "shade",
+              "diagnostic": "production",
+              "source_hash_fnv1a": "38bb15d7",
+              "pom_steps": 40,
+              "fragment_bytes": 51758
+            }
+          ],
+          "translations": [
+            {
+              "pass": "shade",
+              "translated_bytes": 583154,
+              "angle_uses_nested_break": false,
+              "loop_for_count": 0,
+              "flatten_count": 0,
+              "angle_enable_loop_flatten": false
+            }
+          ],
+          "program_prepares": [
+            {
+              "pass": "shade",
+              "prepare_ms": 107.39999997615814
+            }
+          ],
+          "surface_target_prepares": [],
+          "warm_limit_violations": [
+            {
+              "scene": "simple",
+              "round": 1,
+              "size": [
+                640,
+                360
+              ],
+              "worst_ms": 3225.1999999284744,
+              "limit_ms": 1600
+            }
+          ],
+          "prepare": {
+            "prepare_ms": 122.29999995231628,
+            "program_prepare_ms": 122.19999992847443,
+            "programs": 1,
+            "variant": "high-highp-derivatives",
+            "fragment_bytes": 51758
+          },
+          "scenes": [
+            {
+              "scene": "simple",
+              "round": 1,
+              "size": [
+                640,
+                360
+              ],
+              "passes": 1,
+              "first_draw_ms": 65512.199999928474,
+              "first_usable_ms": 65658.89999997616,
+              "discarded_warmup_draws": 0,
+              "warm": {
+                "samples": 5,
+                "mean_ms": 2472.8399999856947,
+                "p95_ms": 3225.1999999284744,
+                "worst_ms": 3225.1999999284744
+              },
+              "center_rgba": [
+                178,
+                118,
+                53,
+                255
+              ]
+            }
+          ],
+          "error": "page.evaluate: Error: 1 warm draw cell(s) exceeded 1600ms limit; worst 3225.20ms\n    at eval (eval at evaluate (:311:30), <anonymous>:33:35)\n    at async <anonymous>:337:30\n    at worker (D:\\2026\\PortalRooms2\\test-results\\stability-fix\\tests\\render-benchmark.mjs:72:14)\n    at async file:///D:/2026/PortalRooms2/test-results/stability-fix/tests/render-benchmark.mjs:108:103"
+        },
+        {
+          "revision": "fixed",
+          "revision_ref": "WORKTREE",
+          "profile": "matrix",
+          "tier": "low",
+          "diagnostic": null,
+          "size": [
+            640,
+            360
+          ],
+          "pixels": 230400,
+          "status": "passed",
+          "wall_ms": 42536,
+          "censored_lower_bound_ms": null,
+          "last_phase": "simple:round_1:warm_draws",
+          "backend": {
+            "vendor": "Google Inc. (Google)",
+            "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+            "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)",
+            "shading_language": "WebGL GLSL ES 1.0 (OpenGL ES GLSL ES 1.0 Chromium)",
+            "precision": "highp",
+            "derivatives": true
+          },
+          "relief_noise_prepare": null,
+          "shaders": [
+            {
+              "pass": "shade",
+              "diagnostic": "production",
+              "source_hash_fnv1a": "d5c17a71",
+              "pom_steps": 0,
+              "fragment_bytes": 59529
+            }
+          ],
+          "translations": [
+            {
+              "pass": "shade",
+              "translated_bytes": 471936,
+              "angle_uses_nested_break": false,
+              "loop_for_count": 0,
+              "flatten_count": 0,
+              "angle_enable_loop_flatten": false
+            }
+          ],
+          "program_prepares": [
+            {
+              "pass": "shade",
+              "prepare_ms": 47.800000071525574
+            }
+          ],
+          "surface_target_prepares": [],
+          "warm_limit_violations": [],
+          "prepare": {
+            "prepare_ms": 53.299999952316284,
+            "program_prepare_ms": 53.299999952316284,
+            "programs": 1,
+            "variant": "low-highp-derivatives",
+            "fragment_bytes": 59529
+          },
+          "scenes": [
+            {
+              "scene": "simple",
+              "round": 1,
+              "size": [
+                640,
+                360
+              ],
+              "passes": 1,
+              "first_draw_ms": 37591.60000002384,
+              "first_usable_ms": 37653,
+              "discarded_warmup_draws": 0,
+              "warm": {
+                "samples": 5,
+                "mean_ms": 723.6199999809265,
+                "p95_ms": 887.1000000238419,
+                "worst_ms": 887.1000000238419
+              },
+              "center_rgba": [
+                180,
+                119,
+                48,
+                255
+              ]
+            }
+          ],
+          "error": null
+        },
+        {
+          "revision": "fixed",
+          "revision_ref": "WORKTREE",
+          "profile": "matrix",
+          "tier": "high",
+          "diagnostic": null,
+          "size": [
+            640,
+            360
+          ],
+          "pixels": 230400,
+          "status": "passed",
+          "wall_ms": 53601,
+          "censored_lower_bound_ms": null,
+          "last_phase": "simple:round_1:warm_draws",
+          "backend": {
+            "vendor": "Google Inc. (Google)",
+            "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+            "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)",
+            "shading_language": "WebGL GLSL ES 1.0 (OpenGL ES GLSL ES 1.0 Chromium)",
+            "precision": "highp",
+            "derivatives": true
+          },
+          "relief_noise_prepare": {
+            "prepare_ms": 5,
+            "width": 256,
+            "height": 256,
+            "implementation": "snapshot createReliefNoiseTexture"
+          },
+          "shaders": [
+            {
+              "pass": "surface",
+              "diagnostic": "production",
+              "source_hash_fnv1a": "37ca7b70",
+              "pom_steps": 8,
+              "fragment_bytes": 58978
+            },
+            {
+              "pass": "shade",
+              "diagnostic": "production",
+              "source_hash_fnv1a": "e3c51a23",
+              "pom_steps": 8,
+              "fragment_bytes": 60690
+            }
+          ],
+          "translations": [
+            {
+              "pass": "surface",
+              "translated_bytes": 277120,
+              "angle_uses_nested_break": false,
+              "loop_for_count": 0,
+              "flatten_count": 0,
+              "angle_enable_loop_flatten": false
+            },
+            {
+              "pass": "shade",
+              "translated_bytes": 573712,
+              "angle_uses_nested_break": false,
+              "loop_for_count": 0,
+              "flatten_count": 0,
+              "angle_enable_loop_flatten": false
+            }
+          ],
+          "program_prepares": [
+            {
+              "pass": "surface",
+              "prepare_ms": 30.299999952316284
+            },
+            {
+              "pass": "shade",
+              "prepare_ms": 45
+            }
+          ],
+          "surface_target_prepares": [
+            {
+              "size": [
+                640,
+                360
+              ],
+              "prepare_ms": 0.10000002384185791
+            }
+          ],
+          "warm_limit_violations": [],
+          "prepare": {
+            "prepare_ms": 90.39999997615814,
+            "program_prepare_ms": 81.79999995231628,
+            "programs": 2,
+            "variant": "high-highp-derivatives",
+            "fragment_bytes": 60690
+          },
+          "scenes": [
+            {
+              "scene": "simple",
+              "round": 1,
+              "size": [
+                640,
+                360
+              ],
+              "passes": 2,
+              "first_draw_ms": 45395.199999928474,
+              "first_usable_ms": 45499.39999997616,
+              "discarded_warmup_draws": 0,
+              "warm": {
+                "samples": 5,
+                "mean_ms": 1386.9,
+                "p95_ms": 1448.8999999761581,
+                "worst_ms": 1448.8999999761581
+              },
+              "center_rgba": [
+                178,
+                118,
+                53,
+                255
+              ]
+            }
+          ],
+          "error": null
+        }
+      ]
+    }
+  ],
+  "diagnostic_summary": [
+    {
+      "experiment": "candidate-normals",
+      "tier": "high",
+      "diagnostic": "production",
+      "status": "censored_timeout",
+      "wall_ms": 90126,
+      "censored_lower_bound_ms": 90126,
+      "last_phase": "link_begin",
+      "backend_renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Ti (0x00002489) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "relief_noise_prepare": {
+        "prepare_ms": 5.800000071525574,
+        "width": 256,
+        "height": 256,
+        "implementation": "snapshot createReliefNoiseTexture"
+      },
+      "shaders": [],
+      "translations": [],
+      "program_prepares": [],
+      "prepare": null,
+      "scenes": [],
+      "source_file": "test-results/stability/archives/benchmarks/2026-09-20/RENDER-STABILITY-BENCHMARKS.diagnostic-candidate-normals.json",
+      "source_sha256": "a674cf701afafccb7112f707fd2f9d35c8e26582558e6ac946b8fdbd4ff6a3ef"
+    },
+    {
+      "experiment": "exclusions-off",
+      "tier": "high",
+      "diagnostic": "exclusions_off",
+      "status": "censored_timeout",
+      "wall_ms": 90093,
+      "censored_lower_bound_ms": 90093,
+      "last_phase": "link_begin",
+      "backend_renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Ti (0x00002489) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "relief_noise_prepare": {
+        "prepare_ms": 6.199999928474426,
+        "width": 256,
+        "height": 256,
+        "implementation": "snapshot createReliefNoiseTexture"
+      },
+      "shaders": [],
+      "translations": [],
+      "program_prepares": [],
+      "prepare": null,
+      "scenes": [],
+      "source_file": "test-results/stability/archives/benchmarks/2026-09-20/RENDER-STABILITY-BENCHMARKS.diagnostic-exclusions-off.json",
+      "source_sha256": "ec60fa59357d2dd09d07ae9550933ea2c2fa620a469ebc2ef1dc51cc6f0186ef"
+    },
+    {
+      "experiment": "gradient-loop",
+      "tier": "high",
+      "diagnostic": "production",
+      "status": "censored_timeout",
+      "wall_ms": 180114,
+      "censored_lower_bound_ms": 180114,
+      "last_phase": "link_begin",
+      "backend_renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Ti (0x00002489) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "relief_noise_prepare": {
+        "prepare_ms": 5.599999904632568,
+        "width": 256,
+        "height": 256,
+        "implementation": "snapshot createReliefNoiseTexture"
+      },
+      "shaders": [],
+      "translations": [],
+      "program_prepares": [],
+      "prepare": null,
+      "scenes": [],
+      "source_file": "test-results/stability/archives/benchmarks/2026-09-20/RENDER-STABILITY-BENCHMARKS.diagnostic-gradient-loop.json",
+      "source_sha256": "281b894c76d2822e28cb30d4f78aa803b2a7bf57f5755273dbf5a9f90bb98f72"
+    },
+    {
+      "experiment": "height-lut",
+      "tier": "high",
+      "diagnostic": "production",
+      "status": "censored_timeout",
+      "wall_ms": 90103,
+      "censored_lower_bound_ms": 90103,
+      "last_phase": "link_begin",
+      "backend_renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Ti (0x00002489) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "relief_noise_prepare": {
+        "prepare_ms": 6.300000071525574,
+        "width": 256,
+        "height": 256,
+        "implementation": "snapshot createReliefNoiseTexture"
+      },
+      "shaders": [],
+      "translations": [],
+      "program_prepares": [],
+      "prepare": null,
+      "scenes": [],
+      "source_file": "test-results/stability/archives/benchmarks/2026-09-20/RENDER-STABILITY-BENCHMARKS.diagnostic-height-lut.json",
+      "source_sha256": "349df05f380e556f3b5ec4733a5edbbfe4e7e199ceec75411073fd6bb3e53035"
+    },
+    {
+      "experiment": "pom-off",
+      "tier": "high",
+      "diagnostic": "pom_off",
+      "status": "passed",
+      "wall_ms": 57176,
+      "censored_lower_bound_ms": null,
+      "last_phase": "simple:warm_draws",
+      "backend_renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Ti (0x00002489) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "relief_noise_prepare": null,
+      "shaders": [],
+      "translations": [],
+      "program_prepares": [],
+      "prepare": {
+        "prepare_ms": 54948.800000071526,
+        "variant": "high-highp-derivatives",
+        "fragment_bytes": 54349
+      },
+      "scenes": [
+        {
+          "scene": "simple",
+          "first_draw_ms": 1085.8999999761581,
+          "first_usable_ms": 56042.10000002384,
+          "discarded_warmup_draws": 0,
+          "warm": {
+            "samples": 1,
+            "mean_ms": 39.200000047683716,
+            "p95_ms": 39.200000047683716,
+            "worst_ms": 39.200000047683716
+          },
+          "center_rgba": [
+            178,
+            119,
+            53,
+            255
+          ]
+        }
+      ],
+      "source_file": "test-results/stability/archives/benchmarks/2026-09-20/RENDER-STABILITY-BENCHMARKS.diagnostic-pom-off.json",
+      "source_sha256": "1543aea4bbe11ceb75c85feff0d43c18ab671b396d2b970b18da21853e9df7ce"
+    },
+    {
+      "experiment": "pure-height",
+      "tier": "high",
+      "diagnostic": "production",
+      "status": "censored_timeout",
+      "wall_ms": 90089,
+      "censored_lower_bound_ms": 90089,
+      "last_phase": "link_begin",
+      "backend_renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Ti (0x00002489) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "relief_noise_prepare": null,
+      "shaders": [],
+      "translations": [],
+      "program_prepares": [],
+      "prepare": null,
+      "scenes": [],
+      "source_file": "test-results/stability/archives/benchmarks/2026-09-20/RENDER-STABILITY-BENCHMARKS.diagnostic-pure-height.json",
+      "source_sha256": "1ade2ef75c54d175516720590d87662da46c902935d1bb6f8cbf29411cda0d1c"
+    },
+    {
+      "experiment": "secondary-off",
+      "tier": "high",
+      "diagnostic": "secondary_off",
+      "status": "censored_timeout",
+      "wall_ms": 90093,
+      "censored_lower_bound_ms": 90093,
+      "last_phase": "link_begin",
+      "backend_renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Ti (0x00002489) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "relief_noise_prepare": null,
+      "shaders": [],
+      "translations": [],
+      "program_prepares": [],
+      "prepare": null,
+      "scenes": [],
+      "source_file": "test-results/stability/archives/benchmarks/2026-09-20/RENDER-STABILITY-BENCHMARKS.diagnostic-secondary-off.json",
+      "source_sha256": "9343fee5beb9385e1db545d6122df1f59a3d43e02dc76521ce1bb3c446be9af6"
+    },
+    {
+      "experiment": "shared-march",
+      "tier": "high",
+      "diagnostic": "production",
+      "status": "censored_timeout",
+      "wall_ms": 90138,
+      "censored_lower_bound_ms": 90138,
+      "last_phase": "link_begin",
+      "backend_renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Ti (0x00002489) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "relief_noise_prepare": null,
+      "shaders": [],
+      "translations": [],
+      "program_prepares": [],
+      "prepare": null,
+      "scenes": [],
+      "source_file": "test-results/stability/archives/benchmarks/2026-09-20/RENDER-STABILITY-BENCHMARKS.diagnostic-shared-march.json",
+      "source_sha256": "fa323cbce2d48b8c8dd799e6dcd60ea5c7149ff716db97d597bbb82794f55b6f"
+    },
+    {
+      "experiment": "single-candidate",
+      "tier": "high",
+      "diagnostic": "single_candidate",
+      "status": "censored_timeout",
+      "wall_ms": 90090,
+      "censored_lower_bound_ms": 90090,
+      "last_phase": "prepare_begin",
+      "backend_renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Ti (0x00002489) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "relief_noise_prepare": null,
+      "shaders": [],
+      "translations": [],
+      "program_prepares": [],
+      "prepare": null,
+      "scenes": [],
+      "source_file": "test-results/stability/archives/benchmarks/2026-09-20/RENDER-STABILITY-BENCHMARKS.diagnostic-single-candidate.json",
+      "source_sha256": "28e49b2966ec4d65f463d109736cec511bb1adfee2e885de7e8a0bd234d9e3ce"
+    },
+    {
+      "experiment": "single-normal",
+      "tier": "high",
+      "diagnostic": "production",
+      "status": "censored_timeout",
+      "wall_ms": 90122,
+      "censored_lower_bound_ms": 90122,
+      "last_phase": "link_begin",
+      "backend_renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Ti (0x00002489) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "relief_noise_prepare": {
+        "prepare_ms": 6.800000071525574,
+        "width": 256,
+        "height": 256,
+        "implementation": "snapshot createReliefNoiseTexture"
+      },
+      "shaders": [],
+      "translations": [],
+      "program_prepares": [],
+      "prepare": null,
+      "scenes": [],
+      "source_file": "test-results/stability/archives/benchmarks/2026-09-20/RENDER-STABILITY-BENCHMARKS.diagnostic-single-normal.json",
+      "source_sha256": "0624c9c45efefddcc820742adde1f73bba07147f405c0610daec7ad90361dff9"
+    },
+    {
+      "experiment": "single-sample-site",
+      "tier": "high",
+      "diagnostic": "production",
+      "status": "censored_timeout",
+      "wall_ms": 90078,
+      "censored_lower_bound_ms": 90078,
+      "last_phase": "link_begin",
+      "backend_renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Ti (0x00002489) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "relief_noise_prepare": null,
+      "shaders": [],
+      "translations": [],
+      "program_prepares": [],
+      "prepare": null,
+      "scenes": [],
+      "source_file": "test-results/stability/archives/benchmarks/2026-09-20/RENDER-STABILITY-BENCHMARKS.diagnostic-single-sample-site.json",
+      "source_sha256": "195eae0fc6497345d73832d0712f9c5059b3f0957edc24f9c932d6e14c2fd4ee"
+    },
+    {
+      "experiment": "split-cinematic",
+      "tier": "cinematic",
+      "diagnostic": "production",
+      "status": "censored_timeout",
+      "wall_ms": 150101,
+      "censored_lower_bound_ms": 150101,
+      "last_phase": "shade:link_begin",
+      "backend_renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Ti (0x00002489) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "relief_noise_prepare": {
+        "prepare_ms": 9.199999928474426,
+        "width": 256,
+        "height": 256,
+        "implementation": "snapshot createReliefNoiseTexture"
+      },
+      "shaders": [
+        {
+          "pass": "surface",
+          "diagnostic": "production",
+          "source_hash_fnv1a": "2f3b67dc",
+          "pom_steps": 14,
+          "fragment_bytes": 57264
+        },
+        {
+          "pass": "shade",
+          "diagnostic": "production",
+          "source_hash_fnv1a": "6abae7a2",
+          "pom_steps": 14,
+          "fragment_bytes": 58585
+        }
+      ],
+      "translations": [
+        {
+          "pass": "surface",
+          "translated_bytes": 52361,
+          "angle_uses_nested_break": false,
+          "loop_for_count": 3,
+          "flatten_count": 3,
+          "angle_enable_loop_flatten": true
+        },
+        {
+          "pass": "shade",
+          "translated_bytes": 102566,
+          "angle_uses_nested_break": false,
+          "loop_for_count": 2,
+          "flatten_count": 6,
+          "angle_enable_loop_flatten": true
+        }
+      ],
+      "program_prepares": [
+        {
+          "pass": "surface",
+          "prepare_ms": 44374.10000002384
+        }
+      ],
+      "prepare": null,
+      "scenes": [],
+      "source_file": "test-results/stability/archives/benchmarks/2026-09-20/RENDER-STABILITY-BENCHMARKS.diagnostic-split-cinematic.json",
+      "source_sha256": "3e0018b5a76928c04e82a99c72ec1dfcd37c0055f67f666f11133c5b2db2813a"
+    },
+    {
+      "experiment": "split-secondary-off",
+      "tier": "high",
+      "diagnostic": "secondary_off",
+      "status": "passed",
+      "wall_ms": 80368,
+      "censored_lower_bound_ms": null,
+      "last_phase": "simple:warm_draws",
+      "backend_renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Ti (0x00002489) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "relief_noise_prepare": {
+        "prepare_ms": 5.699999928474426,
+        "width": 256,
+        "height": 256,
+        "implementation": "snapshot createReliefNoiseTexture"
+      },
+      "shaders": [
+        {
+          "pass": "surface",
+          "diagnostic": "secondary_off",
+          "source_hash_fnv1a": "7668250a",
+          "pom_steps": 8,
+          "fragment_bytes": 57262
+        },
+        {
+          "pass": "shade",
+          "diagnostic": "secondary_off",
+          "source_hash_fnv1a": "a069f06c",
+          "pom_steps": 8,
+          "fragment_bytes": 57449
+        }
+      ],
+      "translations": [
+        {
+          "pass": "surface",
+          "translated_bytes": 52357,
+          "angle_uses_nested_break": false,
+          "loop_for_count": 3,
+          "flatten_count": 3,
+          "angle_enable_loop_flatten": true
+        },
+        {
+          "pass": "shade",
+          "translated_bytes": 96560,
+          "angle_uses_nested_break": false,
+          "loop_for_count": 0,
+          "flatten_count": 3,
+          "angle_enable_loop_flatten": true
+        }
+      ],
+      "program_prepares": [
+        {
+          "pass": "surface",
+          "prepare_ms": 20282.199999928474
+        },
+        {
+          "pass": "shade",
+          "prepare_ms": 58074.199999928474
+        }
+      ],
+      "prepare": {
+        "prepare_ms": 78373.79999995232,
+        "program_prepare_ms": 78364.29999995232,
+        "programs": 2,
+        "variant": "high-highp-derivatives",
+        "fragment_bytes": 57449
+      },
+      "scenes": [
+        {
+          "scene": "simple",
+          "size": [
+            640,
+            360
+          ],
+          "passes": 2,
+          "first_draw_ms": 9.5,
+          "first_usable_ms": 78392.10000002384,
+          "discarded_warmup_draws": 2,
+          "warm": {
+            "samples": 5,
+            "mean_ms": 10.2,
+            "p95_ms": 15.899999976158142,
+            "worst_ms": 15.899999976158142
+          },
+          "center_rgba": [
+            178,
+            118,
+            53,
+            255
+          ]
+        }
+      ],
+      "source_file": "test-results/stability/archives/benchmarks/2026-09-20/RENDER-STABILITY-BENCHMARKS.diagnostic-split-secondary-off.json",
+      "source_sha256": "0bb91d20b8ce19ad31d281ee56cfb1b7e4ab031fc9d676b2b1281d3df3deb7b2"
+    },
+    {
+      "experiment": "split-secondary-off",
+      "tier": "cinematic",
+      "diagnostic": "secondary_off",
+      "status": "censored_timeout",
+      "wall_ms": 120098,
+      "censored_lower_bound_ms": 120098,
+      "last_phase": "shade:link_begin",
+      "backend_renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Ti (0x00002489) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "relief_noise_prepare": {
+        "prepare_ms": 5.399999976158142,
+        "width": 256,
+        "height": 256,
+        "implementation": "snapshot createReliefNoiseTexture"
+      },
+      "shaders": [
+        {
+          "pass": "surface",
+          "diagnostic": "secondary_off",
+          "source_hash_fnv1a": "2f3b67dc",
+          "pom_steps": 14,
+          "fragment_bytes": 57264
+        },
+        {
+          "pass": "shade",
+          "diagnostic": "secondary_off",
+          "source_hash_fnv1a": "466fed5c",
+          "pom_steps": 14,
+          "fragment_bytes": 57451
+        }
+      ],
+      "translations": [
+        {
+          "pass": "surface",
+          "translated_bytes": 52361,
+          "angle_uses_nested_break": false,
+          "loop_for_count": 3,
+          "flatten_count": 3,
+          "angle_enable_loop_flatten": true
+        },
+        {
+          "pass": "shade",
+          "translated_bytes": 97758,
+          "angle_uses_nested_break": false,
+          "loop_for_count": 0,
+          "flatten_count": 3,
+          "angle_enable_loop_flatten": true
+        }
+      ],
+      "program_prepares": [
+        {
+          "pass": "surface",
+          "prepare_ms": 22846.5
+        }
+      ],
+      "prepare": null,
+      "scenes": [],
+      "source_file": "test-results/stability/archives/benchmarks/2026-09-20/RENDER-STABILITY-BENCHMARKS.diagnostic-split-secondary-off.json",
+      "source_sha256": "0bb91d20b8ce19ad31d281ee56cfb1b7e4ab031fc9d676b2b1281d3df3deb7b2"
+    },
+    {
+      "experiment": "split",
+      "tier": "high",
+      "diagnostic": "production",
+      "status": "passed",
+      "wall_ms": 85003,
+      "censored_lower_bound_ms": null,
+      "last_phase": "simple:warm_draws",
+      "backend_renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Ti (0x00002489) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+      "relief_noise_prepare": {
+        "prepare_ms": 6.5,
+        "width": 256,
+        "height": 256,
+        "implementation": "snapshot createReliefNoiseTexture"
+      },
+      "shaders": [
+        {
+          "pass": "surface",
+          "diagnostic": "production",
+          "source_hash_fnv1a": "7668250a",
+          "pom_steps": 8,
+          "fragment_bytes": 57262
+        },
+        {
+          "pass": "shade",
+          "diagnostic": "production",
+          "source_hash_fnv1a": "6bea664e",
+          "pom_steps": 8,
+          "fragment_bytes": 58583
+        }
+      ],
+      "translations": [
+        {
+          "pass": "surface",
+          "translated_bytes": 52357,
+          "angle_uses_nested_break": false,
+          "loop_for_count": 3,
+          "flatten_count": 3,
+          "angle_enable_loop_flatten": true
+        },
+        {
+          "pass": "shade",
+          "translated_bytes": 101349,
+          "angle_uses_nested_break": false,
+          "loop_for_count": 2,
+          "flatten_count": 6,
+          "angle_enable_loop_flatten": true
+        }
+      ],
+      "program_prepares": [
+        {
+          "pass": "surface",
+          "prepare_ms": 11883.699999928474
+        },
+        {
+          "pass": "shade",
+          "prepare_ms": 71830.29999995232
+        }
+      ],
+      "prepare": {
+        "prepare_ms": 83733.10000002384,
+        "program_prepare_ms": 83723,
+        "programs": 2,
+        "variant": "high-highp-derivatives",
+        "fragment_bytes": 58583
+      },
+      "scenes": [
+        {
+          "scene": "simple",
+          "size": [
+            640,
+            360
+          ],
+          "passes": 2,
+          "first_draw_ms": 40.90000009536743,
+          "first_usable_ms": 83780.90000009537,
+          "discarded_warmup_draws": 0,
+          "warm": {
+            "samples": 2,
+            "mean_ms": 34.549999952316284,
+            "p95_ms": 34.89999997615814,
+            "worst_ms": 34.89999997615814
+          },
+          "center_rgba": [
+            178,
+            118,
+            53,
+            255
+          ]
+        }
+      ],
+      "source_file": "test-results/stability/archives/benchmarks/2026-09-20/RENDER-STABILITY-BENCHMARKS.diagnostic-split.json",
+      "source_sha256": "6bb4f646de6888421792129ebb5b0d15a82c8381f1c7f7770816e7c753a6a03e"
+    }
+  ],
+  "pass_timing_diagnostic": {
+    "source_file": "test-results/stability/archives/benchmarks/2026-09-20/software-pass-timing-high-readback.json",
+    "source_sha256": "9fb321533c79d7eb2eb54bb48dad9ef9c8c0877ec1e7b3afe3ecaa6427080b03",
+    "groups": [
+      {
+        "revision": "fixed",
+        "revision_ref": "WORKTREE",
+        "profile": "matrix",
+        "tier": "high",
+        "diagnostic": null,
+        "size": [
+          640,
+          360
+        ],
+        "pixels": 230400,
+        "status": "failed",
+        "wall_ms": 64007,
+        "censored_lower_bound_ms": null,
+        "last_phase": "simple:round_1:warm_draws",
+        "backend": {
+          "vendor": "Google Inc. (Google)",
+          "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+          "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)",
+          "shading_language": "WebGL GLSL ES 1.0 (OpenGL ES GLSL ES 1.0 Chromium)",
+          "precision": "highp",
+          "derivatives": true
+        },
+        "relief_noise_prepare": {
+          "prepare_ms": 10.600000023841858,
+          "width": 256,
+          "height": 256,
+          "implementation": "snapshot createReliefNoiseTexture"
+        },
+        "shaders": [
+          {
+            "pass": "surface",
+            "diagnostic": "production",
+            "source_hash_fnv1a": "37ca7b70",
+            "pom_steps": 8,
+            "fragment_bytes": 58978
+          },
+          {
+            "pass": "shade",
+            "diagnostic": "production",
+            "source_hash_fnv1a": "e3c51a23",
+            "pom_steps": 8,
+            "fragment_bytes": 60690
+          }
+        ],
+        "translations": [
+          {
+            "pass": "surface",
+            "translated_bytes": 277120,
+            "angle_uses_nested_break": false,
+            "loop_for_count": 0,
+            "flatten_count": 0,
+            "angle_enable_loop_flatten": false
+          },
+          {
+            "pass": "shade",
+            "translated_bytes": 573712,
+            "angle_uses_nested_break": false,
+            "loop_for_count": 0,
+            "flatten_count": 0,
+            "angle_enable_loop_flatten": false
+          }
+        ],
+        "program_prepares": [
+          {
+            "pass": "surface",
+            "prepare_ms": 56.5
+          },
+          {
+            "pass": "shade",
+            "prepare_ms": 102.89999997615814
+          }
+        ],
+        "surface_target_prepares": [
+          {
+            "size": [
+              640,
+              360
+            ],
+            "prepare_ms": 0.30000007152557373
+          }
+        ],
+        "warm_limit_violations": [
+          {
+            "scene": "simple",
+            "round": 1,
+            "size": [
+              640,
+              360
+            ],
+            "worst_ms": 2607.600000023842,
+            "limit_ms": 1600
+          }
+        ],
+        "prepare": {
+          "prepare_ms": 239.39999997615814,
+          "program_prepare_ms": 211.19999992847443,
+          "programs": 2,
+          "variant": "high-highp-derivatives",
+          "fragment_bytes": 60690
+        },
+        "scenes": [
+          {
+            "scene": "simple",
+            "round": 1,
+            "size": [
+              640,
+              360
+            ],
+            "passes": 2,
+            "first_draw_ms": 49678.39999997616,
+            "first_usable_ms": 50054,
+            "discarded_warmup_draws": 0,
+            "warm": {
+              "samples": 5,
+              "mean_ms": 2170.9400000095366,
+              "p95_ms": 2607.600000023842,
+              "worst_ms": 2607.600000023842
+            },
+            "pass_timing": {
+              "first": {
+                "surface_ms": 2740,
+                "shade_ms": 46938.39999997616,
+                "surface_readback": {
+                  "rgba": [
+                    88,
+                    170,
+                    1,
+                    44
+                  ],
+                  "depth_word": 22698,
+                  "depth": 8.31238269626917,
+                  "key": 300
+                }
+              },
+              "last_surface_readback": {
+                "rgba": [
+                  88,
+                  170,
+                  1,
+                  44
+                ],
+                "depth_word": 22698,
+                "depth": 8.31238269626917,
+                "key": 300
+              },
+              "warm": {
+                "surface": {
+                  "samples": 5,
+                  "mean_ms": 558.4799999952317,
+                  "p95_ms": 682.3000000715256,
+                  "worst_ms": 682.3000000715256
+                },
+                "shade": {
+                  "samples": 5,
+                  "mean_ms": 1612.4200000286103,
+                  "p95_ms": 1927.6000000238419,
+                  "worst_ms": 1927.6000000238419
+                }
+              }
+            },
+            "center_rgba": [
+              178,
+              118,
+              53,
+              255
+            ]
+          }
+        ],
+        "error": "page.evaluate: Error: 1 warm draw cell(s) exceeded 1600ms limit; worst 2607.60ms\n    at eval (eval at evaluate (:311:30), <anonymous>:33:35)\n    at async <anonymous>:337:30\n    at worker (D:\\2026\\PortalRooms2\\test-results\\stability-fix\\tests\\render-benchmark.mjs:74:14)\n    at async file:///D:/2026/PortalRooms2/test-results/stability-fix/tests/render-benchmark.mjs:110:103"
+      }
+    ],
+    "method": "Test-only gl.finish plus one-pixel readPixels on the surface framebuffer before timing the shade pass. Both passes use unmodified production sources.",
+    "excluded_anomalous_run": {
+      "source_file": "test-results/stability/archives/benchmarks/2026-09-20/software-pass-timing-high-anomalous-no-readback.json",
+      "source_sha256": "d4005c2cd4bca15614e35832a3c2b77ddc4c9a28d6e6b0aba6f9f2e210257403",
+      "reason": "Surface timing lacked a framebuffer readback and reported an implausible near-zero duration; retained only as raw audit evidence."
+    }
+  },
+  "limitations": [
+    "SwiftShader series is software rendering and is not physical-GPU FPS.",
+    "RTX results are from one NVIDIA GeForce RTX 3060 Ti D3D11 host and include high run-to-run shader-link and frame-time variance.",
+    "Fresh browser processes do not imply a cold driver cache; the benchmark did not clear the driver shader cache.",
+    "Nearest-rank p95 equals worst for n=5 and n=10.",
+    "WORKTREE source identity is recorded by per-pass FNV-1a shader hashes; it is not a Git commit."
+  ]
+}
