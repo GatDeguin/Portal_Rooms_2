@@ -41,3 +41,8 @@ dialog{width:min(540px,calc(100% - 28px));max-height:calc(100dvh - 28px);margin:
 /* New room courses keep their full front perspective on narrow portrait screens.
    The original 22 rooms, cameraRay and physics are unchanged. */
 @media(max-aspect-ratio:1/1){.app.expansion-room #gl{top:50%;bottom:auto;height:56.25vw;transform:translateY(-50%)}.app.expansion-room .edge-depth{background:linear-gradient(180deg,#080b10 0%,transparent 35%,transparent 70%,#080b10 100%)}}
+
+
+/* Optional MediaPipe hand interaction. Camera input stays outside the WebGL renderer. */
+.hand-preview{position:absolute;z-index:4;right:18px;top:82px;width:190px;overflow:hidden;border:1px solid var(--line);border-radius:14px;background:#071019e8;box-shadow:0 12px 34px #0006;pointer-events:none}.hand-feed{position:relative;height:112px;overflow:hidden;background:#04070b;transform:scaleX(-1)}.hand-feed video,.hand-feed canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.hand-feed canvas{z-index:1}.hand-preview-meta{display:grid;gap:3px;padding:8px 10px}.hand-preview-meta b{font-size:8px;letter-spacing:.13em;color:var(--mint)}.hand-preview-meta span{font-size:9px;line-height:1.35;color:var(--muted)}.hand-start{border-color:#8cead94d}.button-row.three{grid-template-columns:repeat(3,minmax(0,1fr))}.button-row.three .secondary{font-size:12px;padding-inline:9px}
+@media(max-width:680px){.hand-preview{top:auto;right:10px;bottom:112px;width:140px}.hand-feed{height:82px}.button-row.three{grid-template-columns:1fr}}
