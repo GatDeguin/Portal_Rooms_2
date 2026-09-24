@@ -116,7 +116,7 @@ export class HandTracking{
       const pv=velocity(pinch,previous?.pinch,previous?.pinchV),palmV=velocity(palm,previous?.palm,previous?.palmV);
       const points=FINGERS.map((index,j)=>{const pos=smoothPoint(mapped[index],previous?.points?.[j]);const v=velocity(pos,previous?.points?.[j],previous?.pointV?.[j]);return {...pos,...{vx:v.x,vy:v.y,vz:v.z},radius:.105};});
       const hand={id,label:category?.displayName||category?.categoryName||'',score:category?.score??1,pinch:{...pinch,vx:pv.x,vy:pv.y,vz:pv.z,active:pinching,strength:clamp(1-ratio/.5,0,1)},palm:{...palm,vx:palmV.x,vy:palmV.y,vz:palmV.z,radius:.19},points};
-      this.previous.set(id,{time:now,pinch,pinchV:pv,palm,palmV:points?undefined:undefined,palmV,points:points.map(p=>({x:p.x,y:p.y,z:p.z})),pointV:points.map(p=>({x:p.vx,y:p.vy,z:p.vz}))});hands.push(hand);
+      this.previous.set(id,{time:now,pinch,pinchV:pv,palm,palmV,points:points.map(p=>({x:p.x,y:p.y,z:p.z})),pointV:points.map(p=>({x:p.vx,y:p.vy,z:p.vz}))});hands.push(hand);
     }
     this.latest=hands;this.draw(all);if(hands.length)this.setStatus('active',hands.some(h=>h.pinch.active)?'Pinza detectada · objeto listo para agarrar.':'Manos activas · tocá, empujá o hacé pinza para agarrar.');
   }
