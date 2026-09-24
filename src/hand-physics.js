@@ -60,7 +60,7 @@ export class HandGameEngine extends GameEngine{
       for(const point of contacts){
         const radius=point.radius??.105,dy=Math.abs(point.y-centerY);if(dy>RADIUS+radius)continue;
         let dx=c.x-point.x,dz=c.z-point.z,d=Math.hypot(dx,dz),limit=RADIUS+radius;if(d>=limit)continue;
-        let nx,nz;if(d<1e-5){const speed=Math.hypot(point.vx??0,point.vz??0);nx=speed>.05?-(point.vx??0)/speed:1;nz=speed>.05?-(point.vz??0)/speed:0;}else{nx=dx/d;nz=dz/d;}
+        let nx,nz;if(d<1e-5){const speed=Math.hypot(point.vx??0,point.vz??0);nx=speed>.05?(point.vx??0)/speed:1;nz=speed>.05?(point.vz??0)/speed:0;}else{nx=dx/d;nz=dz/d;}
         const penetrationDepth=limit-d;
         c.x+=nx*Math.min(penetrationDepth*.62,.055);c.z+=nz*Math.min(penetrationDepth*.62,.055);
         const handNormal=(point.vx??0)*nx+(point.vz??0)*nz,cubeNormal=c.vx*nx+c.vz*nz;
