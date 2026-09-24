@@ -1,5 +1,6 @@
 import {CAMPAIGN_LEVELS as LEVELS,ORIGINAL_COUNT} from './campaign.js';
-import {GameEngine} from './physics.js';
+import {HandGameEngine} from './hand-physics.js';
+import {HandTracking} from './hand-tracking.js';
 import {InputController} from './input.js';
 import {SaveStore} from './storage.js';
 import {createRenderer} from './renderer-client.js';
@@ -11,16 +12,16 @@ const motion=window.matchMedia('(prefers-reduced-motion: reduce)');
 let storageProblem=false,adapter=null;
 try{adapter=window.localStorage;}catch{storageProblem=true;}
 const store=new SaveStore(adapter,LEVELS.length,motion.matches,()=>{storageProblem=true;ui.toast('El guardado está bloqueado. Tu progreso se conserva solo durante esta sesión.');});
-const engine=new GameEngine(LEVELS,store.settings);engine.reset(store.progress.current);
+const engine=new HandGameEngine(LEVELS,store.settings);engine.reset(store.progress.current);
 const audio=new AudioFeedback(()=>store.settings);
 function visualPreferences(){app.classList.toggle('reduced-effects',motion.matches||store.settings.effects===false);}
 visualPreferences();
 const startupController=new AbortController();
-let phase='loading',renderer=null,input=null,raf=0,last=0,transitionTimer=null,panelStack=[],dirty=true,sceneDrawn=false,qualityRequest=null;
+let phase='loading',renderer=null,input=null,hands=null,raf=0,last=0,transitionTimer=null,panelStack=[],dirty=true,sceneDrawn=false,qualityRequest=null;
 const DIALOGS={menu:'startDialog',paused:'pauseDialog',settings:'settingsDialog',selector:'levelsDialog',victory:'victoryDialog',final:'finalDialog',confirm:'confirmDialog',help:'helpDialog'};
 
 function fail(error){
-  cancelQuality();renderer?.destroy();
+  cancelQuality();renderer?.destroy();hands?.disable();
   phase='error';app.dataset.phase=phase;engine.pause();input?.clear();audio.suspend();clearTimeout(transitionTimer);
   if(raf)cancelAnimationFrame(raf);raf=0;app.classList.remove('switching');ui.error(error);console.error(error);
 }
@@ -69,7 +70,8 @@ function frame(now){
   try{
     if(phase==='playing'){
       const ms=Math.max(0,now-last);last=now;renderer.sample(ms);
-      engine.advance(ms/1000,input.sample(Math.min(ms/1000,.1)));
+      const controls=input.sample(Math.min(ms/1000,.1));controls.hands=hands?.sample()??[];
+      engine.advance(ms/1000,controls);
       for(const event of engine.state.events.splice(0)){
         audio.event(event);
         if(event.type==='complete'){
@@ -94,6 +96,7 @@ async function action(name){
     case 'play-preview':if(phase==='selector'&&ui.previewIndex<store.progress.unlocked)begin(ui.previewIndex);break;
     case 'help':openPanel('help');break;
     case 'start-gyro':if(phase==='menu'){const permission=input.enableSensors();begin(store.progress.current);await permission;}break;
+    case 'start-hands':if(phase==='menu'&&await hands.enable())begin(store.progress.current);break;
     case 'pause':if(phase==='playing'||phase==='transition')pauseGame();else if(phase==='paused')resume();else back();break;
     case 'resume':resume();break;
     case 'restart':if(['playing','paused'].includes(phase))begin(engine.state.level,true);break;
@@ -106,6 +109,9 @@ async function action(name){
     case 'menu':clearTimeout(transitionTimer);panelStack=[];audio.suspend();showPhase('menu');break;
     case 'gyro':if(input.sensorEnabled||input.sensorWaiting)input.recalibrate();else await input.enableSensors();break;
     case 'manual':input.disableSensors();break;
+    case 'hands':await hands.enable();break;
+    case 'hands-calibrate':if(hands.enabled)hands.recalibrate();else await hands.enable();break;
+    case 'hands-off':hands.disable();break;
     case 'fullscreen':
       try{if(document.fullscreenElement)await document.exitFullscreen();else if(document.documentElement.requestFullscreen)await document.documentElement.requestFullscreen();else ui.toast('Pantalla completa no está disponible en este navegador.');}
       catch{ui.toast('El navegador no permitió la pantalla completa.');}break;
@@ -120,6 +126,9 @@ function dispatch(name){Promise.resolve(action(name)).catch(error=>ui.toast(erro
 
 input=new InputController({canvas,stick:ui.el('stickWrap'),thumb:ui.el('stick'),getSettings:()=>store.settings,isPlaying:()=>phase==='playing'&&!document.hidden,
   onAction:dispatch,onSensor:status=>{ui.sensor(status);if(status!=='manual')ui.toast(SENSOR_MESSAGES[status]);}});
+hands=new HandTracking({video:ui.el('handVideo'),overlay:ui.el('handCanvas'),panel:ui.el('handPreview'),status:ui.el('handStatus'),
+  isActive:()=>!document.hidden&&['menu','transition','playing','settings'].includes(phase),
+  onStatus:(kind,message)=>{if(kind==='error')ui.toast(message);}});
 for(const dialog of ui.dialogs)dialog.addEventListener('cancel',e=>{e.preventDefault();if(phase==='paused')resume();else back();});
 document.addEventListener('click',e=>{
   const tab=e.target.closest('[data-settings-tab]');if(tab){ui.settingsTab(tab.dataset.settingsTab);return;}
@@ -175,7 +184,7 @@ document.addEventListener('visibilitychange',()=>{
   if(document.hidden){cancelQuality();renderer?.pause?.();pauseGame();engine.pause();input.clear();audio.suspend();if(raf)cancelAnimationFrame(raf);raf=0;}
   else{last=performance.now();renderer?.quality.resetSamples();invalidate();}
 });
-window.addEventListener('pagehide',event=>{if(phase==='loading')startupController.abort();if(!event.persisted)renderer?.destroy();cancelQuality();renderer?.pause?.();pauseGame();if(raf)cancelAnimationFrame(raf);raf=0;audio.suspend();});
+window.addEventListener('pagehide',event=>{if(phase==='loading')startupController.abort();hands?.disable();if(!event.persisted)renderer?.destroy();cancelQuality();renderer?.pause?.();pauseGame();if(raf)cancelAnimationFrame(raf);raf=0;audio.suspend();});
 window.addEventListener('pageshow',event=>{if(event.persisted&&phase==='loading'&&startupController.signal.aborted){location.reload();return;}if(phase!=='loading')invalidate();});
 motion.addEventListener?.('change',e=>{if(e.matches){store.setSettings({dynamicCamera:false});engine.settings=store.settings;}visualPreferences();ui.settings(store.settings,renderer);invalidate();});
 canvas.addEventListener('contextmenu',e=>e.preventDefault());

@@ -10,7 +10,7 @@ La aplicación activa usa exclusivamente `index.html`, `src/` y `styles/`. Los a
 python3 -m http.server 8080
 ```
 
-Abrí `http://localhost:8080`. No requiere `npm install`, motor externo ni compilación. Publicá `index.html`, `src/` y `styles/` juntos; las rutas relativas admiten un subdirectorio de GitHub Pages. Los módulos ES requieren HTTP(S), no `file://`.
+Abrí `http://localhost:8080`. El juego base no requiere `npm install`, motor externo ni compilación. Publicá `index.html`, `src/` y `styles/` juntos; las rutas relativas admiten un subdirectorio de GitHub Pages. Los módulos ES requieren HTTP(S), no `file://`. El modo opcional **Manos 3D** carga bajo demanda MediaPipe Tasks Vision 1.0.1 y el modelo Hand Landmarker, por lo que su primera activación requiere red; la webcam requiere HTTPS o `localhost`.
 
 ## Campaña e integración
 
@@ -29,6 +29,8 @@ Las caídas y pausas conservan la secuencia durante la tentativa. Reiniciar o re
 ## Controles
 
 WASD o flechas inclinan; Escape pausa, R reinicia y H muestra la pista de la sala. Con puntero o pantalla táctil, arrastrá el escenario o el stick. Soltar quita la fuerza aplicada, pero conserva la inercia. La inclinación necesita dispositivo compatible, contexto seguro y permiso cuando corresponda.
+
+**Manos 3D (MediaPipe):** está calibrado para una webcam colocada sobre el monitor de escritorio. La coordenada horizontal se comporta como un espejo; subir/bajar la mano controla altura; el cambio de tamaño aparente de la palma estima profundidad al acercarse o alejarse de la cámara. Una pinza pulgar + índice agarra el cubo, abrirla lo suelta y conserva velocidad para poder lanzarlo; puntas de los dedos y palma también empujan por contacto. Se detectan hasta dos manos. La cámara se procesa en el navegador y se detiene al desactivar el modo o salir de la página.
 
 La partida se pausa al perder foco. Los menús detienen la simulación. Movimiento reducido y efectos desactivados afectan la decoración, no el transporte ni las compuertas.
 
