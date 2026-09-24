@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {handMetrics,pinchRatio,mapLandmarkToWorld,MEDIAPIPE_VERSION} from '../src/hand-tracking.js';
+import {handMetrics,pinchRatio,mapLandmarkToWorld,MEDIAPIPE_VERSION,HAND_MODEL} from '../src/hand-tracking.js';
 
 const hand=()=>Array.from({length:21},(_,i)=>({x:.5+(i%4-.5)*.025,y:.68-Math.floor(i/4)*.035,z:0}));
 
-test('MediaPipe integration is version-pinned',()=>assert.equal(MEDIAPIPE_VERSION,'1.0.1'));
+test('MediaPipe integration is version-pinned',()=>{assert.equal(MEDIAPIPE_VERSION,'1.0.1');assert.match(HAND_MODEL,/\/float16\/1\/hand_landmarker\.task$/);assert.doesNotMatch(HAND_MODEL,/latest/);});
 test('pinch ratio distinguishes a thumb-index pinch',()=>{
   const open=hand();open[4]={x:.37,y:.49,z:0};open[8]={x:.61,y:.47,z:0};open[5]={x:.40,y:.64,z:0};open[17]={x:.61,y:.64,z:0};open[9]={x:.50,y:.49,z:0};open[0]={x:.50,y:.76,z:0};
   const pinched=open.map(p=>({...p}));pinched[4]={x:.495,y:.49,z:0};pinched[8]={x:.505,y:.49,z:0};
