@@ -36,56 +36,83 @@ function limitVelocity(v,max=8){
   return {x:v.x*max/m,y:v.y*max/m,z:v.z*max/m};
 }
 function average(samples,key){return samples.reduce((n,s)=>n+s[key],0)/Math.max(samples.length,1);}
+const stopStream=stream=>stream?.getTracks?.().forEach(track=>track.stop());
+const MAX_SAMPLE_AGE=250;
 
 export class HandTracking{
   constructor({video,overlay,panel,status,isActive=()=>true,onStatus=()=>{},win=globalThis}={}){
     Object.assign(this,{video,overlay,panel,status,isActive,onStatus,win});
     this.landmarker=null;this.stream=null;this.enabled=false;this.loading=null;this.latest=[];this.previous=new Map();this.pinchStates=new Map();this.baseline=null;this.baselineSamples=[];this.lastInference=0;this.lastVideoTime=-1;this.raf=0;this.lastSeen=0;
+    this.activation=null;this.destroyed=false;this.lastSample=0;this.trackSerial=0;
     this.setStatus('off','Manos desactivadas.');
   }
   setStatus(kind,message){if(this.status)this.status.textContent=message;this.onStatus(kind,message);}
   async load(){
+    if(this.destroyed)throw new DOMException('Seguimiento cerrado.','AbortError');
     if(this.landmarker)return this.landmarker;
     if(this.loading)return this.loading;
     this.loading=(async()=>{
       const {FilesetResolver,HandLandmarker}=await import(MEDIAPIPE_MODULE);
       const vision=await FilesetResolver.forVisionTasks(MEDIAPIPE_WASM);
-      this.landmarker=await HandLandmarker.createFromOptions(vision,{baseOptions:{modelAssetPath:HAND_MODEL},runningMode:'VIDEO',numHands:2,minHandDetectionConfidence:.58,minHandPresenceConfidence:.55,minTrackingConfidence:.55});
-      return this.landmarker;
+      const landmarker=await HandLandmarker.createFromOptions(vision,{baseOptions:{modelAssetPath:HAND_MODEL},runningMode:'VIDEO',numHands:2,minHandDetectionConfidence:.58,minHandPresenceConfidence:.55,minTrackingConfidence:.55});
+      if(this.destroyed){landmarker.close();throw new DOMException('Seguimiento cerrado.','AbortError');}
+      this.landmarker=landmarker;return landmarker;
     })();
     try{return await this.loading;}finally{this.loading=null;}
   }
   async enable(){
+    if(this.destroyed)return false;
     if(this.enabled)return true;
+    if(this.activation)return this.activation.promise;
     const nav=this.win.navigator;
     if(!this.win.isSecureContext||!nav?.mediaDevices?.getUserMedia){this.setStatus('error','La cámara necesita HTTPS o localhost y un navegador compatible.');return false;}
+    const activation={};this.activation=activation;
+    const current=()=>this.activation===activation&&!this.destroyed;
     this.setStatus('loading','Cargando MediaPipe…');
-    try{
-      await this.load();
-      this.stream=await nav.mediaDevices.getUserMedia({audio:false,video:{facingMode:'user',width:{ideal:1280},height:{ideal:720},frameRate:{ideal:30,max:30}}});
-      this.video.srcObject=this.stream;this.video.muted=true;this.video.playsInline=true;await this.video.play();
-      this.enabled=true;if(this.panel)this.panel.hidden=false;this.recalibrate();this.loop();return true;
-    }catch(error){
-      this.stream?.getTracks?.().forEach(track=>track.stop());this.stream=null;this.enabled=false;if(this.panel)this.panel.hidden=true;
-      const denied=error?.name==='NotAllowedError'||error?.name==='SecurityError';this.setStatus('error',denied?'Permiso de cámara rechazado. Podés activarlo desde el navegador.':'No se pudo iniciar MediaPipe o la webcam.');return false;
-    }
+    activation.promise=(async()=>{
+      let stream=null;
+      try{
+        await this.load();
+        if(!current())return false;
+        stream=await nav.mediaDevices.getUserMedia({audio:false,video:{facingMode:'user',width:{ideal:1280},height:{ideal:720},frameRate:{ideal:30,max:30}}});
+        // Permission prompts cannot be aborted; discard their result if cancelled.
+        if(!current()){stopStream(stream);return false;}
+        this.stream=stream;this.video.srcObject=stream;this.video.muted=true;this.video.playsInline=true;
+        for(const track of stream.getTracks())track.addEventListener?.('ended',()=>{if(this.stream===stream)this.disable();},{once:true});
+        await this.video.play();
+        if(!current()){stopStream(stream);return false;}
+        if(stream.getTracks().some(track=>track.readyState==='ended'))throw new Error('La cámara se detuvo.');
+        this.enabled=true;if(this.panel)this.panel.hidden=false;this.recalibrate();this.loop();return true;
+      }catch(error){
+        stopStream(stream);
+        // An obsolete request must not detach a newer session or replace its status.
+        if(!current())return false;
+        this.disable();
+        const denied=error?.name==='NotAllowedError'||error?.name==='SecurityError';this.setStatus('error',denied?'Permiso de cámara rechazado. Podés activarlo desde el navegador.':'No se pudo iniciar MediaPipe o la webcam.');return false;
+      }finally{if(this.activation===activation)this.activation=null;}
+    })();
+    return activation.promise;
+  }
+  clearTracking(){
+    this.latest=[];this.previous.clear();this.pinchStates.clear();this.lastSample=0;this.draw([]);
   }
   recalibrate(){
-    this.baseline=null;this.baselineSamples=[];this.previous.clear();this.pinchStates.clear();this.latest=[];
+    this.baseline=null;this.baselineSamples=[];this.clearTracking();this.lastInference=0;this.lastVideoTime=-1;
     if(this.enabled)this.setStatus('calibrating','Calibrando: mantené una mano abierta y quieta debajo de la webcam.');
   }
   loop(){
     this.win.cancelAnimationFrame?.(this.raf);const tick=()=>{this.raf=this.win.requestAnimationFrame(tick);this.detect();};this.raf=this.win.requestAnimationFrame(tick);
   }
   detect(){
+    this.sample();
     if(!this.enabled||!this.landmarker||!this.isActive?.()||this.win.document?.hidden||this.video?.readyState<2)return;
     const now=this.win.performance?.now?.()??Date.now();if(now-this.lastInference<38||this.video.currentTime===this.lastVideoTime)return;
     this.lastInference=now;this.lastVideoTime=this.video.currentTime;
-    try{this.process(this.landmarker.detectForVideo(this.video,now),now);}catch(error){this.setStatus('error','MediaPipe dejó de responder; desactivá y volvé a activar las manos.');}
+    try{this.process(this.landmarker.detectForVideo(this.video,now),now);}catch(error){this.clearTracking();this.setStatus('error','MediaPipe dejó de responder; desactivá y volvé a activar las manos.');}
   }
   process(result,now){
     const all=result?.landmarks??[];
-    if(!all.length){this.latest=[];this.draw([]);if(this.baseline&&now-this.lastSeen>900)this.setStatus('searching','No veo manos. Entrá con la mano desde abajo del monitor.');return;}
+    if(!all.length){this.clearTracking();if(this.baseline&&now-this.lastSeen>900)this.setStatus('searching','No veo manos. Entrá con la mano desde abajo del monitor.');return;}
     this.lastSeen=now;
     if(!this.baseline){
       const m=handMetrics(all[0]);if(m&&m.scale>.035){this.baselineSamples.push(m);if(this.baselineSamples.length>22)this.baselineSamples.shift();}
@@ -96,11 +123,11 @@ export class HandTracking{
       }
       this.draw(all);return;
     }
-    const hands=[];
+    const hands=[],present=new Set();
     for(let i=0;i<all.length;i++){
       const landmarks=all[i],metrics=handMetrics(landmarks);if(!metrics)continue;
       const category=result?.handednesses?.[i]?.[0]??result?.handedness?.[i]?.[0];
-      const id=category?.categoryName||category?.displayName||`hand-${i}`;
+      const id=category?.categoryName||category?.displayName||`hand-${i}`;present.add(id);
       const ratio=pinchRatio(landmarks),wasPinching=this.pinchStates.get(id)===true,pinching=wasPinching?ratio<.50:ratio<.34;this.pinchStates.set(id,pinching);
       const mapped=landmarks.map(l=>mapLandmarkToWorld(l,metrics,this.baseline));
       const pinchRaw={x:(mapped[4].x+mapped[8].x)/2,y:(mapped[4].y+mapped[8].y)/2,z:(mapped[4].z+mapped[8].z)/2};
@@ -115,12 +142,22 @@ export class HandTracking{
       const pinch=smoothPoint(pinchRaw,previous?.pinch),palm=smoothPoint(palmRaw,previous?.palm);
       const pv=velocity(pinch,previous?.pinch,previous?.pinchV),palmV=velocity(palm,previous?.palm,previous?.palmV);
       const points=FINGERS.map((index,j)=>{const pos=smoothPoint(mapped[index],previous?.points?.[j]);const v=velocity(pos,previous?.points?.[j],previous?.pointV?.[j]);return {...pos,...{vx:v.x,vy:v.y,vz:v.z},radius:.105};});
-      const hand={id,label:category?.displayName||category?.categoryName||'',score:category?.score??1,pinch:{...pinch,vx:pv.x,vy:pv.y,vz:pv.z,active:pinching,strength:clamp(1-ratio/.5,0,1)},palm:{...palm,vx:palmV.x,vy:palmV.y,vz:palmV.z,radius:.19},points};
-      this.previous.set(id,{time:now,pinch,pinchV:pv,palm,palmV,points:points.map(p=>({x:p.x,y:p.y,z:p.z})),pointV:points.map(p=>({x:p.vx,y:p.vy,z:p.vz}))});hands.push(hand);
+      // A returning detection cannot inherit a grab from before tracking was lost.
+      const trackId=previous?.trackId??`${id}:${++this.trackSerial}`;
+      const hand={id:trackId,label:category?.displayName||category?.categoryName||'',score:category?.score??1,pinch:{...pinch,vx:pv.x,vy:pv.y,vz:pv.z,active:pinching,strength:clamp(1-ratio/.5,0,1)},palm:{...palm,vx:palmV.x,vy:palmV.y,vz:palmV.z,radius:.19},points};
+      this.previous.set(id,{trackId,time:now,pinch,pinchV:pv,palm,palmV,points:points.map(p=>({x:p.x,y:p.y,z:p.z})),pointV:points.map(p=>({x:p.vx,y:p.vy,z:p.vz}))});hands.push(hand);
     }
-    this.latest=hands;this.draw(all);if(hands.length)this.setStatus('active',hands.some(h=>h.pinch.active)?'Pinza detectada · objeto listo para agarrar.':'Manos activas · tocá, empujá o hacé pinza para agarrar.');
+    for(const id of this.previous.keys())if(!present.has(id)){this.previous.delete(id);this.pinchStates.delete(id);}
+    this.latest=hands;this.lastSample=now;this.draw(all);if(hands.length)this.setStatus('active',hands.some(h=>h.pinch.active)?'Pinza detectada · objeto listo para agarrar.':'Manos activas · tocá, empujá o hacé pinza para agarrar.');
   }
-  sample(){return this.enabled?this.latest:[];}
+  sample(){
+    const now=this.win.performance?.now?.()??Date.now();
+    if(!this.enabled||!this.isActive?.()||this.win.document?.hidden||this.video?.readyState<2||now-this.lastSample>MAX_SAMPLE_AGE){
+      if(this.latest.length||this.previous.size||this.pinchStates.size)this.clearTracking();
+      return [];
+    }
+    return this.latest;
+  }
   draw(all){
     const canvas=this.overlay,video=this.video;if(!canvas||!video?.videoWidth)return;
     if(canvas.width!==video.videoWidth||canvas.height!==video.videoHeight){canvas.width=video.videoWidth;canvas.height=video.videoHeight;}
@@ -131,7 +168,9 @@ export class HandTracking{
     }
   }
   disable(){
-    this.win.cancelAnimationFrame?.(this.raf);this.raf=0;this.enabled=false;this.latest=[];this.previous.clear();this.pinchStates.clear();this.video?.pause?.();if(this.video)this.video.srcObject=null;this.stream?.getTracks?.().forEach(track=>track.stop());this.stream=null;if(this.panel)this.panel.hidden=true;this.setStatus('off','Manos desactivadas.');
+    this.activation=null;this.win.cancelAnimationFrame?.(this.raf);this.raf=0;this.enabled=false;
+    const stream=this.stream;this.stream=null;this.clearTracking();this.video?.pause?.();if(this.video)this.video.srcObject=null;stopStream(stream);
+    if(this.panel)this.panel.hidden=true;this.setStatus('off','Manos desactivadas.');
   }
-  destroy(){this.disable();try{this.landmarker?.close?.();}catch{}this.landmarker=null;}
+  destroy(){this.destroyed=true;this.disable();try{this.landmarker?.close?.();}catch{}this.landmarker=null;}
 }

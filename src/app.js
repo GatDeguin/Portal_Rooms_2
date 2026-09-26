@@ -96,7 +96,7 @@ async function action(name){
     case 'play-preview':if(phase==='selector'&&ui.previewIndex<store.progress.unlocked)begin(ui.previewIndex);break;
     case 'help':openPanel('help');break;
     case 'start-gyro':if(phase==='menu'){const permission=input.enableSensors();begin(store.progress.current);await permission;}break;
-    case 'start-hands':if(phase==='menu'&&await hands.enable())begin(store.progress.current);break;
+    case 'start-hands':if(phase==='menu'&&await hands.enable()&&phase==='menu'&&!document.hidden)begin(store.progress.current);break;
     case 'pause':if(phase==='playing'||phase==='transition')pauseGame();else if(phase==='paused')resume();else back();break;
     case 'resume':resume();break;
     case 'restart':if(['playing','paused'].includes(phase))begin(engine.state.level,true);break;
@@ -169,6 +169,7 @@ document.addEventListener('input',e=>{
   const element=e.target,key=element.dataset.setting;if(!key||key==='quality')return;
   const value=element.type==='checkbox'?element.checked:element.type==='range'?Number(element.value):element.value;
   store.setSettings({[key]:value});engine.settings=store.settings;visualPreferences();
+  if(key==='volume')audio.refresh();
   if(key==='sound'){audio.refresh();if(value){audio.unlock();audio.tone(520);}}
   ui.settings(store.settings,renderer);ui.update(engine,store);invalidate();
 });

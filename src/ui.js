@@ -58,6 +58,7 @@ export class UI {
       const value=input.dataset.setting==='quality'&&this.pendingQuality?this.pendingQuality:settings[input.dataset.setting];if(input.type==='checkbox')input.checked=value;else input.value=value;
     }
     this.text('sensitivityValue',`${settings.sensitivity.toFixed(1)}×`);this.text('deadZoneValue',`${(settings.deadZone*100).toFixed(1)}%`);this.text('smoothingValue',`${Math.round(settings.smoothing*1000)} ms`);
+    this.text('volumeValue',`${Math.round((settings.volume??.65)*100)}%`);
     this.text('qualityActual',`Render: ${renderer?.description()??'No disponible'}. Automática adapta efectos y resolución; la física no cambia.`);
   }
   qualityStatus(mode,message){
