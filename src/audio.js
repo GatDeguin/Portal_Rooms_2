@@ -2,7 +2,7 @@ export class AudioFeedback {
   constructor(getSettings){this.getSettings=getSettings;this.context=null;this.master=null;}
   unlock(){
     if(!this.getSettings().sound)return;
-    try{if(!this.context){const API=window.AudioContext||window.webkitAudioContext;if(!API)return;this.context=new API();this.master=this.context.createGain();this.master.gain.value=.7;this.master.connect(this.context.destination);}if(this.context.state==='suspended')this.context.resume().catch(()=>{});}catch{/* Audio is optional; the game remains playable. */}
+    try{if(!this.context){const API=window.AudioContext||window.webkitAudioContext;if(!API)return;this.context=new API();this.master=this.context.createGain();this.master.connect(this.context.destination);}this.refresh();if(this.context.state==='suspended')this.context.resume().catch(()=>{});}catch{/* Audio is optional; the game remains playable. */}
   }
   tone(freq,duration=.08,gain=.035,delay=0){
     if(!this.getSettings().sound||!this.context||this.context.state!=='running')return;
@@ -17,5 +17,5 @@ export class AudioFeedback {
     if(event.type==='complete'){this.tone(660,.10,.035);this.tone(880,.1,.035,.1);this.tone(1100,.15,.03,.2);this.vibrate([18,28,18]);}
   }
   suspend(){if(this.context?.state==='running')this.context.suspend().catch(()=>{});}
-  refresh(){if(this.master)this.master.gain.value=this.getSettings().sound ? .7 : 0;}
+  refresh(){if(this.master)this.master.gain.value=this.getSettings().sound ? (this.getSettings().volume??.65) : 0;}
 }

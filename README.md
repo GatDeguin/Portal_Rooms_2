@@ -64,3 +64,13 @@ python3 tests/shaders_egl.py
 `shaders_egl.py` compila los shaders y genera imágenes reales mediante EGL/GLES. Las variantes mediump se compilan; su dibujo adicional se solicita con `--draw-mediump`. Este backend de software no demuestra rendimiento de GPU o teléfono. `npm run test:browser` exige WebGL real en el navegador y falla expresamente si no está disponible.
 
 Los reportes se escriben en `test-results/`. Alcance, resultados y límites: [docs/EXPANSION.md](docs/EXPANSION.md). El render Cinemática se documenta en [docs/CINEMATIC.md](docs/CINEMATIC.md).
+
+## Reparaciones de controles — 26/09/2026
+
+La activación de manos comparte una sola solicitud y permite cancelar mientras carga el modelo, espera permiso o prepara el vídeo. Los streams tardíos se cierran. Perder vídeo, ocultar la página o fallar una detección descarta el input; una mano que reaparece inicia un seguimiento nuevo y debe volver a acercarse para agarrar. Los empujes respetan obstáculos, plataformas y rampas.
+
+El volumen 0–100% se guarda, actualiza su indicador y controla la ganancia de audio, también al reanudar o silenciar. El valor inicial es 65%.
+
+`npm run test:regressions` comprueba estos flujos mediante Playwright para Python, Web Audio real y streams de vídeo sintéticos; WebGL y la inferencia están simulados y no se abre la webcam. Usa `CHROMIUM_PATH` para elegir Chrome/Chromium. Las regresiones unitarias forman parte de `npm test`. `.gitattributes` conserva LF incluso al clonar con la conversión de líneas de Windows habilitada.
+
+Detalle y alcance de la validación: [reparaciones verificadas](docs/REPARACIONES-2026-09-26.md).
