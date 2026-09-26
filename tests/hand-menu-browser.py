@@ -36,7 +36,7 @@ def main():
    browser=p.chromium.launch(executable_path=os.environ.get('CHROMIUM_PATH','/usr/bin/chromium'),headless=True,args=['--disable-gpu','--disable-software-rasterizer'])
    page=browser.new_page(viewport={'width':1100,'height':800},reduced_motion='reduce');page.on('pageerror',lambda e:errors.append(str(e)))
    load_page(page,True);phase(page,'menu');page.evaluate(INSTRUMENT);page.evaluate(SETUP)
-   page.locator('#startHandsBtn').click();phase(page,'playing');page.evaluate('__tracker.baseline={scale:.14,y:.69}')
+   page.locator('#startHandsBtn').click();phase(page,'playing');page.wait_for_function('Boolean(window.__engine)');page.evaluate('__tracker.baseline={scale:.14,y:.69}')
    page.keyboard.press('Escape');phase(page,'paused');aim(page,'#resumeBtn');page.wait_for_timeout(500)
    check('hand cursor remains visible over the native pause dialog',page.locator('#handMenuCursor').is_visible())
    check('hand target is highlighted',page.locator('#resumeBtn').evaluate('e=>e.classList.contains("hand-target")'))

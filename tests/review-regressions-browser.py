@@ -31,7 +31,8 @@ def main():
         assert condition,name
         checks.append(name);print('PASS',name,flush=True)
     def phase(page,value):page.wait_for_function('(phase)=>document.getElementById("app").dataset.phase===phase',arg=value)
-    def volume(page,value):page.locator('#volume').evaluate('(e,value)=>{e.value=String(value);e.dispatchEvent(new Event("input",{bubbles:true}));}',value)
+    def volume(page,value):
+        page.locator('#volume').evaluate('(e,value)=>{e.value=String(value);e.dispatchEvent(new Event("input",{bubbles:true}));}',value);page.wait_for_timeout(150)
     try:
       with sync_playwright() as p:
         browser=p.chromium.launch(executable_path=os.environ.get('CHROMIUM_PATH','/usr/bin/chromium'),headless=True,args=['--disable-gpu','--disable-software-rasterizer'])
@@ -55,9 +56,9 @@ def main():
             observed=page.evaluate('({slider:+document.getElementById("volume").value,label:document.getElementById("volumeValue").textContent,saved:JSON.parse(localStorage.getItem("roomTiltGame.settings.v2")).volume,gain:__audio.master.gain.value})')
             check(f'volume {value} updates slider, percentage, save and audio gain',observed['slider']==value and observed['label']==f'{round(value*100)}%' and observed['saved']==value and abs(observed['gain']-value)<1e-6)
         page.locator('#sound').uncheck();volume(page,.35);check('muted audio stays silent when volume changes',page.evaluate('__audio.master.gain.value')==0)
-        page.locator('#sound').check();check('unmute restores selected volume',abs(page.evaluate('__audio.master.gain.value')-.35)<1e-6)
+        page.locator('#sound').check();page.wait_for_timeout(150);check('unmute restores selected volume',abs(page.evaluate('__audio.master.gain.value')-.35)<1e-6)
         page.screenshot(path=str(OUT/'volume-fixed.png'))
-        page.locator('#closeSettingsBtn').click();page.locator('#resumeBtn').click();phase(page,'playing');page.wait_for_function('__audio.context.state==="running"')
+        page.locator('#closeSettingsBtn').click();page.locator('#resumeBtn').click();phase(page,'playing');page.wait_for_function('__audio.context.state==="running"');page.wait_for_timeout(150)
         check('resuming applies the selected volume',abs(page.evaluate('__audio.master.gain.value')-.35)<1e-6)
         load_page(page,True,reload=True);phase(page,'menu');page.evaluate(INSTRUMENT)
         page.locator('#startSettingsBtn').click();page.locator('#tab-audio').click()
