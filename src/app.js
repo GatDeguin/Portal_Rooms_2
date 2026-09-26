@@ -2,6 +2,7 @@ import {CAMPAIGN_LEVELS as LEVELS,ORIGINAL_COUNT} from './campaign.js';
 import {HandGameEngine} from './hand-physics.js';
 import {HandTracking} from './hand-tracking.js';
 import {HandView} from './hand-view.js';
+import {HandMenu} from './hand-menu.js';
 import {InputController} from './input.js';
 import {SaveStore} from './storage.js';
 import {createRenderer} from './renderer-client.js';
@@ -10,6 +11,7 @@ import {AudioFeedback} from './audio.js';
 
 const ui=new UI(LEVELS),app=ui.el('app'),canvas=ui.el('gl');
 const handView=new HandView(ui.el('handWorld'),ui.el('handFeedback'));
+const handMenu=new HandMenu({layer:ui.el('handMenuLayer'),canvas:ui.el('handMenuCanvas'),cursor:ui.el('handMenuCursor'),hint:ui.el('handMenuHint')});
 const motion=window.matchMedia('(prefers-reduced-motion: reduce)');
 let storageProblem=false,adapter=null;
 try{adapter=window.localStorage;}catch{storageProblem=true;}
@@ -24,7 +26,7 @@ const DIALOGS={menu:'startDialog',paused:'pauseDialog',settings:'settingsDialog'
 
 function fail(error){
   cancelQuality();renderer?.destroy();hands?.disable();
-  handView.clear();phase='error';app.dataset.phase=phase;engine.pause();input?.clear();audio.suspend();clearTimeout(transitionTimer);
+  handView.clear();handMenu.clear();phase='error';app.dataset.phase=phase;engine.pause();input?.clear();audio.suspend();clearTimeout(transitionTimer);
   if(raf)cancelAnimationFrame(raf);raf=0;app.classList.remove('switching');ui.error(error);console.error(error);
 }
 function requestFrame(){if(!raf&&!document.hidden&&phase!=='error')raf=requestAnimationFrame(frame);}
@@ -32,7 +34,7 @@ function invalidate(){dirty=true;requestFrame();}
 function showPhase(next){
   if(next!=='settings'&&(!qualityRequest?.startup||phase==='settings'))cancelQuality();
   if(next!=='playing')renderer?.pause?.();
-  phase=next;app.dataset.phase=next;if(next!=='playing')handView.clear();
+  handMenu.clear();phase=next;app.dataset.phase=next;if(next!=='playing')handView.clear();
   if(next!=='playing'){engine.pause();input?.clear();}
   if(next==='selector')ui.levelsGrid(store);
   if(next==='settings')ui.settings(store.settings,renderer);
@@ -89,6 +91,7 @@ function frame(now){
       ui.update(engine,store);dirty=false;
     }
     if(phase==='playing'){handView.render(hands.sample(),engine,store.settings,{enabled:hands.enabled,reduced:motion.matches,presentation:renderer.presentation,message:hands.statusKind==='active'?'':hands.statusMessage});requestFrame();}
+    else if(hands?.enabled&&DIALOGS[phase]){handMenu.update(hands.sample(),ui.el(DIALOGS[phase]),now);requestFrame();}
   }catch(error){fail(error);}
 }
 async function action(name){
@@ -129,8 +132,8 @@ function dispatch(name){Promise.resolve(action(name)).catch(error=>ui.toast(erro
 input=new InputController({canvas,stick:ui.el('stickWrap'),thumb:ui.el('stick'),getSettings:()=>store.settings,isPlaying:()=>phase==='playing'&&!document.hidden,
   onAction:dispatch,onSensor:status=>{ui.sensor(status);if(status!=='manual')ui.toast(SENSOR_MESSAGES[status]);}});
 hands=new HandTracking({video:ui.el('handVideo'),overlay:ui.el('handCanvas'),panel:ui.el('handPreview'),status:ui.el('handStatus'),
-  isActive:()=>!document.hidden&&['menu','transition','playing','settings'].includes(phase),
-  onStatus:(kind,message)=>{ui.handStatus(kind,message);if(['off','error'].includes(kind))handView.clear();if(kind==='error')ui.toast(message);}});
+  isActive:()=>!document.hidden&&(!!DIALOGS[phase]||['transition','playing'].includes(phase)),
+  onStatus:(kind,message)=>{app.classList.toggle('hand-menus-enabled',hands?.enabled===true);ui.handStatus(kind,message);if(['off','error'].includes(kind)){handView.clear();handMenu.clear();}if(kind==='error')ui.toast(message);if(renderer)invalidate();}});
 for(const dialog of ui.dialogs)dialog.addEventListener('cancel',e=>{e.preventDefault();if(phase==='paused')resume();else back();});
 document.addEventListener('click',e=>{
   const tab=e.target.closest('[data-settings-tab]');if(tab){ui.settingsTab(tab.dataset.settingsTab);return;}
@@ -182,9 +185,9 @@ document.addEventListener('keydown',e=>{
   if(next>=0){e.preventDefault();e.stopPropagation();ui.settingsTab(tabs[next].dataset.settingsTab,true);}
 });
 window.addEventListener('resize',()=>{if(renderer&&!renderer.lost){renderer.resize();invalidate();}});
-window.addEventListener('blur',()=>{input.clear();pauseGame();});
+window.addEventListener('blur',()=>{handMenu.clear();input.clear();pauseGame();});
 document.addEventListener('visibilitychange',()=>{
-  if(document.hidden){cancelQuality();renderer?.pause?.();pauseGame();engine.pause();input.clear();audio.suspend();if(raf)cancelAnimationFrame(raf);raf=0;}
+  if(document.hidden){handMenu.clear();cancelQuality();renderer?.pause?.();pauseGame();engine.pause();input.clear();audio.suspend();if(raf)cancelAnimationFrame(raf);raf=0;}
   else{last=performance.now();renderer?.quality.resetSamples();invalidate();}
 });
 window.addEventListener('pagehide',event=>{if(phase==='loading')startupController.abort();hands?.disable();if(!event.persisted)renderer?.destroy();cancelQuality();renderer?.pause?.();pauseGame();if(raf)cancelAnimationFrame(raf);raf=0;audio.suspend();});

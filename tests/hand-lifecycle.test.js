@@ -125,3 +125,12 @@ test('the visible skeleton shares all five smoothed contact positions with physi
   for(const [i,index] of [4,8,12,16,20].entries())for(const axis of ['x','y','z'])assert.equal(hand.joints[index][axis],hand.points[i][axis]);
   for(const axis of ['x','y','z'])assert.ok(Math.abs((hand.joints[4][axis]+hand.joints[8][axis])/2-hand.pinch[axis])<1e-10);
 });
+
+
+test('menu coordinates follow the mirrored camera instead of the clamped room coordinates',()=>{
+  const s=setup(),landmarks=seedTracking(s),hand=s.tracker.sample()[0];
+  assert.ok(hand.screen,'menu pointer coordinates are available');assert.equal(hand.screen.joints.length,21);
+  assert.equal(hand.screen.x,1-(landmarks[4].x+landmarks[8].x)/2);
+  assert.equal(hand.screen.y,(landmarks[4].y+landmarks[8].y)/2);
+  for(const [i,point] of hand.screen.joints.entries()){assert.equal(point.x,1-landmarks[i].x);assert.equal(point.y,landmarks[i].y);}
+});

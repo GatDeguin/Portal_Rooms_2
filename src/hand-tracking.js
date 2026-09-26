@@ -163,11 +163,13 @@ export class HandTracking{
       const pinch=smoothPoint(pinchRaw,previous?.pinch),palm=smoothPoint(palmRaw,previous?.palm);
       const pv=velocity(pinch,previous?.pinch,previous?.pinchV),palmV=velocity(palm,previous?.palm,previous?.palmV);
       const joints=mapped.map((point,index)=>smoothPoint(point,previous?.joints?.[index]));
+      const screenJoints=landmarks.map((point,index)=>smoothPoint({x:1-point.x,y:point.y,z:0},previous?.screen?.joints?.[index]));
+      const screen={x:(screenJoints[4].x+screenJoints[8].x)/2,y:(screenJoints[4].y+screenJoints[8].y)/2,joints:screenJoints};
       const points=FINGERS.map((index,j)=>{const pos=joints[index];const v=velocity(pos,previous?.points?.[j],previous?.pointV?.[j]);return {...pos,...{vx:v.x,vy:v.y,vz:v.z},radius:.105};});
       // A returning detection cannot inherit a grab from before tracking was lost.
       const trackId=previous?.trackId??`${id}:${++this.trackSerial}`;
-      const hand={id:trackId,label:category?.displayName||category?.categoryName||'',score:category?.score??1,pinch:{...pinch,vx:pv.x,vy:pv.y,vz:pv.z,active:pinching,strength:clamp(1-ratio/.5,0,1)},palm:{...palm,vx:palmV.x,vy:palmV.y,vz:palmV.z,radius:.19},points,joints};
-      this.previous.set(id,{trackId,time:now,joints,pinch,pinchV:pv,palm,palmV,points:points.map(p=>({x:p.x,y:p.y,z:p.z})),pointV:points.map(p=>({x:p.vx,y:p.vy,z:p.vz}))});hands.push(hand);
+      const hand={id:trackId,label:category?.displayName||category?.categoryName||'',score:category?.score??1,pinch:{...pinch,vx:pv.x,vy:pv.y,vz:pv.z,active:pinching,strength:clamp(1-ratio/.5,0,1)},palm:{...palm,vx:palmV.x,vy:palmV.y,vz:palmV.z,radius:.19},points,joints,screen};
+      this.previous.set(id,{trackId,time:now,joints,screen,pinch,pinchV:pv,palm,palmV,points:points.map(p=>({x:p.x,y:p.y,z:p.z})),pointV:points.map(p=>({x:p.vx,y:p.vy,z:p.vz}))});hands.push(hand);
     }
     for(const id of this.previous.keys())if(!present.has(id)){this.previous.delete(id);this.pinchStates.delete(id);}
     this.latest=hands;this.lastSample=now;this.draw(all);if(hands.length)this.setStatus('active',hands.some(h=>h.pinch.active)?'Pinza detectada · objeto listo para agarrar.':'Manos activas · tocá, empujá o hacé pinza para agarrar.');

@@ -57,3 +57,16 @@ dialog{width:min(540px,calc(100% - 28px));max-height:calc(100dvh - 28px);margin:
 
 .app:has(#goalHold:not([hidden])) .hand-feedback{bottom:100px}
 @media(max-width:680px){.app:has(#goalHold:not([hidden])) .hand-feedback{bottom:190px}}
+
+/* Manual popover keeps the hand above native modal dialogs without taking focus. */
+.hand-menu-layer{position:fixed;inset:0;width:100vw;height:100dvh;max-width:none;max-height:none;margin:0;padding:0;border:0;overflow:hidden;background:transparent;color:var(--text);pointer-events:none}
+.hand-menu-layer::backdrop{background:transparent;pointer-events:none}.hand-menu-layer *{pointer-events:none}
+#handMenuCanvas{position:absolute;inset:0;width:100%;height:100%}
+.hand-menu-cursor{position:absolute;left:0;top:0;width:28px;height:28px;margin:-14px 0 0 -14px}
+.hand-menu-cursor::before{content:'';position:absolute;inset:0;box-sizing:border-box;border:2px solid #8cead9;border-radius:50%;background:#0710199e;box-shadow:0 0 0 3px #07101999}
+.hand-menu-cursor::after{content:'';position:absolute;left:12px;top:12px;width:4px;height:4px;border-radius:50%;background:#fff}
+.hand-menu-cursor[data-target=true]::before{border-width:3px;box-shadow:0 0 0 4px #8cead930}.hand-menu-cursor[data-pinch=true]::before{border-color:#ffd479;background:#ffd47960}
+.hand-target{outline:3px solid #8cead9!important;outline-offset:3px;background-color:#8cead91a!important}
+.hand-menu-hint{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);max-width:calc(100% - 28px);width:max-content;margin:0;padding:8px 12px;border:1px solid #8cead94d;border-radius:10px;background:#071019f2;color:#d9fff6;font-size:12px;line-height:1.4;text-align:center}
+
+.hand-menus-enabled .chapter-tabs{flex-wrap:wrap;overflow:visible}
