@@ -87,8 +87,22 @@
       <label class="setting" for="compactHUD"><span>Interfaz compacta<small>Oculta estadísticas secundarias durante el juego.</small></span><input id="compactHUD" data-setting="compactHUD" type="checkbox" checked></label>
       <label class="setting" for="effects"><span>Animaciones y efectos<small>Respetan también el movimiento reducido del sistema.</small></span><input id="effects" data-setting="effects" type="checkbox" checked></label>
     </fieldset>
-    </section><section id="settings-audio" role="tabpanel" aria-labelledby="tab-audio" hidden><fieldset><legend>Sonido y tacto</legend>      <label class="setting" for="sound"><span>Sonido</span><input id="sound" data-setting="sound" type="checkbox" checked></label>
-      <label class="setting" for="haptic"><span>Vibración<small>Disponible en dispositivos compatibles.</small></span><input id="haptic" data-setting="haptic" type="checkbox" checked></label><label class="range-setting" for="volume"><span>Volumen <output id="volumeValue" for="volume">65%</output></span><input id="volume" data-setting="volume" type="range" min="0" max="1" step=".05" value=".65"></label><p class="note">Sonidos breves para confirmar contactos y objetivos. Sin música que tape la concentración.</p></fieldset></section><div class="save-status" role="status" id="settingsSaved">Ajustes guardados en este navegador</div>
+    </section><section id="settings-audio" role="tabpanel" aria-labelledby="tab-audio" hidden>
+      <div class="audio-intro"><span class="eyebrow">RESONANCIAS DE LA SALA</span><p>Música que respira con el movimiento. Cada superficie tiene su propia voz.</p></div>
+      <fieldset><legend>Tu mezcla</legend>
+        <label class="setting" for="sound"><span>Activar sonido<small>Música, ambiente y efectos.</small></span><input id="sound" data-setting="sound" type="checkbox" checked></label>
+        <label class="range-setting" for="volume"><span>Volumen general <output id="volumeValue" for="volume">65%</output></span><input id="volume" data-setting="volume" type="range" min="0" max="1" step=".05" value=".65"></label>
+        <label class="range-setting" for="musicVolume"><span>Música <output id="musicVolumeValue" for="musicVolume">48%</output></span><input id="musicVolume" data-setting="musicVolume" type="range" min="0" max="1" step=".01" value=".48"></label>
+        <label class="range-setting" for="ambienceVolume"><span>Ambiente <output id="ambienceVolumeValue" for="ambienceVolume">50%</output></span><input id="ambienceVolume" data-setting="ambienceVolume" type="range" min="0" max="1" step=".05" value=".5"></label>
+        <label class="range-setting" for="effectsVolume"><span>Efectos y contactos <output id="effectsVolumeValue" for="effectsVolume">85%</output></span><input id="effectsVolume" data-setting="effectsVolume" type="range" min="0" max="1" step=".05" value=".85"></label>
+      </fieldset>
+      <fieldset><legend>Cómo lo escuchás</legend>
+        <label class="setting" for="audioMix"><span>Dinámica<small>Nocturna suaviza la diferencia entre sonidos fuertes y suaves.</small></span><select id="audioMix" data-setting="audioMix"><option value="full">Natural</option><option value="night">Nocturna</option></select></label>
+        <label class="setting" for="audioMono"><span>Audio mono<small>La mezcla completa en ambos canales.</small></span><input id="audioMono" data-setting="audioMono" type="checkbox"></label>
+        <label class="setting" for="haptic"><span>Vibración<small>Disponible en dispositivos compatibles.</small></span><input id="haptic" data-setting="haptic" type="checkbox" checked></label>
+      </fieldset>
+      <div class="audio-preview"><button class="secondary" id="audioPreviewBtn" data-action="audio-preview">Probar sonido</button><p class="note" id="audioPreviewStatus" role="status">Escuchá contactos, salto y objetivo con tu mezcla actual. Podés dejar la música en cero y conservar los efectos.</p></div>
+    </section><div class="save-status" role="status" id="settingsSaved">Ajustes guardados en este navegador</div>
     <div class="menu-grid"><button class="secondary" id="fullscreenBtn" data-action="fullscreen" data-hand-physical="Pantalla completa: usá un clic, un toque o Enter.">Pantalla completa</button><button class="text-btn danger" data-action="confirm-reset">Borrar progreso y récords</button><button class="primary" id="closeSettingsBtn" data-action="back">Volver</button></div>
   </dialog>
   <dialog id="levelsDialog" class="wide-dialog" aria-labelledby="levelsTitle">

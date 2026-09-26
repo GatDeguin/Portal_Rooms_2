@@ -7,7 +7,7 @@ import {InputController} from './input.js';
 import {SaveStore} from './storage.js';
 import {createRenderer} from './renderer-client.js';
 import {UI,SENSOR_MESSAGES} from './ui.js';
-import {AudioFeedback} from './audio.js';
+import {AudioFeedback,AUDIO_KEYS,readAudioFrame} from './audio.js';
 
 const ui=new UI(LEVELS),app=ui.el('app'),canvas=ui.el('gl');
 const handView=new HandView(ui.el('handWorld'),ui.el('handFeedback'));
@@ -18,6 +18,7 @@ try{adapter=window.localStorage;}catch{storageProblem=true;}
 const store=new SaveStore(adapter,LEVELS.length,motion.matches,()=>{storageProblem=true;ui.toast('El guardado está bloqueado. Tu progreso se conserva solo durante esta sesión.');});
 const engine=new HandGameEngine(LEVELS,store.settings);engine.reset(store.progress.current);
 const audio=new AudioFeedback(()=>store.settings);
+handMenu.onTarget=target=>{if(target)audio.event({type:'hover'});};
 function visualPreferences(){app.classList.toggle('reduced-effects',motion.matches||store.settings.effects===false);}
 visualPreferences();
 const startupController=new AbortController();
@@ -34,7 +35,7 @@ function invalidate(){dirty=true;requestFrame();}
 function showPhase(next){
   if(next!=='settings'&&(!qualityRequest?.startup||phase==='settings'))cancelQuality();
   if(next!=='playing')renderer?.pause?.();
-  handMenu.clear();phase=next;app.dataset.phase=next;if(next!=='playing')handView.clear();
+  handMenu.clear();phase=next;audio.setScene(next,engine);app.dataset.phase=next;if(next!=='playing')handView.clear();
   if(next!=='playing'){engine.pause();input?.clear();}
   if(next==='selector')ui.levelsGrid(store);
   if(next==='settings')ui.settings(store.settings,renderer);
@@ -42,16 +43,16 @@ function showPhase(next){
 }
 function pauseGame(){
   if(phase!=='playing'&&phase!=='transition')return;
-  clearTimeout(transitionTimer);app.classList.remove('switching');panelStack=[];audio.suspend();showPhase('paused');
+  clearTimeout(transitionTimer);app.classList.remove('switching');panelStack=[];audio.event({type:'pause'});showPhase('paused');
 }
 function resume(){
   if(phase!=='paused'||document.hidden||engine.state.solved)return;
   if(renderer?.recovering){ui.toast('El render se está recuperando. Esperá un momento para seguir.');return;}
-  input.clear();audio.unlock();renderer.quality.resetSamples();showPhase('playing');engine.start();last=performance.now();canvas.focus({preventScroll:true});requestFrame();
+  input.clear();audio.unlock();audio.event({type:'resume'});renderer.quality.resetSamples();showPhase('playing');engine.start();last=performance.now();canvas.focus({preventScroll:true});requestFrame();
 }
 function openPanel(panel){
   if(phase==='loading'||phase==='error'||phase==='transition')return;
-  const previous=phase==='playing'?'paused':phase;panelStack.push(previous);audio.suspend();showPhase(panel);
+  const previous=phase==='playing'?'paused':phase;panelStack.push(previous);showPhase(panel);
 }
 function back(){
   if(!['settings','selector','confirm','help'].includes(phase))return;
@@ -61,7 +62,7 @@ function begin(index,restart=false){
   if(renderer?.recovering){ui.toast('El render se está recuperando. Esperá un momento para seguir.');return;}
   if(!store.startAttempt(index,restart))return;
   clearTimeout(transitionTimer);input.clear();panelStack=[];engine.settings=store.settings;engine.reset(index);audio.unlock();renderer.quality.resetSamples();
-  showPhase('transition');app.classList.add('switching');
+  showPhase('transition');audio.event({type:'enter'});app.classList.add('switching');
   const finish=()=>{
     if(phase!=='transition'||document.hidden)return;
     app.classList.remove('switching');showPhase('playing');engine.start();last=performance.now();canvas.focus({preventScroll:true});requestFrame();
@@ -75,13 +76,14 @@ function frame(now){
     if(phase==='playing'){
       const ms=Math.max(0,now-last);last=now;renderer.sample(ms);
       const controls=input.sample(Math.min(ms/1000,.1));controls.hands=hands?.sample()??[];
-      engine.advance(ms/1000,controls);
+      const targetType=engine.target.type;
+      engine.advance(ms/1000,controls);audio.update(engine);
       for(const event of engine.state.events.splice(0)){
-        audio.event(event);
+        audio.event(event,{surface:audio.previous?.surface??readAudioFrame(engine).surface,targetType});
         if(event.type==='complete'){
           const result=store.complete(engine.state.level,engine.state.elapsed);ui.victory(engine,store,result);
           const final=store.progress.completed.length===LEVELS.length&&engine.state.level===LEVELS.length-1;
-          showPhase(final?'final':'victory');
+          showPhase(final?'final':'victory');if(final)audio.event({type:'final'});
         }else if(event.type==='goal'&&!engine.state.solved){ui.toast(`Paso ${engine.state.seq} activado. Buscá el siguiente objetivo.`);}
       }
       dirty=true;
@@ -111,12 +113,16 @@ async function action(name){
     case 'levels':openPanel('selector');break;
     case 'settings':openPanel('settings');break;
     case 'back':back();break;
-    case 'menu':clearTimeout(transitionTimer);panelStack=[];audio.suspend();showPhase('menu');break;
+    case 'menu':clearTimeout(transitionTimer);panelStack=[];showPhase('menu');break;
     case 'gyro':if(input.sensorEnabled||input.sensorWaiting)input.recalibrate();else await input.enableSensors();break;
     case 'manual':input.disableSensors();break;
     case 'hands':await hands.enable();break;
     case 'hands-calibrate':if(hands.enabled)hands.recalibrate();else await hands.enable();break;
     case 'hands-off':hands.disable();break;
+    case 'audio-preview':
+      if(!store.settings.sound||store.settings.volume===0){ui.text('audioPreviewStatus','Activá el sonido y subí el volumen general para escuchar.');break;}
+      if(audio.preview())ui.text('audioPreviewStatus','Madera · alfombra · metal · salto · objetivo. La música y el ambiente siguen tu mezcla.');
+      else ui.text('audioPreviewStatus',audio.audible?'La muestra ya está sonando.':'Volvé a pulsar para activar el audio en este navegador.');break;
     case 'fullscreen':
       try{if(document.fullscreenElement)await document.exitFullscreen();else if(document.documentElement.requestFullscreen)await document.documentElement.requestFullscreen();else ui.toast('Pantalla completa no está disponible en este navegador.');}
       catch{ui.toast('El navegador no permitió la pantalla completa.');}break;
@@ -127,7 +133,7 @@ async function action(name){
     case 'safe-quality':store.setSettings({quality:'low'});location.reload();break;
   }
 }
-function dispatch(name){Promise.resolve(action(name)).catch(error=>ui.toast(error.message??'No se pudo realizar esta acción.'));}
+function dispatch(name){if(!audio.audible)audio.unlock();if(!['pause','resume','audio-preview'].includes(name))audio.event({type:['back','menu'].includes(name)?'back':'ui'});Promise.resolve(action(name)).catch(error=>ui.toast(error.message??'No se pudo realizar esta acción.'));}
 
 input=new InputController({canvas,stick:ui.el('stickWrap'),thumb:ui.el('stick'),getSettings:()=>store.settings,isPlaying:()=>phase==='playing'&&!document.hidden,
   onAction:dispatch,onSensor:status=>{ui.sensor(status);if(status!=='manual')ui.toast(SENSOR_MESSAGES[status]);}});
@@ -135,12 +141,16 @@ hands=new HandTracking({video:ui.el('handVideo'),overlay:ui.el('handCanvas'),pan
   isActive:()=>!document.hidden&&(!!DIALOGS[phase]||['transition','playing'].includes(phase)),
   onStatus:(kind,message)=>{app.classList.toggle('hand-menus-enabled',hands?.enabled===true);ui.handStatus(kind,message);if(['off','error'].includes(kind)){handView.clear();handMenu.clear();}if(kind==='error')ui.toast(message);if(renderer)invalidate();}});
 for(const dialog of ui.dialogs)dialog.addEventListener('cancel',e=>{e.preventDefault();if(phase==='paused')resume();else back();});
+for(const type of ['pointerdown','keydown'])document.addEventListener(type,e=>{if(e.isTrusted&&!audio.audible)audio.unlock();},{capture:true,passive:true});
+for(const type of ['pointerover','focusin'])document.addEventListener(type,e=>{
+  const target=e.target.closest?.('button,input,select');if(target&&!target.disabled&&target!==e.relatedTarget&&!target.contains(e.relatedTarget))audio.event({type:'hover'});
+});
 document.addEventListener('click',e=>{
-  const tab=e.target.closest('[data-settings-tab]');if(tab){ui.settingsTab(tab.dataset.settingsTab);return;}
+  const tab=e.target.closest('[data-settings-tab]');if(tab){audio.event({type:'ui'});ui.settingsTab(tab.dataset.settingsTab);return;}
   const chapter=e.target.closest('[data-chapter]');
-  if(chapter&&phase==='selector'){ui.chapterFilter=Number(chapter.dataset.chapter);ui.levelsGrid(store);return;}
+  if(chapter&&phase==='selector'){audio.event({type:'ui'});ui.chapterFilter=Number(chapter.dataset.chapter);ui.levelsGrid(store);return;}
   const roomButton=e.target.closest('[data-preview-room]');
-  if(roomButton&&phase==='selector'){ui.previewRoom(Number(roomButton.dataset.previewRoom),store);return;}
+  if(roomButton&&phase==='selector'){audio.event({type:'ui'});ui.previewRoom(Number(roomButton.dataset.previewRoom),store);return;}
   const button=e.target.closest('[data-action]');if(button&&!button.disabled)dispatch(button.dataset.action);
 });
 function cancelQuality(){
@@ -174,8 +184,8 @@ document.addEventListener('input',e=>{
   const element=e.target,key=element.dataset.setting;if(!key||key==='quality')return;
   const value=element.type==='checkbox'?element.checked:element.type==='range'?Number(element.value):element.value;
   store.setSettings({[key]:value});engine.settings=store.settings;visualPreferences();
-  if(key==='volume')audio.refresh();
-  if(key==='sound'){audio.refresh();if(value){audio.unlock();audio.tone(520);}}
+  if(AUDIO_KEYS.includes(key)||['sound','audioMix','audioMono'].includes(key)){audio.refresh();if(store.settings.sound&&store.settings.volume>0&&!audio.audible)audio.unlock();}
+  if(element.type==='checkbox')audio.event({type:'toggle'});
   ui.settings(store.settings,renderer);ui.update(engine,store);invalidate();
 });
 document.addEventListener('keydown',e=>{
@@ -185,12 +195,12 @@ document.addEventListener('keydown',e=>{
   if(next>=0){e.preventDefault();e.stopPropagation();ui.settingsTab(tabs[next].dataset.settingsTab,true);}
 });
 window.addEventListener('resize',()=>{if(renderer&&!renderer.lost){renderer.resize();invalidate();}});
-window.addEventListener('blur',()=>{handMenu.clear();input.clear();pauseGame();});
+window.addEventListener('blur',()=>{handMenu.clear();input.clear();pauseGame();audio.suspend();});
 document.addEventListener('visibilitychange',()=>{
   if(document.hidden){handMenu.clear();cancelQuality();renderer?.pause?.();pauseGame();engine.pause();input.clear();audio.suspend();if(raf)cancelAnimationFrame(raf);raf=0;}
   else{last=performance.now();renderer?.quality.resetSamples();invalidate();}
 });
-window.addEventListener('pagehide',event=>{if(phase==='loading')startupController.abort();hands?.disable();if(!event.persisted)renderer?.destroy();cancelQuality();renderer?.pause?.();pauseGame();if(raf)cancelAnimationFrame(raf);raf=0;audio.suspend();});
+window.addEventListener('pagehide',event=>{if(phase==='loading')startupController.abort();hands?.disable();if(!event.persisted)renderer?.destroy();cancelQuality();renderer?.pause?.();pauseGame();if(raf)cancelAnimationFrame(raf);raf=0;if(event.persisted)audio.suspend();else audio.destroy();});
 window.addEventListener('pageshow',event=>{if(event.persisted&&phase==='loading'&&startupController.signal.aborted){location.reload();return;}if(phase!=='loading')invalidate();});
 motion.addEventListener?.('change',e=>{if(e.matches){store.setSettings({dynamicCamera:false});engine.settings=store.settings;}visualPreferences();ui.settings(store.settings,renderer);invalidate();});
 canvas.addEventListener('contextmenu',e=>e.preventDefault());

@@ -24,7 +24,7 @@ export class HandMenu{
   }
   highlight(target){
     if(this.target===target)return;
-    this.target?.classList.remove('hand-target');this.target=target;target?.classList.add('hand-target');
+    this.target?.classList.remove('hand-target');this.target=target;target?.classList.add('hand-target');this.onTarget?.(target);
   }
   finishDrag(){
     const drag=this.drag;this.drag=null;

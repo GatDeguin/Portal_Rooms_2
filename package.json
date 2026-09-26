@@ -23,6 +23,7 @@
     "benchmark:render": "node tests/render-benchmark.mjs",
     "test:regressions": "python3 tests/review-regressions-browser.py",
     "test:hands": "node tests/hand-mediapipe-browser.mjs",
+    "test:audio":"python3 tests/audio-browser.py",
     "test:hand-menu": "python3 tests/hand-menu-browser.py"
   },
   "engines": {

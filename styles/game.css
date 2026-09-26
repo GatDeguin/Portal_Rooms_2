@@ -70,3 +70,9 @@ dialog{width:min(540px,calc(100% - 28px));max-height:calc(100dvh - 28px);margin:
 .hand-menu-hint{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);max-width:calc(100% - 28px);width:max-content;margin:0;padding:8px 12px;border:1px solid #8cead94d;border-radius:10px;background:#071019f2;color:#d9fff6;font-size:12px;line-height:1.4;text-align:center}
 
 .hand-menus-enabled .chapter-tabs{flex-wrap:wrap;overflow:visible}
+
+/* The mix remains a native, keyboard- and hand-accessible settings panel. */
+.audio-intro{padding:2px 0 12px}.audio-intro p{color:var(--muted,#a4b4c6);font-size:.88rem;line-height:1.55;margin:7px 0 0}
+.audio-preview{display:flex;align-items:center;gap:16px;margin:12px 0 18px}.audio-preview .note{margin:0;flex:1}.audio-preview button{flex:none}
+#settings-audio .range-setting{padding:9px 0}#settings-audio select{max-width:43%;min-width:108px}
+@media(max-width:520px){.audio-preview{align-items:stretch;flex-direction:column;gap:9px}.audio-preview button{width:100%}}
