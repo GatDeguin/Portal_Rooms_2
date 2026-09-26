@@ -25,6 +25,15 @@ export class UI {
     if(desired&&!desired.open){this.lastFocus=document.activeElement;desired.showModal();desired.scrollTop=0;}
   }
   toast(message){this.text('toast',message);this.el('toast').hidden=false;clearTimeout(this.toastTimer);this.toastTimer=setTimeout(()=>{this.el('toast').hidden=true;},3300);}
+  handStatus(kind,message){
+    for(const id of ['startHandStatus','settingsHandStatus']){this.text(id,message);this.el(id).dataset.state=kind;}
+    this.el('startHandStatus').hidden=kind==='off';
+    const busy=['loading','permission','starting'].includes(kind);
+    this.el('cancelHandsBtn').hidden=!busy;
+    for(const button of document.querySelectorAll('[data-action="start-hands"],[data-action="hands"],[data-action="hands-calibrate"]')){
+      button.disabled=busy;button.setAttribute('aria-busy',String(busy));
+    }
+  }
   update(engine,store){
     const s=engine.state,p=store.progress,l=engine.room,i=s.level;
     this.text('levelTitle',l.name);this.text('levelPill',`SALA ${String(i+1).padStart(2,'0')} / ${this.levels.length}`);

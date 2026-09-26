@@ -18,7 +18,9 @@ async function render(data,type){
     renderer.observeRender(renderMs);
     if(type==='ready')await renderer.settleRenderTiming();
     if(renderer.lost)throw new Error('Se perdió el contexto WebGL.');
-    self.postMessage({...status(type),id:data.id,renderMs,bitmap},[bitmap]);
+    // Keep interaction guides aligned with this image while newer physics waits.
+    const presentation={state:data.scene.state,settings:data.settings,reduced:data.reduced,width:bitmap.width,height:bitmap.height};
+    self.postMessage({...status(type),id:data.id,renderMs,bitmap,presentation},[bitmap]);
   }catch(error){bitmap.close();throw error;}
 }
 self.onmessage=async({data})=>{

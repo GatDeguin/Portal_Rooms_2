@@ -56,3 +56,18 @@ test('pausing drops queued frames instead of drawing behind the menu',async()=>{
  const w=f.workers[0];w.onmessage({data:{type:'frame',id:w.posts.find(p=>p.type==='frame').id,quality:{mode:'low',tier:'low',scale:1},description:'low'}});
  assert.equal(w.posts.filter(p=>p.type==='frame').length,1);r.destroy();
 });
+
+
+test('hand projection metadata changes only with the bitmap actually presented',async()=>{
+ const f=fixture(),r=await api.WorkerRenderer.create(f.canvas,{workerFactory:f.workerFactory,quality:'low'});
+ const presentation={state:{cube:{x:0}},settings:{dynamicCamera:true},reduced:false,width:640,height:360};
+ const frame=(id,p)=>({type:'frame',id,quality:{mode:'low',tier:'low',scale:1},description:'low',presentation:p,bitmap:{width:640,height:360,close(){}}});
+ try{
+  r.present(r.current,frame(0,presentation));
+  const engine={state:{cube:{x:.3}},room:{id:1},target:{type:1,pos:[0,0]}};r.draw(engine,{});engine.state.cube.x=.6;r.draw(engine,{});
+  assert.equal(r.presentation?.state.cube.x,0,'queued physics must not move the displayed camera');
+  const w=f.workers[0],id=w.posts.find(p=>p.type==='frame').id;
+  w.onmessage({data:frame(id,{...presentation,state:{cube:{x:.3}}})});
+  assert.equal(r.presentation.state.cube.x,.3);
+ }finally{r.destroy();}
+});
