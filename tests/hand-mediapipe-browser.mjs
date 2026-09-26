@@ -56,7 +56,11 @@ try{
   await page.screenshot({path:resolve(out,'hands-portrait.png')});
   await page.evaluate(()=>window.__paintHands=false);await page.waitForFunction(()=>__hands.latest.length===0&&document.getElementById('handFeedback').dataset.state==='searching');
   check('losing the hand clears its drawing',await page.evaluate(pixels)===0);
+  await page.evaluate(()=>window.__paintHands=true);await page.waitForFunction(()=>__hands.latest.length>0);
   await page.keyboard.press('Escape');check('pause hides the interaction guide',await page.locator('#handWorld').isHidden()&&await page.locator('#handFeedback').isHidden());
+  await page.waitForFunction(()=>!document.getElementById('handMenuCursor').hidden&&document.getElementById('handMenuLayer').matches(':popover-open'));
+  check('real detected hand controls a visible cursor above the pause menu',await page.locator('#handMenuCursor').isVisible());
+  await page.screenshot({path:resolve(out,'hand-menu-real.png')});
   await page.locator('#pauseDialog [data-action=settings]').click();await page.locator('#settingsDialog [data-action=hands-off]').click();
   check('disable releases the camera and removes the guide',await page.evaluate(()=>!__hands.enabled&&document.getElementById('handVideo').srcObject===null));
   check('no uncaught browser errors',report.errors.length===0);report.status='passed';
