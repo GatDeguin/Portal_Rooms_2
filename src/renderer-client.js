@@ -158,6 +158,7 @@ export class WorkerRenderer {
         if(this.canvas.width!==bitmap.width)this.canvas.width=bitmap.width;
         if(this.canvas.height!==bitmap.height)this.canvas.height=bitmap.height;
         this.context.transferFromImageBitmap(bitmap);
+        this.presentation=data.presentation;
       }finally{bitmap.close();}
     }
     const queued=this.queued;this.queued=null;

@@ -1,6 +1,7 @@
 import {CAMPAIGN_LEVELS as LEVELS,ORIGINAL_COUNT} from './campaign.js';
 import {HandGameEngine} from './hand-physics.js';
 import {HandTracking} from './hand-tracking.js';
+import {HandView} from './hand-view.js';
 import {InputController} from './input.js';
 import {SaveStore} from './storage.js';
 import {createRenderer} from './renderer-client.js';
@@ -8,6 +9,7 @@ import {UI,SENSOR_MESSAGES} from './ui.js';
 import {AudioFeedback} from './audio.js';
 
 const ui=new UI(LEVELS),app=ui.el('app'),canvas=ui.el('gl');
+const handView=new HandView(ui.el('handWorld'),ui.el('handFeedback'));
 const motion=window.matchMedia('(prefers-reduced-motion: reduce)');
 let storageProblem=false,adapter=null;
 try{adapter=window.localStorage;}catch{storageProblem=true;}
@@ -22,7 +24,7 @@ const DIALOGS={menu:'startDialog',paused:'pauseDialog',settings:'settingsDialog'
 
 function fail(error){
   cancelQuality();renderer?.destroy();hands?.disable();
-  phase='error';app.dataset.phase=phase;engine.pause();input?.clear();audio.suspend();clearTimeout(transitionTimer);
+  handView.clear();phase='error';app.dataset.phase=phase;engine.pause();input?.clear();audio.suspend();clearTimeout(transitionTimer);
   if(raf)cancelAnimationFrame(raf);raf=0;app.classList.remove('switching');ui.error(error);console.error(error);
 }
 function requestFrame(){if(!raf&&!document.hidden&&phase!=='error')raf=requestAnimationFrame(frame);}
@@ -30,7 +32,7 @@ function invalidate(){dirty=true;requestFrame();}
 function showPhase(next){
   if(next!=='settings'&&(!qualityRequest?.startup||phase==='settings'))cancelQuality();
   if(next!=='playing')renderer?.pause?.();
-  phase=next;app.dataset.phase=next;
+  phase=next;app.dataset.phase=next;if(next!=='playing')handView.clear();
   if(next!=='playing'){engine.pause();input?.clear();}
   if(next==='selector')ui.levelsGrid(store);
   if(next==='settings')ui.settings(store.settings,renderer);
@@ -86,7 +88,7 @@ function frame(now){
       if(!sceneDrawn||phase==='playing'||phase==='transition'){renderer.draw(engine,store.settings);sceneDrawn=true;}
       ui.update(engine,store);dirty=false;
     }
-    if(phase==='playing')requestFrame();
+    if(phase==='playing'){handView.render(hands.sample(),engine,store.settings,{enabled:hands.enabled,reduced:motion.matches,presentation:renderer.presentation,message:hands.statusKind==='active'?'':hands.statusMessage});requestFrame();}
   }catch(error){fail(error);}
 }
 async function action(name){
@@ -128,7 +130,7 @@ input=new InputController({canvas,stick:ui.el('stickWrap'),thumb:ui.el('stick'),
   onAction:dispatch,onSensor:status=>{ui.sensor(status);if(status!=='manual')ui.toast(SENSOR_MESSAGES[status]);}});
 hands=new HandTracking({video:ui.el('handVideo'),overlay:ui.el('handCanvas'),panel:ui.el('handPreview'),status:ui.el('handStatus'),
   isActive:()=>!document.hidden&&['menu','transition','playing','settings'].includes(phase),
-  onStatus:(kind,message)=>{if(kind==='error')ui.toast(message);}});
+  onStatus:(kind,message)=>{ui.handStatus(kind,message);if(['off','error'].includes(kind))handView.clear();if(kind==='error')ui.toast(message);}});
 for(const dialog of ui.dialogs)dialog.addEventListener('cancel',e=>{e.preventDefault();if(phase==='paused')resume();else back();});
 document.addEventListener('click',e=>{
   const tab=e.target.closest('[data-settings-tab]');if(tab){ui.settingsTab(tab.dataset.settingsTab);return;}

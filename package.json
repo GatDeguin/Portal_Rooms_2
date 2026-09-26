@@ -21,7 +21,8 @@
     "test:webgl": "python3 tests/shaders_egl.py --webgl",
     "test:materials:webgl": "python3 tests/materials_egl.py --webgl",
     "benchmark:render": "node tests/render-benchmark.mjs",
-    "test:regressions": "python3 tests/review-regressions-browser.py"
+    "test:regressions": "python3 tests/review-regressions-browser.py",
+    "test:hands": "node tests/hand-mediapipe-browser.mjs"
   },
   "engines": {
     "node": ">=22"

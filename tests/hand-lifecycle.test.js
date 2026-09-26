@@ -86,3 +86,42 @@ test('reacquiring a distant pinched hand after a stall cannot resume an old grab
   s.tracker.detect();engine.advance(1/120,{hands:s.tracker.sample()});
   assert.equal(engine.handGrab,null);assert.ok(Math.abs(engine.state.cube.x-before)<.01);
 });
+
+
+test('startup distinguishes model loading, camera permission and video playback',async()=>{
+  const s=setup(),permission=deferred(),playback=deferred();
+  s.win.navigator.mediaDevices.getUserMedia=()=>permission.promise;s.video.play=()=>playback.promise;
+  const activation=s.tracker.enable();assert.equal(s.status.at(-1).kind,'loading');
+  await Promise.resolve();assert.equal(s.status.at(-1).kind,'permission');
+  permission.resolve(s.makeStream());await Promise.resolve();assert.equal(s.status.at(-1).kind,'starting');
+  playback.resolve();assert.equal(await activation,true);assert.equal(s.status.at(-1).kind,'searching');s.tracker.disable();
+});
+for(const [name,message] of [['NotAllowedError',/permiso/i],['NotFoundError',/no se encontr[oó].*c[aá]mara/i],['NotReadableError',/ocupada|otra aplicaci[oó]n/i],['OverconstrainedError',/configuraci[oó]n/i]])test(`camera ${name} has an actionable error and permits retry`,async()=>{
+  const s=setup();s.win.navigator.mediaDevices.getUserMedia=async()=>{throw new DOMException('camera failed',name);};
+  assert.equal(await s.tracker.enable(),false);assert.equal(s.status.at(-1).kind,'error');assert.match(s.status.at(-1).message,message);
+  s.win.navigator.mediaDevices.getUserMedia=async()=>s.makeStream();assert.equal(await s.tracker.enable(),true);s.tracker.disable();
+});
+test('model loading failures identify the download stage',async()=>{
+  const s=setup();s.tracker.load=async()=>{throw new TypeError('Failed to fetch');};
+  assert.equal(await s.tracker.enable(),false);assert.match(s.status.at(-1).message,/descargar|cargar MediaPipe/i);assert.equal(s.tracks.length,0);
+});
+test('a camera that never starts video times out, stops its stream and permits retry',async()=>{
+  const s=setup(),playback=deferred();let timeout,cleared=false;
+  s.win.setTimeout=(fn,ms)=>{assert.equal(ms,15000);timeout=fn;return 1;};s.win.clearTimeout=()=>{cleared=true;};s.video.play=()=>playback.promise;
+  const activation=s.tracker.enable();await Promise.resolve();await Promise.resolve();assert.equal(typeof timeout,'function');timeout();
+  assert.equal(await activation,false);assert.ok(cleared);assert.equal(s.tracks[0].readyState,'ended');assert.equal(s.video.srcObject,null);assert.match(s.status.at(-1).message,/v[ií]deo/i);
+  s.video.play=async()=>{};assert.equal(await s.tracker.enable(),true);playback.resolve();await Promise.resolve();assert.equal(s.tracker.enabled,true);s.tracker.disable();
+});
+test('no hands during initial calibration is reported as searching',()=>{
+  const s=setup();s.tracker.enabled=true;s.tracker.recalibrate();s.tracker.process({landmarks:[]},s.clock.now);
+  assert.equal(s.status.at(-1).kind,'searching');assert.match(s.status.at(-1).message,/mano/i);
+});
+
+
+test('the visible skeleton shares all five smoothed contact positions with physics',()=>{
+  const s=setup(),landmarks=seedTracking(s);
+  s.clock.now+=40;s.tracker.process({landmarks:[landmarks.map(p=>({...p,x:p.x+.1}))],handednesses:[[{categoryName:'Right'}]]},s.clock.now);
+  const hand=s.tracker.sample()[0];assert.equal(hand.joints?.length,21);
+  for(const [i,index] of [4,8,12,16,20].entries())for(const axis of ['x','y','z'])assert.equal(hand.joints[index][axis],hand.points[i][axis]);
+  for(const axis of ['x','y','z'])assert.ok(Math.abs((hand.joints[4][axis]+hand.joints[8][axis])/2-hand.pinch[axis])<1e-10);
+});
