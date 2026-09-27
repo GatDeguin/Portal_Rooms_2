@@ -1,4 +1,4 @@
-# Portal Room — Dominio de la gravedad, V.04
+# Portal Room — Dominio de la gravedad, V.05
 
 **62 salas: 22 originales, 20 de expansión y 20 nuevos desafíos de materiales y dominio.** Un cubo rojo, una habitación y control de gravedad mediante teclado, arrastre, stick o inclinación. Render procedural WebGL 1 con perfiles Baja, Media, Alta y Cinemática; Automática adapta solo los tres primeros.
 
@@ -18,13 +18,13 @@ Las salas 23–42 se organizan en **Inercia consciente**, **Ritmos de la sala**,
 
 Las salas **43–62** agregan **Inercia y adherencia**, **Detrás del telón**, **Precisión y recuperación** y **Maestría combinada**. Sus soluciones y vías de recuperación están detalladas en [docs/MASTERY.md](docs/MASTERY.md).
 
-El selector tiene ocho filtros de capítulo y planos derivados de los mismos datos que utiliza la física. Se pueden inspeccionar salas bloqueadas; mirar no inicia una partida. El botón de entrada respeta los desbloqueos.
+El selector tiene doce filtros de capítulo y planos derivados de los mismos datos que utiliza la física. Se pueden inspeccionar salas bloqueadas; mirar no inicia una partida. El botón de entrada respeta los desbloqueos.
 
-La primera expansión conservó el circuito original. La revisión actual modifica las salas 5, 6, 16, 17, 19 y 31 para corregir recorridos y recuperación, y refuerza los materiales interactivos. `campaign.js` compone ambos catálogos y el motor lo recibe por constructor. La sala 22 celebra el cierre original y permite seguir a la 23; la sala 42 cierra esa expansión y la campaña continúa hasta la 62.
+La primera expansión conservó el circuito original. La revisión actual modifica las salas 5, 6, 16, 17, 19 y 31 para corregir recorridos y recuperación, y refuerza los materiales interactivos. `campaign.js` compone los tres catálogos y el motor lo recibe por constructor. La sala 22 celebra el cierre original y permite seguir a la 23; la sala 42 cierra esa expansión y la campaña continúa hasta la 62.
 
 ## Guardado
 
-Se mantienen `roomTiltGame.progress.v2` y `roomTiltGame.settings.v2`. No se archivan ni borran los récords anteriores. Una partida con 22/22 conserva sus tiempos, intentos y sala seleccionada; se ofrece un botón separado para continuar en la 23. Las partidas parciales conservan su progreso normal.
+Se mantienen `roomTiltGame.progress.v2` y `roomTiltGame.settings.v2`. No se archivan ni borran los récords anteriores. Una partida con 22/22 conserva sus tiempos, intentos y sala seleccionada; se ofrece un botón separado para continuar en la 23. Una partida que completó 42 salas recibe la misma opción para continuar en la 43, conservando sus récords. Las partidas parciales conservan su progreso normal.
 
 Las caídas y pausas conservan la secuencia durante la tentativa. Reiniciar o recargar vuelve al inicio de la sala: no hay checkpoints intermedios persistentes. El cronómetro mide tiempo de simulación activo; no es una clasificación competitiva entre dispositivos.
 
