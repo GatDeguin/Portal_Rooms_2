@@ -44,4 +44,4 @@ Los saltadores son casquetes esféricos de altura neutral 0,14 y base a 0,012 so
 
 Las pruebas de física comprueban derrape transversal, frenado, adherencia elástica, escape con gravedad suave, resortes y efectos acotados. Las pruebas de campaña ejecutan entradas de gravedad y registran sus recorridos; las pruebas visuales usan fixtures de contacto para inspeccionar los materiales de forma repetible. No se ampliaron los tiempos máximos de compilación para incorporar estas mejoras.
 
-Los resultados finales de Node, Chrome y perfiles gráficos se registran en el plan `docs/superpowers/plans/2026-09-27-sensaciones-y-dominio.md` al terminar la validación.
+La validación final pasó 802 pruebas de Node y 25 escenarios de Chrome (13 de materiales/campaña, 7 de manos y 5 de transiciones). Las mediciones de los cuatro perfiles gráficos y los límites de estos ensayos están en `docs/superpowers/plans/2026-09-27-sensaciones-y-dominio.md`.

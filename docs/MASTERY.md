@@ -55,6 +55,6 @@ Este piloto valida existencia y estabilidad de rutas bajo el motor real. No mide
 
 `node --test tests/mastery-keyboard.test.js`
 
-Cuarenta casos adicionales recorren 43–62 con gravedad fuerte y suave mediante teclado discreto, con cada pulsación mantenida al menos 0,1 s. Se comprueban entradas limitadas a las ocho direcciones y reposo, magnitud máxima 1 y eventos de salto/rebote/transporte. Las salas 43, 49, 56 y 62 también reproducen independientemente sus entradas de teclado con gravedad fuerte.
+Los **40/40 casos de teclado pasaron** dentro de la suite completa de 802 pruebas en GitHub Actions. Cuarenta casos adicionales recorren 43–62 con gravedad fuerte y suave mediante teclado discreto, con cada pulsación mantenida al menos 0,1 s. Se comprueban entradas limitadas a las ocho direcciones y reposo, magnitud máxima 1 y eventos de salto/rebote/transporte. Las salas 43, 49, 56 y 62 también reproducen independientemente sus entradas de teclado con gravedad fuerte.
 
 La comprobación de teclado llevó a precisar tres itinerarios de prueba: salida por el corredor trasero de 52, alineación con el margen izquierdo antes del retorno en 54 y acceso lateral al segundo pad de 61. No requirió modificar geometría, física ni estado de simulación.
