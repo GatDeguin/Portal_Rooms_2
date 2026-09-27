@@ -1,6 +1,7 @@
 import {VERTEX_SHADER,fragmentShader} from './shaders.js';
 import {AdaptiveQuality,drawingSize,QUALITY_PRESSURE} from './quality.js';
 import {movingAt} from './geometry.js';
+import {footprint} from './shapes.js';
 import {clamp,finite} from './math.js';
 import {animatedCubeRotation} from './level-transition.js';
 import {lookForRoom} from './campaign.js';
@@ -8,7 +9,7 @@ import {createReliefNoiseTexture} from './relief-noise.js';
 
 // Four subtle lighting states; presentation only, no level/progression mutation.
 const ROOM_LOOKS=[[1.04,0,1],[1.02,-.025,.96],[1.04,.018,1.03],[1.01,-.015,1.08]];
-const GROUPS={uObs:6,uZone:8,uZoneFlow:8,uRamp:3,uRampMeta:3,uPlat:4,uPlatMeta:4,uBump:3,uBumpFx:3,uBumpWarp:3};
+const GROUPS={uObs:6,uZone:8,uZoneFlow:8,uZoneShape:8,uZoneBasis:8,uZoneMotion:8,uRamp:3,uRampMeta:3,uPlat:4,uPlatMeta:4,uBump:3,uBumpFx:3,uBumpWarp:3};
 export const RENDER_TIMEOUTS=Object.freeze({prepare:60000,mediumPrepare:90000,heavyPrepare:180000,frame:12000});
 export const preparationTimeout=tier=>tier==='high'||tier==='cinematic'?RENDER_TIMEOUTS.heavyPrepare:tier==='medium'?RENDER_TIMEOUTS.mediumPrepare:RENDER_TIMEOUTS.prepare;
 export class Renderer {
@@ -26,7 +27,7 @@ export class Renderer {
   prepareReliefNoise(tier){if(!this.reliefNoiseTexture&&this.precision==='highp'&&(tier==='high'||tier==='cinematic'))this.reliefNoiseTexture=createReliefNoiseTexture(this.gl);}
   passes(tier){return this.precision==='highp'&&(tier==='high'||tier==='cinematic')?['surface','shade']:['combined'];}
   programEntry(program){
-    const gl=this.gl,names=['uRes','uTime','uCube','uCubeY','uCubeFoot','uCubeQ','uCubeVelocity','uSurfaceContact','uGravity','uShake','uTarget','uTargetY','uTargetType','uPulse','uHold','uMotion','uBoost','uLook','uReliefNoise','uSurfaceHits','uTransition'];
+    const gl=this.gl,names=['uRes','uTime','uCube','uCubeY','uCubeFoot','uCubeQ','uCubeVelocity','uSurfaceContact','uStickyStretch','uGravity','uShake','uTarget','uTargetY','uTargetType','uPulse','uHold','uMotion','uBoost','uLook','uReliefNoise','uSurfaceHits','uTransition'];
     for(const [prefix,count] of Object.entries(GROUPS))for(let i=0;i<count;i++)names.push(prefix+i);
     return {program,position:gl.getAttribLocation(program,'aPos'),uniforms:Object.fromEntries(names.map(name=>[name,gl.getUniformLocation(program,name)]))};
   }
@@ -251,14 +252,24 @@ export class Renderer {
     two('uRes',this.canvas.width,this.canvas.height);one('uTime',s.time);two('uCube',c.x,c.z);one('uCubeY',c.y+extent-.245);one('uCubeFoot',c.y+(transition?.lift??0));four('uCubeQ',...animatedCubeRotation(c,transition));
     two('uCubeVelocity',c.vx??0,c.vz??0);
     // Film persists in the air; floor contact never leaks through raised platforms.
-    four('uSurfaceContact',clamp(c.wetness??0,0,1),clamp(c.slime??0,0,1),c.grounded&&c.y<.045&&(transition?.lift??0)<.001?1:0,0);
+    four('uSurfaceContact',clamp(c.wetness??0,0,1),clamp(c.slime??0,0,1),c.grounded&&c.y<.045&&(transition?.lift??0)<.001?1:0,clamp(finite(c.slip),0,1));
+    two('uStickyStretch',clamp(finite(c.stickyStretch?.x),-1.5,1.5),clamp(finite(c.stickyStretch?.z),-1.5,1.5));
     two('uGravity',s.gravity.x*motion,s.gravity.z*motion);one('uShake',s.shake*motion*effects);one('uMotion',motion);
     two('uTarget',...t.pos);one('uTargetY',t.y??0);one('uTargetType',t.type);one('uHold',clamp(c.hold/.55,0,1));four('uPulse',s.fx.x,s.fx.z,s.fx.life,s.fx.type);
     const boost=(room.zones??[]).find(z=>z.type===3);two('uBoost',boost?.dx??1,boost?.dz??0);
     const zones=[...(room.zones??[])];for(const pad of room.jumpPads??[])if(!zones.some(z=>z.type===5&&z.x===pad.x&&z.z===pad.z))zones.push({...pad,type:5});
     const obstacles=(room.obstacles??[]).map(o=>movingAt(o,s.time)),platforms=(room.platforms??[]).map(p=>movingAt(p,s.time));
     const setGroup=(prefix,count,list,pack)=>{for(let i=0;i<count;i++)four(prefix+i,...(list[i]?pack(list[i]):[0,0,0,0]));};
-    setGroup('uObs',6,obstacles,o=>[o.x,o.z,o.w,o.d]);setGroup('uZone',8,zones,z=>[z.x,z.z,z.r,z.type]);
+    setGroup('uObs',6,obstacles,o=>[o.x,o.z,o.w,o.d]);setGroup('uZone',8,zones,z=>[z.x,z.z,Math.max(footprint(z).halfW,footprint(z).halfD),z.type]);
+    setGroup('uZoneShape',8,zones,z=>{const f=footprint(z);return [f.halfW,f.halfD,f.corner,f.angle];});
+    setGroup('uZoneBasis',8,zones,z=>{const f=footprint(z);return [Math.cos(f.angle),Math.sin(f.angle),0,0];});
+    setGroup('uZoneMotion',8,zones,z=>{
+      if(z.type!==5)return [0,0,0,0];
+      const index=(room.jumpPads??[]).findIndex(p=>p.x===z.x&&p.z===z.z),j=s.jumpJelly?.[index];
+      const compression=clamp(finite(j?.compression),-.15,.75),height=.14*(1-compression),r=footprint(z).halfW;
+      const radius=(r*r+height*height)/(2*height);
+      return [compression,clamp(finite(j?.velocity),-8,8),radius,finite((room.jumpPads??[])[index]?.y,finite(z.y))+.012+height-radius];
+    });
     setGroup('uZoneFlow',8,zones,z=>{
       if(z.type!==3)return [0,0,0,0];
       const dx=finite(z.dx,1),dz=finite(z.dz),length=Math.hypot(dx,dz);

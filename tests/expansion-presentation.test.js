@@ -16,9 +16,9 @@ test('runtime injects composed campaign and offers expansion without silently se
   const app=readFileSync(new URL('../src/app.js',import.meta.url),'utf8');
   assert.match(app,/CAMPAIGN_LEVELS as LEVELS/);assert.match(app,/case 'start-expansion'/);assert.match(app,/data-preview-room/);assert.match(app,/data-chapter/);
 });
-test('HTML presents 42 rooms and has actionable chapter and continuation controls',()=>{
+test('HTML presents 62 rooms and has actionable chapter and continuation controls',()=>{
   const html=readFileSync(new URL('../index.html',import.meta.url),'utf8');
-  assert.match(html,/id="startExpansionBtn"/);assert.match(html,/id="finalCount"/);assert.match(html,/42 SALAS/);assert.doesNotMatch(html,/22 SALAS|22 <span>\/ 22/);
+  assert.match(html,/id="startExpansionBtn"/);assert.match(html,/id="finalCount"/);assert.match(html,/62 SALAS/);assert.doesNotMatch(html,/22 SALAS|22 <span>\/ 22/);
 });
 test('new rooms keep a full-width landscape playfield in portrait without altering cameraRay',()=>{
   const css=readFileSync(new URL('../styles/game.css',import.meta.url),'utf8');
@@ -26,4 +26,10 @@ test('new rooms keep a full-width landscape playfield in portrait without alteri
   const ui=readFileSync(new URL('../src/ui.js',import.meta.url),'utf8');
   assert.match(css,/\.app\.expansion-room #gl/);assert.match(css,/56\.25vw/);
   assert.match(ui,/classList\.toggle\('expansion-room'/);assert.match(app,/ui\.update\(engine,store\);renderer\?\.resize\(\)/);
+});
+
+test('shaped materials preview uses finite rounded rectangles and curtain traces',()=>{
+ const room={...CAMPAIGN_LEVELS[6],zones:[{type:1,x:0,z:0,shape:'capsule',w:4,d:1,angle:.4}],cloths:[{x:0,z:1,width:1,top:1}]};
+ const svg=view.previewSVG(room);assert.match(svg,/data-preview="zone"/);assert.match(svg,/rx="0.500"/);assert.match(svg,/data-preview="cloth"/);assert.doesNotMatch(svg,/NaN|undefined/);
+ assert.deepEqual(view.mechanicsFor(room),['Agua','Telas']);
 });

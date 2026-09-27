@@ -1,5 +1,5 @@
 import {formatTime,clamp} from './math.js';
-import {CHAPTERS,ORIGINAL_COUNT,chapterForRoom,originalComplete,offerExpansion} from './campaign.js';
+import {CHAPTERS,ORIGINAL_COUNT,chapterForRoom,originalComplete,offerExpansion,expansionStart} from './campaign.js';
 import {previewSVG,mechanicsFor,TARGET_NAMES} from './campaign-view.js';
 const SURFACES={wood:'Madera',carpet:'Alfombra',ice:'Agua resbaladiza',brake:'Slime pegajoso',boost:'Arena en movimiento',ramp:'Rampa',platform:'Plataforma',air:'En el aire'};
 export const SENSOR_MESSAGES={manual:'Sensores desactivados. Teclado, arrastre y stick disponibles.',active:'Inclinación activa. Recalibrá para usar otra posición cómoda.',calibrating:'Mantené el teléfono quieto un instante para calibrar.',unavailable:'Sensores no disponibles. Se requiere HTTPS y un dispositivo compatible.',denied:'Permiso no concedido. Podés seguir con los controles manuales.',timeout:'No llegaron lecturas estables. Usá los controles manuales o recalibrá.'};
@@ -81,8 +81,9 @@ export class UI {
   campaignUpdate(engine,store){
     const p=store.progress,l=engine.room,s=engine.state;
     this.el('startExpansionBtn').hidden=!offerExpansion(p);
+    const expansion=expansionStart(p);if(expansion!==null)this.text('startExpansionBtn',`Explorar desde la sala ${expansion+1} →`);
     this.el('migrationNote').hidden=!originalComplete(p);
-    this.text('migrationNote',p.completed.length===this.levels.length?'Completaste el circuito original y la expansión. Tus récords están guardados.':'Circuito original completado. Tus salas, tiempos e intentos se conservan; hay 20 nuevos desafíos.');
+    this.text('migrationNote',p.completed.length===this.levels.length?'Completaste las 62 salas. Tus récords están guardados.':expansion===42?'Tus primeras 42 salas están completas. Hay 20 desafíos nuevos y tus récords se conservan.':'Circuito original completado. Tus salas, tiempos e intentos se conservan; la campaña continúa.');
     const homeKey=`${p.current}:${p.completed.join(',')}:${p.attempts[p.current]}`;
     if(homeKey!==this.homeKey){
       this.homeKey=homeKey;const room=this.levels[p.current],chapter=chapterForRoom(room.id);

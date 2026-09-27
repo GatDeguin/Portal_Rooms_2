@@ -29,3 +29,11 @@ test('cloth rendering does not depend on enabled hand tracking or advancing simu
  assert.deepEqual(frame.scene.state,state(2));
  const view=new ClothView(null);view.render(engine,{});view.clear();view.destroy();view.destroy();
 });
+
+test('surface particles keep the raster layer active even in rooms without curtains',()=>{
+ const current={...state(2),cloths:[],surfaceFx:{particles:[{x:0,y:.2,z:0,size:.02,type:1,life:.5,maxLife:1}]}},s={...engine,state:current};
+ const frame=clothFrameForPresentation(s,{}, {width:800,height:600});assert.equal(frame.hasGeometry,true);
+ const old={...state(1),cloths:[],surfaceFx:{particles:[]}};
+ const shown=clothFrameForPresentation(s,{}, {presentation:{state:old,room:engine.room,width:800,height:600,settings:{}},width:800,height:600});assert.equal(shown.hasGeometry,false);
+ const disabled=clothFrameForPresentation(s,{effects:false}, {width:800,height:600});assert.equal(disabled.hasGeometry,false);
+});

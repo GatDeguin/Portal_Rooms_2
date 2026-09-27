@@ -1,24 +1,30 @@
-// Small optional cloth installations. Keep immutable campaign geometry and goals intact.
-// A top rail and two slim floor supports are drawn with each hanging panel.
+// Grounded curtains stand in front of real interactive elements. The cube can
+// push the hems aside; posts do not change the campaign collision geometry.
 const INSTALLATIONS={
- 1:{x:-2.05,z:.42,width:1.05,height:1.04,top:1.17,color:[.12,.57,.60]},
- 6:{x:2.15,z:.35,width:.88,height:.96,top:1.10,color:[.72,.36,.14]},
- 10:{x:-2.20,z:.40,width:.86,height:1.06,top:1.20,color:[.13,.54,.57]},
- 15:{x:1.95,z:1.22,width:.90,height:.99,top:1.13,color:[.68,.32,.16]},
- 23:{x:-2.2,z:-.65,width:.85,height:1.02,top:1.16,color:[.16,.53,.58]},
- 30:{x:2.2,z:1.05,width:.86,height:1.01,top:1.15,color:[.71,.34,.17]},
- 38:{x:-2.2,z:1.05,width:.86,height:1.02,top:1.16,color:[.13,.57,.57]}
+ 1:[{x:1.36,z:-.70,width:1.25,top:1.06,reveal:{kind:'goal'},color:[.12,.57,.60]}],
+ 6:[
+  {x:1.455,z:-1.02,width:.76,top:1.02,supports:[true,false],reveal:{kind:'goal'},color:[.72,.36,.14]},
+  {x:2.195,z:-1.02,width:.76,top:1.02,supports:[false,true],reveal:{kind:'goal'},color:[.72,.36,.14]}
+ ],
+ 12:[{x:.52,z:1.15,width:1.12,top:1.12,reveal:{kind:'bumper',index:0},color:[.13,.54,.57]}],
+ 16:[{x:-.9,z:1.32,width:1.2,top:1.02,reveal:{kind:'jump',index:0},color:[.68,.32,.16]}],
+ 30:[{x:0,z:-1.73,width:1.48,top:1.70,reveal:{kind:'portal',index:1},color:[.16,.53,.58]}],
+ 38:[{x:1.72,z:-1.78,width:1.42,top:1.65,reveal:{kind:'portal',index:1},color:[.71,.34,.17]}]
 };
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 const number=(n,fallback)=>Number.isFinite(n)?n:fallback;
 
 /** Explicit room.cloths is useful for authored scenes and tests; [] disables installation. */
 export function clothsForRoom(room){
- const source=Array.isArray(room.cloths)?room.cloths:INSTALLATIONS[room.id]?[INSTALLATIONS[room.id]]:[];
- return source.slice(0,2).map((p,i)=>({
-  id:String(p.id??`cloth-${room.id}-${i}`),x:number(p.x,0),z:number(p.z,0),
-  top:clamp(number(p.top,1.15),.3,2.8),width:clamp(number(p.width,1),.25,1.5),height:clamp(number(p.height,1),.2,1.8),
-  angle:number(p.angle,0),columns:clamp(Math.round(number(p.columns,9)),3,10),rows:clamp(Math.round(number(p.rows,10)),3,10),
-  wind:clamp(number(p.wind,1),0,2),color:(p.color??[.13,.55,.59]).slice(0,3)
- }));
+ const source=Array.isArray(room.cloths)?room.cloths:INSTALLATIONS[room.id]??[];
+ return source.slice(0,2).map((p,i)=>{
+  const top=clamp(number(p.top,1.15),.3,2.8),baseY=clamp(number(p.baseY,0),0,2.4);
+  return {
+   id:String(p.id??`cloth-${room.id}-${i}`),x:number(p.x,0),z:number(p.z,0),top,
+   width:clamp(number(p.width,1),.25,1.8),height:clamp(number(p.height,top-baseY-.014),.2,2.7),baseY,
+   angle:number(p.angle,0),columns:clamp(Math.round(number(p.columns,9)),3,10),rows:clamp(Math.round(number(p.rows,10)),3,10),
+   wind:clamp(number(p.wind,.22),0,2),color:(p.color??[.13,.55,.59]).slice(0,3),
+   supports:[p.supports?.[0]!==false,p.supports?.[1]!==false],reveal:p.reveal?{...p.reveal}:null
+  };
+ });
 }

@@ -6,36 +6,36 @@ import {insideRect,movingAt,surfaceAt,activeTarget} from '../src/geometry.js';
 const mod=await import('../src/campaign.js').catch(e=>{if(e.code==='ERR_MODULE_NOT_FOUND')return {};throw e;});
 const levels=mod.CAMPAIGN_LEVELS??[];
 
-test('campaign appends exactly twenty frozen rooms and preserves original object identity',()=>{
-  assert.equal(levels.length,42);assert.ok(Object.isFrozen(levels));
+test('campaign contains sixty-two frozen rooms and preserves original object identity',()=>{
+  assert.equal(levels.length,62);assert.ok(Object.isFrozen(levels));
   for(let i=0;i<22;i++)assert.equal(levels[i],ORIGINAL[i]);
-  assert.deepEqual(levels.map(l=>l.id),Array.from({length:42},(_,i)=>i+1));
-  assert.equal(new Set(levels.map(l=>l.name)).size,42);
+  assert.deepEqual(levels.map(l=>l.id),Array.from({length:62},(_,i)=>i+1));
+  assert.equal(new Set(levels.map(l=>l.name)).size,62);
 });
 test('chapters cover all rooms once and preserve the four original lighting assignments',()=>{
-  assert.equal(mod.CHAPTERS?.length,8);
-  for(let i=0;i<42;i++){
+  assert.equal(mod.CHAPTERS?.length,12);
+  for(let i=0;i<62;i++){
     const matches=mod.CHAPTERS.filter(c=>i+1>=c.first&&i+1<=c.last);assert.equal(matches.length,1);
     assert.equal(mod.chapterForRoom(i+1),matches[0]);assert.ok([0,1,2,3].includes(mod.lookForRoom(i+1)));
     if(i<22)assert.equal(mod.lookForRoom(i+1),i<6?0:i<14?1:i<19?2:3);
   }
 });
-test('22/22 save expands to 42 with old records, counts and current room untouched',()=>{
-  assert.equal(levels.length,42);const map=new Map();const adapter={getItem:k=>map.get(k)??null,setItem:(k,v)=>map.set(k,v)};
+test('22/22 save expands to 62 with old records, counts and current room untouched',()=>{
+  assert.equal(levels.length,62);const map=new Map();const adapter={getItem:k=>map.get(k)??null,setItem:(k,v)=>map.set(k,v)};
   const old=new SaveStore(adapter,22);for(let i=0;i<22;i++){old.startAttempt(i);old.complete(i,20+i);}const before=structuredClone(old.progress);
   const next=new SaveStore(adapter,levels.length);
   assert.equal(next.progress.current,21);assert.equal(next.progress.unlocked,23);
   for(const key of ['bestTimes','attempts','restarts'])assert.deepEqual(next.progress[key].slice(0,22),before[key]);
-  assert.deepEqual(next.progress.bestTimes.slice(22),Array(20).fill(null));
+  assert.deepEqual(next.progress.bestTimes.slice(22),Array(40).fill(null));
   assert.equal(mod.offerExpansion(next.progress),true);assert.equal(next.progress.current,21);
   next.startAttempt(22);assert.equal(mod.offerExpansion(next.progress),false);next.complete(22,9);assert.equal(next.progress.unlocked,24);
 });
 test('partial saves, blocked storage and full completion use the composed catalog',()=>{
-  assert.equal(levels.length,42);const partial=new SaveStore(null,42);partial.startAttempt(0);partial.complete(0,12);
+  assert.equal(levels.length,62);const partial=new SaveStore(null,62);partial.startAttempt(0);partial.complete(0,12);
   assert.equal(mod.offerExpansion(partial.progress),false);assert.equal(partial.select(22),false);
-  const s=new SaveStore({getItem(){throw Error('blocked');},setItem(){throw Error('blocked');}},42);
-  for(let i=0;i<42;i++){assert.equal(s.startAttempt(i),true);s.complete(i,5+i);}
-  assert.equal(s.progress.unlocked,42);assert.equal(s.progress.completed.length,42);s.resetProgress();assert.equal(s.progress.unlocked,1);
+  const s=new SaveStore({getItem(){throw Error('blocked');},setItem(){throw Error('blocked');}},62);
+  for(let i=0;i<62;i++){assert.equal(s.startAttempt(i),true);s.complete(i,5+i);}
+  assert.equal(s.progress.unlocked,62);assert.equal(s.progress.completed.length,62);s.resetProgress();assert.equal(s.progress.unlocked,1);
 });
 for(let id=23;id<=42;id++)test(`expansion room ${id}: capacity, safe spawn, nonoverlapping surfaces and supported goals`,()=>{
   const l=levels.find(room=>room.id===id);assert.ok(l,`missing room ${id}`);assert.ok(Object.isFrozen(l));assert.ok(l.name&&l.hint&&l.objective&&l.lesson);

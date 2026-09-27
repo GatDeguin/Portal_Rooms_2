@@ -1,5 +1,6 @@
+import {createSurfaceFx,stepSurfaceFx} from './surface-effects.js';
 import {ClothSystem} from './cloth-physics.js';
-import {surfaceResponse,applyAdhesion,createBumperJelly,stepBumperJelly,impactBumperJelly} from './surface-physics.js';
+import {surfaceResponse,applyAdhesion,createBumperJelly,stepBumperJelly,impactBumperJelly,createJumpJelly,stepJumpJelly,impactJumpJelly} from './surface-physics.js';
 import {clamp,finite,smooth,unit2,Q} from './math.js';
 import {LEVELS} from './levels.js';
 import {ROOM_LIMIT,insideRect,movingAt,rampHeight,surfaceAt,activeTarget,sweepBox,penetration} from './geometry.js';
@@ -23,8 +24,8 @@ export class GameEngine {
     const room=this.levels[index],floor=surfaceAt(room,...room.start,0);
     this.active=false;this.accumulator=0;this.clothSystem=new ClothSystem(room);
     this.state={level:index,seq:0,time:0,elapsed:0,solved:false,surface:floor.kind,steps:0,
-      cube:{x:room.start[0],z:room.start[1],y:floor.height,vx:0,vz:0,vy:0,q:Q.identity(),size:RADIUS*2,grounded:true,support:floor.platform,hold:0,jumpCooldown:0,wetness:0,slime:0},
-      gravity:{x:0,z:0},events:[],fx:{x:0,z:0,type:1,life:0},shake:0,bumperCooldowns:{},bumperJelly:createBumperJelly(room),surfaceZone:-1,cloths:this.clothSystem.snapshot(),impactCooldown:0};
+      cube:{x:room.start[0],z:room.start[1],y:floor.height,vx:0,vz:0,vy:0,q:Q.identity(),size:RADIUS*2,grounded:true,support:floor.platform,hold:0,jumpCooldown:0,wetness:0,slime:0,slip:0,stickyStretch:{x:0,z:0}},
+      gravity:{x:0,z:0},events:[],fx:{x:0,z:0,type:1,life:0},shake:0,bumperCooldowns:{},bumperJelly:createBumperJelly(room),jumpJelly:createJumpJelly(room),surfaceFx:createSurfaceFx(),surfaceZone:-1,cloths:this.clothSystem.snapshot(),impactCooldown:0};
   }
   start() { if(!this.state.solved)this.active=true; this.accumulator=0; }
   pause() { this.active=false;this.accumulator=0; }
@@ -55,7 +56,7 @@ export class GameEngine {
     s.time+=dt;s.elapsed+=dt;s.steps++;
     s.fx.life=Math.max(0,s.fx.life-dt*.9);s.shake=Math.max(0,s.shake-dt*2.5);s.impactCooldown=Math.max(0,s.impactCooldown-dt);
     c.jumpCooldown=Math.max(0,c.jumpCooldown-dt);
-    stepBumperJelly(s.bumperJelly,dt);
+    stepBumperJelly(s.bumperJelly,dt);stepJumpJelly(s.jumpJelly,dt);
     // Carry the supported cube by the platform's actual displacement, not by frame rate.
     if(c.grounded&&c.support>=0&&room.platforms?.[c.support]){
       const p=room.platforms[c.support],before=movingAt(p,previousTime),after=movingAt(p,s.time);
@@ -68,10 +69,10 @@ export class GameEngine {
     const response=surfaceResponse(room,s,floor,dt,ax,az);
     ax=response.ax;az=response.az;const friction=response.friction;
     if(c.grounded&&c.jumpCooldown<=0){
-      for(const pad of room.jumpPads??[]){
+      for(const [padIndex,pad] of (room.jumpPads??[]).entries()){
         if(Math.hypot(c.x-pad.x,c.z-pad.z)<=pad.r&&Math.abs(c.y-(pad.y??0))<.12){
           c.vy=pad.power??3;c.vx+=(pad.dx??0)*.62;c.vz+=(pad.dz??0)*.62;c.grounded=false;c.support=-1;c.jumpCooldown=.55;
-          this.emit('jump',pad.x,pad.z,.65);break;
+          impactJumpJelly(s.jumpJelly[padIndex],pad.power??3);this.emit('jump',pad.x,pad.z,.65);break;
         }
       }
     }
@@ -98,6 +99,7 @@ export class GameEngine {
     c.x=clamp(c.x,-ROOM_LIMIT+RADIUS,ROOM_LIMIT-RADIUS);c.z=clamp(c.z,-ROOM_LIMIT+RADIUS,ROOM_LIMIT-RADIUS);
     const speed=Math.hypot(c.vx,c.vz);
     if(speed>.001)c.q=Q.normalize(Q.multiply(Q.axis(c.vz,0,-c.vx,speed*dt/(c.size*.52)),c.q));
+    stepSurfaceFx(room,s,dt);
     this.checkTarget(dt);
   }
   limitSpeed() {

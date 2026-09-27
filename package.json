@@ -1,9 +1,9 @@
 {
   "name": "portal-room",
-  "version": "4.0.0",
+  "version": "5.0.0",
   "private": true,
   "type": "module",
-  "description": "42 salas: Dominio de la gravedad y presentaciÃ³n CinemÃ¡tica",
+  "description": "62 salas de gravedad, agua, slime, arena, telas y saltadores de goma",
   "scripts": {
     "test": "node --test tests/*.test.js",
     "check": "node scripts/check.mjs",

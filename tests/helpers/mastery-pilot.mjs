@@ -4,11 +4,11 @@ import {GameEngine} from '../../src/physics.js';
 import {CAMPAIGN_LEVELS} from '../../src/campaign.js';
 import {movingAt} from '../../src/geometry.js';
 import {unit2,clamp} from '../../src/math.js';
+import {itinerary} from './mastery-routes.mjs';
 import {containsFootprint} from '../../src/shapes.js';
-import {itinerary} from './expansion-routes.mjs';
 
-export function playExpansion(id,{fps=60,strongGravity=true,delay=0,speed=1.35,variant='main',maxSeconds=180,trace=false,keyboard=false,pauseAt=null}={}){
-  if(!Number.isInteger(id)||id<23||id>42)throw new RangeError('Expansion room must be 23–42');
+export function playMastery(id,{fps=60,strongGravity=true,delay=0,speed=1.35,variant='main',maxSeconds=180,trace=false,keyboard=false,pauseAt=null}={}){
+  if(![5,16,17,19,31].includes(id)&&(id<43||id>62))throw new RangeError('No mastery route');
   const engine=new GameEngine(CAMPAIGN_LEVELS,{strongGravity});engine.reset(id-1);engine.start();
   const frames=[],path=[],events=[],actions=[],supports=new Set(),surfaces=new Set();let requestedSeq=0,lastTrace=-1,action='spawn',keyInput={x:0,z:0},nextKey=0,pauseProbed=false;
   const dt=1/fps,g=strongGravity?5.7:3.9;
@@ -88,7 +88,7 @@ export function playExpansion(id,{fps=60,strongGravity=true,delay=0,speed=1.35,v
   function ride(i,condition){run(`ride ${i}`,()=>condition(platform(i),state()),()=>{const p=platform(i);return steer(p.x,p.z,{vx:p.vx,vz:p.vz});},25);}
   function jump(i,pIndex,{stage=null,timeout=8,approachSpeed=1.1}={}){
     const pad=engine.room.jumpPads[i],p=platform(pIndex),d=Math.hypot(p.x-pad.x,p.z-pad.z),ux=(p.x-pad.x)/d,uz=(p.z-pad.z)/d;
-    const from=stage??[pad.x-ux*.85,pad.z-uz*.85];go(...from,{y:0,maxSpeed:1.05});
+    const from=stage??[pad.x-ux*.85,pad.z-uz*.85];go(...from,{y:pad.y??0,maxSpeed:1.05});
     run(`takeoff ${i}`,()=>!engine.state.cube.grounded,()=>steer(pad.x+ux*.4,pad.z+uz*.4,{maxSpeed:approachSpeed}),timeout);
     run(`flight ${i} to ${pIndex}`,()=>engine.state.cube.grounded,()=>{
       const c=engine.state.cube,h=engine.room.platforms[pIndex].h;
@@ -101,8 +101,22 @@ export function playExpansion(id,{fps=60,strongGravity=true,delay=0,speed=1.35,v
     },3);
     if(Math.abs(engine.state.cube.y-engine.room.platforms[pIndex].h)>.03)throw Error(`missed landing ${pIndex}`);
   }
+  
+  function leap(i,x,z,{stage=null,approachSpeed=1.1,y=0,entry=null}={}){
+    const pad=engine.room.jumpPads[i],dx=x-pad.x,dz=z-pad.z,d=Math.hypot(dx,dz),ux=dx/d,uz=dz/d;
+    go(...(stage??[pad.x-ux*.85,pad.z-uz*.85]),{y:pad.y??0,maxSpeed:1.05});
+    run('takeoff '+i,()=>!engine.state.cube.grounded,()=>steer(...(entry??[pad.x+ux*.4,pad.z+uz*.4]),{maxSpeed:approachSpeed}),8);
+    run('ground flight '+i,()=>engine.state.cube.grounded,()=>{
+      const c=engine.state.cube,disc=c.vy*c.vy+2*6.8*(c.y-y),left=disc>0?Math.max(.1,(c.vy+Math.sqrt(disc))/6.8):.5;
+      return unit2((((x-c.x)/left-c.vx)*2.8+.08*c.vx)/(g*.38),(((z-c.z)/left-c.vz)*2.8+.08*c.vz)/(g*.38));
+    },4);
+  }
+  function bumper(i){
+    const b=engine.room.bumpers[i],count=events.filter(e=>e.type==='bumper').length;
+    run('touch bumper '+i,()=>events.filter(e=>e.type==='bumper').length>count,()=>steer(b.x,b.z,{maxSpeed:.8}),10);
+  }
   let failure=null;
-  try{if(delay)hold(delay);itinerary(id,{go,hold,wait,goal,board,ride,jump,state,platform,target,room:engine.room,variant});if(!engine.state.solved)throw Error('itinerary ended before victory');}
+  try{if(delay)hold(delay);itinerary(id,{go,hold,wait,goal,board,ride,jump,leap,bumper,state,platform,target,room:engine.room,variant});if(!engine.state.solved)throw Error('itinerary ended before victory');}
   catch(error){failure=error.message;}
   return {id,fps,strongGravity,delay,speed,variant,keyboard,pauseProbed,solved:engine.state.solved,seconds:engine.state.time,seq:engine.state.seq,final:structuredClone(engine.state.cube),failure,actions,events,supports:[...supports],surfaces:[...surfaces],frames,path};
 }
