@@ -10,18 +10,24 @@ export function fragmentShader(tier='medium',precision='highp',capabilities={}) 
 precision ${portable?'mediump':'highp'} float;
 varying vec2 vUv;
 uniform sampler2D uReliefNoise,uSurfaceHits;
-uniform vec2 uRes,uCube,uGravity,uTarget,uBoost;
+uniform vec2 uRes,uCube,uGravity,uTarget,uBoost,uCubeVelocity;
 uniform float uTime,uCubeY,uCubeFoot,uShake,uTargetY,uTargetType,uHold,uMotion;
-uniform vec4 uCubeQ,uPulse;
+uniform vec4 uCubeQ,uPulse,uTransition,uSurfaceContact; // wet film, slime film, floor contact, reserved
+// Scale, elevation, portal charge and local animation clock. Neutral: (1,0,0,0).
+float cubeScale(){return max(uTransition.x,.001);}
+vec3 cubeCenter(){return vec3(uCube.x,.255+uCubeY+uTransition.y,uCube.y);}
 // Exposure, temperature offset, air density multiplier, decorative effects enabled.
 uniform vec4 uLook;
 ${uniforms('uObs',6)}
 ${uniforms('uZone',8)}
+${uniforms('uZoneFlow',8)} // normalized current x/z and physical speed for EACH sand patch
 ${uniforms('uRamp',3)}
 ${uniforms('uRampMeta',3)}
 ${uniforms('uPlat',4)}
 ${uniforms('uPlatMeta',4)}
 ${uniforms('uBump',3)}
+${uniforms('uBumpFx',3)} // compression, spring velocity, contact axis x/z
+${uniforms('uBumpWarp',3)} // inverse affine xx/xz/zz/yy minus identity
 #define MAX_DIST 24.0
 #define SURF_DIST 0.0010
 #define STEPS ${q.steps}
@@ -48,7 +54,7 @@ bool gHitNormalValid=false;
 vec3 gExcludedCandidates=vec3(0);
 vec3 gHitPoint=vec3(0),gHitCoordinates=vec3(0),gHitExtent=vec3(1);
 float gHitMaterial=0.,gHitSeed=0.,gHitKey=0.,gForcedCandidate=0.;
-float effectTime(){return uTime*uLook.w;}
+float effectTime(){return (uTime+uTransition.w)*uLook.w;}
 // Bounded arithmetic also works with mediump: no enormous sine/hash products.
 float hash(vec2 p){p=mod(p,251.);return fract(17.*fract(p.x*.1031+p.y*.11369)*fract(p.y*.13787+p.x*.09987));}
 float noise(vec2 p){vec2 i=floor(p),f=fract(p),u=f*f*f*(f*(f*6.-15.)+10.);return mix(mix(hash(i),hash(i+vec2(1,0)),u.x),mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),u.x),u.y);}
@@ -85,7 +91,13 @@ float sdRing(vec3 p){vec2 q=vec2(abs(length(p.xz)-.45)-.065,abs(p.y)-.018);retur
 vec2 opU(vec2 a,vec2 b){return b.x<a.x?b:a;}
 vec2 obstacle(vec3 p,vec4 o){if(o.z<=.001)return vec2(100,0);return vec2(sdRoundBox(p-vec3(o.x,.245,o.y),vec3(o.z*.5,.245,o.w*.5),.045),8.);}
 vec2 zoneObj(vec3 p,vec4 z){if(z.w<.5)return vec2(100,0);return vec2(sdCyl(p-vec3(z.x,.016,z.y),z.z,.012),15.+z.w);}
-vec2 bumperObj(vec3 p,vec4 b){if(b.z<.01)return vec2(100,0);float h=max(b.w,.34);return vec2(sdCyl(p-vec3(b.x,h*.5,b.y),b.z,h*.5),22.);}
+// Bounded affine squash keeps the base planted. Zero compression is EXACTLY the
+// authored cylinder; no ambient wobble or radius change alters resting contacts.
+float jellyDistance(vec3 p,vec3 extent,float compression,vec4 warp){
+  vec3 local=p+vec3(p.x*warp.x+p.z*warp.y,(p.y+extent.y)*warp.w,p.x*warp.y+p.z*warp.z);
+  return sdCyl(local,extent.x,extent.y)*min(1.-compression*.8,1.+compression*.5);
+}
+vec2 bumperObj(vec3 p,vec4 b,vec4 fx,vec4 warp){if(b.z<.01)return vec2(100,0);float h=max(b.w,.34);return vec2(jellyDistance(p-vec3(b.x,h*.5,b.y),vec3(b.z,h*.5,b.z),fx.x,warp),22.);}
 float rampHeight(vec2 xz,vec4 r,vec4 meta){
   vec2 dir=length(meta.yz)<.00001?vec2(0,-1):normalize(meta.yz);
   float span=max(abs(dir.x)*r.z+abs(dir.y)*r.w,.00001);
@@ -123,16 +135,16 @@ vec2 mapScene(vec3 p){
     r=opU(r,vec2(sdRing(p-vec3(uTarget.x,.03+uTargetY,uTarget.y)),15.));
   }
   ${objects(6,i=>`obstacle(p,uObs${i})`,801)}
-  ${objects(3,i=>`bumperObj(p,uBump${i})`,2241)}
-  vec4 iq=vec4(-uCubeQ.xyz,uCubeQ.w);vec3 cp=qrot(iq,p-vec3(uCube.x,.255+uCubeY,uCube.y));
-  if(!includeSceneCandidate(700.))return r;
-  return opU(r,vec2(sdRoundBox(cp,vec3(.245),.038),7.));
+  ${objects(3,i=>`bumperObj(p,uBump${i},uBumpFx${i},uBumpWarp${i})`,2241)}
+  vec4 iq=vec4(-uCubeQ.xyz,uCubeQ.w);vec3 cp=qrot(iq,p-cubeCenter());
+  if(!includeSceneCandidate(700.)||uTransition.x<.008)return r;
+  return opU(r,vec2(sdRoundBox(cp,vec3(.245)*cubeScale(),.038*cubeScale()),7.));
 }
 vec3 normalAt(vec3 p){vec2 e=vec2(.0022,0.);return normalize(vec3(mapScene(p+e.xyy).x-mapScene(p-e.xyy).x,mapScene(p+e.yxy).x-mapScene(p-e.yxy).x,mapScene(p+e.yyx).x-mapScene(p-e.yyx).x));}
 
 // mapScene remains the collision envelope; primary rays refine its visible surface below.
-vec3 cubeLocal(vec3 p){return qrot(vec4(-uCubeQ.xyz,uCubeQ.w),p-vec3(uCube.x,.255+uCubeY,uCube.y));}
-float cubeEdge(vec3 local){vec3 a=abs(local);float middle=a.x+a.y+a.z-min(a.x,min(a.y,a.z))-max(a.x,max(a.y,a.z));return smoothstep(.185,.232,middle);}
+vec3 cubeLocal(vec3 p){return qrot(vec4(-uCubeQ.xyz,uCubeQ.w),p-cubeCenter());}
+float cubeEdge(vec3 local){vec3 a=abs(local);float middle=a.x+a.y+a.z-min(a.x,min(a.y,a.z))-max(a.x,max(a.y,a.z));return smoothstep(.185*cubeScale(),.232*cubeScale(),middle);}
 float softShadow(vec3 ro,vec3 rd,float mint,float maxt){
   float visibility=1.,t=mint,previous=.1;
   for(int i=0;i<SHADOW_STEPS;i++){
@@ -176,8 +188,8 @@ vec3 portalEnergy(vec3 p,vec3 rd){
 }
 // Authored materials. Relief refines visual hits; mapScene keeps the original envelope.
 // A compact response vector: metal coverage, coat weight, coat roughness, cloth sheen.
-#define MAT_ARGS float m,vec3 p,vec3 n,vec3 extent,float seed,inout vec3 albedo,inout float rough,inout float spec,inout vec3 emit,inout vec4 layers,inout vec3 relief
-#define MAT_PASS m,q,ng,extent,seed,albedo,rough,spec,emit,layers,relief
+#define MAT_ARGS float m,vec3 p,vec3 n,vec3 extent,float seed,vec3 worldPoint,inout vec3 albedo,inout float rough,inout float spec,inout vec3 emit,inout vec4 layers,inout vec3 relief
+#define MAT_PASS m,q,ng,extent,seed,p,albedo,rough,spec,emit,layers,relief
 
 // Box-filter a periodic line analytically. Unresolved lines retain their mean coverage.
 float stripeIntegral(float x,float duty){return floor(x)*duty+min(fract(x),duty);}
@@ -229,7 +241,7 @@ void materialCoordinates(float m,vec3 p,out vec3 q,out vec3 extent,out float see
   // are reset. Nearby objects with the same material must not steal its coordinates.
   if(gHitMaterial==m&&distance(p,gHitPoint)<.0001){q=gHitCoordinates;extent=gHitExtent;seed=gHitSeed;return;}
   q=p;extent=vec3(1);seed=0.;float best=100.,d;
-  if(m>6.5&&m<7.5){q=cubeLocal(p);extent=vec3(.245);return;}
+  if(m>6.5&&m<7.5){q=cubeLocal(p);extent=vec3(.245)*cubeScale();return;}
   if(m>7.5&&m<8.5){
     if(includeCandidate(801.)&&uObs0.z>.001){d=abs(obstacle(p,uObs0).x);if(d<best){best=d;q=p-vec3(uObs0.x,.245,uObs0.y);extent=vec3(uObs0.z*.5,.245,uObs0.w*.5);seed=1.;}}
     if(includeCandidate(802.)&&uObs1.z>.001){d=abs(obstacle(p,uObs1).x);if(d<best){best=d;q=p-vec3(uObs1.x,.245,uObs1.y);extent=vec3(uObs1.z*.5,.245,uObs1.w*.5);seed=2.;}}
@@ -255,15 +267,32 @@ void materialCoordinates(float m,vec3 p,out vec3 q,out vec3 extent,out float see
     if(includeCandidate((15.+uZone6.w)*100.+37.)&&uZone6.w>.5&&abs(15.+uZone6.w-m)<.25){d=abs(zoneObj(p,uZone6).x);if(d<best){best=d;q=p-vec3(uZone6.x,.016,uZone6.y);extent=vec3(uZone6.z,.012,uZone6.z);seed=37.;}}
     if(includeCandidate((15.+uZone7.w)*100.+38.)&&uZone7.w>.5&&abs(15.+uZone7.w-m)<.25){d=abs(zoneObj(p,uZone7).x);if(d<best){best=d;q=p-vec3(uZone7.x,.016,uZone7.y);extent=vec3(uZone7.z,.012,uZone7.z);seed=38.;}}
   }else if(m>21.5){
-    if(includeCandidate(2241.)&&uBump0.z>.01){d=abs(bumperObj(p,uBump0).x);if(d<best){best=d;float h=max(uBump0.w,.34);q=p-vec3(uBump0.x,h*.5,uBump0.y);extent=vec3(uBump0.z,h*.5,uBump0.z);seed=41.;}}
-    if(includeCandidate(2242.)&&uBump1.z>.01){d=abs(bumperObj(p,uBump1).x);if(d<best){best=d;float h=max(uBump1.w,.34);q=p-vec3(uBump1.x,h*.5,uBump1.y);extent=vec3(uBump1.z,h*.5,uBump1.z);seed=42.;}}
-    if(includeCandidate(2243.)&&uBump2.z>.01){d=abs(bumperObj(p,uBump2).x);if(d<best){best=d;float h=max(uBump2.w,.34);q=p-vec3(uBump2.x,h*.5,uBump2.y);extent=vec3(uBump2.z,h*.5,uBump2.z);seed=43.;}}
+    if(includeCandidate(2241.)&&uBump0.z>.01){d=abs(bumperObj(p,uBump0,uBumpFx0,uBumpWarp0).x);if(d<best){best=d;float h=max(uBump0.w,.34);q=p-vec3(uBump0.x,h*.5,uBump0.y);extent=vec3(uBump0.z,h*.5,uBump0.z);seed=41.;}}
+    if(includeCandidate(2242.)&&uBump1.z>.01){d=abs(bumperObj(p,uBump1,uBumpFx1,uBumpWarp1).x);if(d<best){best=d;float h=max(uBump1.w,.34);q=p-vec3(uBump1.x,h*.5,uBump1.y);extent=vec3(uBump1.z,h*.5,uBump1.z);seed=42.;}}
+    if(includeCandidate(2243.)&&uBump2.z>.01){d=abs(bumperObj(p,uBump2,uBumpFx2,uBumpWarp2).x);if(d<best){best=d;float h=max(uBump2.w,.34);q=p-vec3(uBump2.x,h*.5,uBump2.y);extent=vec3(uBump2.z,h*.5,uBump2.z);seed=43.;}}
   }else if(m>9.5&&m<12.5){q=p-vec3(uTarget.x,.035+uTargetY,uTarget.y);extent=vec3(.49,.02,.49);}
   else if(m>14.5&&m<15.5){
     if(p.z< -3.09){q=p-vec3(uTarget.x,.74+uTargetY,-3.185);extent=vec3(.58,.70,.03);}
     else{q=p-vec3(uTarget.x,.03+uTargetY,uTarget.y);extent=vec3(.515,.018,.515);}
   }
 }
+
+// Hit seeds identify the exact zone; choosing the first current makes mixed rooms wrong.
+// World contact coordinates arrive directly from surfaceMaterial; no second zone search.
+vec4 zoneFlow(float seed){
+  // Branch-free selection prevents the HLSL compiler from multiplying the zone
+  // coordinate branches by a second eight-way control-flow graph.
+  return uZoneFlow0*(1.-step(.5,abs(seed-31.)))+
+    uZoneFlow1*(1.-step(.5,abs(seed-32.)))+
+    uZoneFlow2*(1.-step(.5,abs(seed-33.)))+
+    uZoneFlow3*(1.-step(.5,abs(seed-34.)))+
+    uZoneFlow4*(1.-step(.5,abs(seed-35.)))+
+    uZoneFlow5*(1.-step(.5,abs(seed-36.)))+
+    uZoneFlow6*(1.-step(.5,abs(seed-37.)))+
+    uZoneFlow7*(1.-step(.5,abs(seed-38.)));
+}
+vec4 jellyState(float seed){return seed<41.5?uBumpFx0:(seed<42.5?uBumpFx1:uBumpFx2);}
+vec4 jellyWarp(float seed){return seed<41.5?uBumpWarp0:(seed<42.5?uBumpWarp1:uBumpWarp2);}
 
 // Wood V3: a lightweight virtual log cut, not a scan or a subsurface-fibre BSDF.
 // All coordinates are attached to the timber; frequency is cycles per world unit.
@@ -332,7 +361,7 @@ float reliefDepth(float m){
   if(m<8.5)return .003;
   if(m>13.5&&m<14.5)return .0015;
   if(m>18.5&&m<19.5)return .007;
-  if(m>21.5)return .002;
+  // Soft gel uses the physical spring shape; it has no hard etched relief.
   return 0.;
 }
 // Continuous object-space height fields avoid face-projection seams on rounded edges.
@@ -375,12 +404,12 @@ float surfaceInset(float m,vec3 q,vec3 extent,float seed){
 // an instance: caching the local ray/shape avoids repeating nearest-object searches.
 struct ReliefCandidate {
   float material;float seed;float shape;float radius;float key;
-  vec3 origin;vec3 direction;vec3 extent;vec3 pigmentOffset;vec4 ramp;
+  vec3 origin;vec3 direction;vec3 extent;vec3 pigmentOffset;vec4 ramp;vec4 warp;
 };
 ReliefCandidate reliefCandidate(vec3 ro,vec3 rd,vec2 hit){
   ReliefCandidate c;vec3 p=ro+rd*hit.x,q,e;float seed;
   materialCoordinates(hit.y,p,q,e,seed);
-  c.material=hit.y;c.seed=seed;c.key=hit.y*100.+seed;c.shape=1.;c.radius=0.;c.ramp=vec4(0);
+  c.material=hit.y;c.seed=seed;c.key=hit.y*100.+seed;c.shape=1.;c.radius=0.;c.ramp=vec4(0);c.warp=vec4(0);
   vec3 center=p-q;c.pigmentOffset=vec3(0);
   float m=hit.y;
   if(m<1.5){center=vec3(0,-.055,0);e=vec3(3.25,.055,3.25);}
@@ -389,7 +418,7 @@ ReliefCandidate reliefCandidate(vec3 ro,vec3 rd,vec2 hit){
   else if(m<4.5){center=vec3(-3.23,1.58,0);e=vec3(.045,1.62,3.25);}
   else if(m<5.5){center=vec3(3.23,1.58,0);e=vec3(.045,1.62,3.25);}
   else if(m<6.5){center=vec3(0,3.18,0);e=vec3(3.25,.045,3.25);}
-  else if(m<7.5){center=vec3(uCube.x,.255+uCubeY,uCube.y);c.radius=.038;}
+  else if(m<7.5){center=cubeCenter();c.radius=.038*cubeScale();}
   else if(m<8.5)c.radius=.045;
   else if(m>9.5&&m<11.5)c.shape=2.;
   else if(m>11.5&&m<12.5)c.shape=4.;
@@ -417,13 +446,14 @@ ReliefCandidate reliefCandidate(vec3 ro,vec3 rd,vec2 hit){
       vec4 meta=seed<21.5?uRampMeta0:(seed<22.5?uRampMeta1:uRampMeta2);
       c.ramp=vec4(2.*e.y,meta.yz,0.);
     }
-  }else if(m>21.5)c.shape=2.;
+  }else if(m>21.5){c.shape=2.;c.ramp=jellyState(seed);c.warp=jellyWarp(seed);}
   if(m<6.5||(m>12.5&&m<14.5))c.pigmentOffset=center;
   c.extent=e;c.origin=ro-center;c.direction=rd;
   if(m>6.5&&m<7.5){vec4 iq=vec4(-uCubeQ.xyz,uCubeQ.w);c.origin=qrot(iq,c.origin);c.direction=qrot(iq,rd);}
   return c;
 }
 float candidateBaseDistance(ReliefCandidate c,vec3 p){
+  if(c.material>21.5)return jellyDistance(p,c.extent,c.ramp.x,c.warp);
   if(c.shape>3.5)return sdRing(p);
   if(c.shape>2.5)return rampObj(p+vec3(0,c.extent.y,0),vec4(0,0,c.extent.x*2.,c.extent.z*2.),c.ramp).x;
   if(c.shape>1.5)return sdCyl(p,c.extent.x,c.extent.y);
@@ -615,6 +645,11 @@ void cubeMaterial(MAT_ARGS){
   relief=microRelief(uv,vec2(38.,38.),.026);
   // Sparse grooves break the base coat; they do not draw bright animated white lines.
   relief.x+=scratches*.009;
+  // Actual accumulated film also survives leaving a patch, then drains in physics.
+  float lower=1.-smoothstep(-.08,.19,p.y/cubeScale());
+  float slime=uSurfaceContact.y*lower,wet=max(uSurfaceContact.x*.8,slime);
+  albedo=mix(albedo,vec3(.41,.075,.49),slime*.38);
+  rough=mix(rough,.19,wet*.7);layers.y=mix(layers.y,.78,wet);layers.z=mix(layers.z,.19,wet);
 }
 void obstacleMaterial(MAT_ARGS){
   vec2 uv=faceUV(p,n);float edge=edgeMask(p,extent);
@@ -664,28 +699,73 @@ void portalMaterial(MAT_ARGS){
   emit=vec3(.025,.9,.37); // Directional energy is evaluated later, at the actual view ray.
 }
 void iceMaterial(MAT_ARGS){
-  vec2 uv=p.xz;float cloud=materialNoise(uv*vec2(2.4,3.1)+seed,3.1).x-.5;
-  albedo=vec3(.27,.65,.85)*(1.+cloud*.06);rough=.235+cloud*.025;spec=.21;
-#if DETAIL_LEVEL >= 2
-  float stress=filteredStripe(uv.x+sin(uv.y*4.1)*.06,.37,.003)*detailWeight(5.);
-  albedo=mix(albedo,vec3(.52,.77,.88),stress*.14);rough+=stress*.04;
+  vec2 uv=p.xz,world=worldPoint.xz,delta=world-uCube;
+  float time=effectTime(),radius=length(delta),speed=min(length(uCubeVelocity),4.);
+  vec2 direction=length(uCubeVelocity)>.001?normalize(uCubeVelocity):vec2(1,0);
+  float behind=-dot(delta,direction),side=dot(delta,vec2(-direction.y,direction.x));
+  float contact=uSurfaceContact.x*uSurfaceContact.z*uLook.w;
+  float wake=exp(-side*side*22.)*smoothstep(0.,.22,behind)*(1.-smoothstep(.25,1.25,behind))*contact*speed*.25;
+  float ripple=sin(radius*24.-time*5.)*exp(-max(radius-.24,0.)*3.)*smoothstep(.20,.34,radius)*contact;
+  // Cheap tiers retain liquid waves without expanding four hash trees per field.
+#if DETAIL_LEVEL < 2
+  vec2 phase=vec2(dot(uv,vec2(4.2,2.8))+time*.7,dot(uv,vec2(-1.7,5.4))-time*.48);
+  vec2 wave=sin(phase),slope=cos(phase);
+  vec3 swell=vec3(.5+(wave.x+wave.y)*.16,slope.x*.5-slope.y*.2,slope.x*.3+slope.y*.6);
+#else
+  vec3 swell=materialNoise(uv*3.4+vec2(time*.12,-time*.08)+seed,3.4);
 #endif
-  emit=vec3(.025,.22,.52)*.11;
-  relief=microRelief(uv,vec2(11.,15.),.007);
+  float meniscus=1.-smoothstep(.008,.050,extent.x-length(uv));
+  albedo=mix(vec3(.095,.37,.46),vec3(.22,.59,.65),swell.x*.22+meniscus*.25);
+  albedo+=vec3(.04,.09,.10)*wake*(.5+.5*sin(behind*25.-time*6.));
+  rough=.18+.025*swell.x;spec=.32;layers.y=.68;layers.z=.18;
+  relief=vec3(swell.yz*.035,0.);
+  relief.xy+=delta/max(radius,.03)*ripple*.040+vec2(-direction.y,direction.x)*wake*sin(side*20.)*.08;
+  relief.xy+=uv/max(length(uv),.03)*meniscus*.11;
 }
 void brakeMaterial(MAT_ARGS){
-  vec2 uv=p.xz;float cell=filteredStripe(uv.x,.095,.014)*filteredStripe(uv.y,.095,.014);
-  albedo=vec3(.54,.18,.70)*(1.-cell*.16);rough=.93;spec=.12;
-  emit=vec3(.50,.06,.82)*.085;
-  relief=microRelief(uv,vec2(26.,26.),.032);
+  vec2 uv=p.xz,world=worldPoint.xz,delta=world-uCube;
+  float time=effectTime(),speed=min(length(uCubeVelocity),3.);
+  vec2 pull=uCubeVelocity*.055*uSurfaceContact.z;
+#if DETAIL_LEVEL < 2
+  vec2 phase=(uv-pull)*5.2+seed+vec2(sin(time*.32)*.09,cos(time*.27)*.07);
+  vec3 lobes=vec3(.5+sin(phase.x)*sin(phase.y)*.25,cos(phase.x)*sin(phase.y)*.25,sin(phase.x)*cos(phase.y)*.25);
+#else
+  vec3 lobes=materialNoise((uv-pull)*5.2+seed+vec2(sin(time*.32)*.09,cos(time*.27)*.07),5.2);
+#endif
+  float rim=1.-smoothstep(.008,.075,extent.x-length(uv));
+  float radius=length(delta),separation=(radius-.28)/.11;
+  float adhesion=exp(-separation*separation)*uSurfaceContact.y*uSurfaceContact.z;
+  float bubble=0.;
+#if DETAIL_LEVEL >= 2
+  bubble=smoothstep(.77,.88,materialNoise(uv*19.+seed,19.).x)*detailWeight(19.);
+#endif
+  albedo=mix(vec3(.25,.055,.34),vec3(.56,.17,.64),lobes.x);
+  albedo=mix(albedo,vec3(.63,.30,.68),rim*.22+bubble*.30);
+  rough=.245+.065*(1.-lobes.x);spec=.34;layers.y=.82;layers.z=.19;
+  relief=vec3(lobes.yz*.15,0.);
+  relief.xy+=uv/max(length(uv),.03)*rim*.19+delta/max(radius,.03)*adhesion*(.16+speed*.025);
+  emit=vec3(.12,.018,.15)*adhesion*.06;
 }
 void boostMaterial(MAT_ARGS){
-  vec2 dir=length(uBoost)<.001?vec2(1,0):normalize(uBoost);
-  float side=dot(p.xz,vec2(-dir.y,dir.x)),forward=dot(p.xz,dir);
-  float chevron=filteredStripe(forward-effectTime()*.21+abs(fract(side*2.)-.5)/3.,1./3.,.045);
-  albedo=vec3(.94,.45,.08);rough=.48;spec=.22;
-  emit=vec3(1.,.25,.02)*(.10+chevron*.48);
-  relief=microRelief(p.xz,vec2(19.,19.),.012);
+  vec4 current=zoneFlow(seed);vec2 dir=dot(current.xy,current.xy)>.01?current.xy:vec2(1,0);
+  vec2 crossFlow=vec2(-dir.y,dir.x);
+  // This transport is a gameplay cue: simulation time freezes it on pause, and
+  // reduced effects retain a subdued current without extra glints or turbulence.
+  vec2 transported=p.xz-dir*uTime*current.z;
+  vec2 uv=vec2(dot(transported,dir),dot(transported,crossFlow));
+#if DETAIL_LEVEL < 2
+  float phase=uv.y*8.+sin(uv.x*3.2)+seed;
+  vec3 dunes=vec3(.5+sin(phase)*.25,0.,cos(phase)*.25);
+#else
+  vec3 dunes=materialNoise(uv*vec2(3.2,8.)+seed,8.);
+#endif
+  vec3 grains=materialNoise(uv*31.+seed,31.);
+  float ripple=.5+.5*sin(uv.x*18.+dunes.x*3.);
+  float strata=mix(.5,ripple,.20+.18*uLook.w);
+  albedo=mix(vec3(.55,.32,.12),vec3(.87,.64,.32),.35+strata*.34+(grains.x-.5)*(.12+.13*uLook.w));
+  rough=.79+(grains.x-.5)*.12;spec=.17;
+  vec2 slope=vec2(cos(uv.x*18.+dunes.x*3.)*.065,dunes.z*.055)+grains.yz*(.015+.025*uLook.w);
+  relief=vec3(dir*slope.x+crossFlow*slope.y,.001);
 }
 void platformMaterial(MAT_ARGS){
   // Grain follows the longest timber axis, and remains object-local on transports.
@@ -713,12 +793,20 @@ void jumpMaterial(MAT_ARGS){
   relief=microRelief(p.xz,vec2(19.,19.),.008);
 }
 void bumperMaterial(MAT_ARGS){
-  float band=1.-smoothstep(.035,.06,abs(p.y-extent.y*.55));
-  float collar=smoothstep(extent.y*.67,extent.y*.9,abs(p.y));
-  albedo=mix(vec3(.76,.055,.028),vec3(.13,.11,.10),collar*.65);
-  rough=mix(.42,.88,collar);spec=.23;
-  emit=vec3(.95,.035,.012)*(.06+band*.20);
-  relief=microRelief(faceUV(p,n),vec2(29.,38.),.020);
+  vec2 uv=faceUV(p,n);vec4 jelly=jellyState(seed);
+#if DETAIL_LEVEL < 2
+  float body=.5+sin(uv.x*4.5+seed)*sin(uv.y*4.5+seed)*.25,bubbles=0.;
+#else
+  float body=materialNoise(uv*4.5+seed,4.5).x;
+  float bubbles=smoothstep(.75,.9,materialNoise(uv*22.+seed,22.).x)*detailWeight(22.);
+#endif
+  float base=1.-smoothstep(-extent.y,-extent.y+.06,p.y);
+  albedo=mix(vec3(.62,.025,.018),vec3(.91,.15,.065),body*.55+bubbles*.22);
+  albedo*=1.-base*.22;
+  rough=.205+body*.055;spec=.37;layers.y=.78;layers.z=.185;
+  relief=microRelief(uv,vec2(7.,7.),.006);
+  // Small stress colour follows the spring; light transmission is added in shade.
+  albedo+=vec3(.08,.018,.012)*min(abs(jelly.y)*.2,1.)*uLook.w;
 }
 void surfaceMaterial(float m,vec3 p,vec3 geometric,out vec3 albedo,out float rough,out float spec,out vec3 emit,out vec4 layers,out vec3 normal){
   vec3 q,extent,relief=vec3(0),ng=geometric;float seed;
@@ -776,8 +864,8 @@ vec3 roomBounce(vec3 p,vec3 n){
   hemi+=vec3(.022,.049,.014)*exp(-max(p.x+3.18,0.)*.6)*max(-n.x,0.);
   hemi+=vec3(.075,.073,.063)*exp(-max(3.18-p.x,0.)*.6)*max(n.x,0.);
   hemi+=vec3(.048,.031,.012)*exp(-max(p.z+3.18,0.)*.6)*max(-n.z,0.);
-  vec3 cubeDelta=vec3(uCube.x,.26+uCubeY,uCube.y)-p;
-  hemi+=vec3(.032,.0015,.0008)*max(dot(n,normalize(cubeDelta+vec3(.0001))),0.)/(1.+12.*dot(cubeDelta,cubeDelta));
+  vec3 cubeDelta=cubeCenter()-p;
+  hemi+=vec3(.032,.0015,.0008)*cubeScale()*max(dot(n,normalize(cubeDelta+vec3(.0001))),0.)/(1.+12.*dot(cubeDelta,cubeDelta));
   return hemi;
 }
 vec3 direct(vec3 p,vec3 n,vec3 v,vec3 lp,vec3 radiance,float power,float rough,vec3 f0,vec3 albedo,float metallic,float visibility,float coat,float coatRough,vec3 coatNormal){
@@ -821,12 +909,12 @@ vec3 quickMat(float m,vec3 p){
   else if(m<13.5){a=vec3(.95,.88,.73);e=vec3(1.,.84,.63)*3.2;}
   else if(m<14.5)a=vec3(.38,.30,.23);
   else if(m<15.5){a=vec3(.025,.11,.065);e=vec3(.025,.9,.37)*.8;}
-  else if(m<16.5){a=vec3(.27,.65,.85);e=vec3(.025,.22,.52)*.11;}
-  else if(m<17.5){a=vec3(.54,.18,.70);e=vec3(.50,.06,.82)*.085;}
-  else if(m<18.5){a=vec3(.94,.45,.08);e=vec3(1.,.25,.02)*.17;}
+  else if(m<16.5)a=vec3(.12,.41,.50);
+  else if(m<17.5)a=vec3(.42,.12,.51);
+  else if(m<18.5)a=vec3(.73,.51,.25);
   else if(m<19.5)a=vec3(.57,.372,.197);
   else if(m<20.5){a=vec3(.12,.77,.87);e=vec3(.025,.66,.95)*.41;}
-  else{a=vec3(.76,.055,.028);e=vec3(.95,.035,.012)*.09;}
+  else a=vec3(.79,.085,.035);
   return pow(a,vec3(2.2))*.55+e;
 }
 // mediump hit tolerance tracks representable ray distance, preventing stalled steps and holes.
@@ -928,7 +1016,7 @@ vec3 shortBounce(vec3 p,vec3 n){
 vec3 lightSpill(vec3 p,vec3 n,vec3 source,vec3 color,float power){vec3 d=source-p;float d2=dot(d,d);return color*power*max(dot(n,normalize(d+vec3(.0001))),0.)/(1.+9.*d2);}
 vec3 zoneSpill(vec3 p,vec3 n,vec4 z){
   if(z.w<.5)return vec3(0);
-  vec3 color=z.w<1.5?vec3(.025,.27,.58):(z.w<2.5?vec3(.42,.045,.64):(z.w<3.5?vec3(.9,.20,.012):vec3(.025,.58,.8)));
+  vec3 color=z.w<1.5?vec3(.015,.05,.065):(z.w<2.5?vec3(.04,.01,.05):(z.w<3.5?vec3(.045,.026,.01):vec3(.025,.58,.8)));
   return lightSpill(p,n,vec3(z.x,.12,z.y),color,.25);
 }
 vec3 shade(vec3 p,vec3 geometric,float m,vec3 rd){
@@ -958,7 +1046,13 @@ vec3 shade(vec3 p,vec3 geometric,float m,vec3 rd){
   col+=direct(p,n,v,rim,vec3(1.,.86,.69),1.7,rough,f0,albedo,metallic,rimShadow,coat,coatRough,geometric);
   col+=albedo*layers.w*pow(1.-nv,4.)*roomBounce(p,geometric)*amb;
   col*=.88+.12*amb;
-  if(rough<.78&&(m<1.5||(m>6.5&&m<8.5)||(m>13.5&&m<16.5)||(m>18.5&&m<19.5))){
+  if(m>21.5){
+    // Thin-edge transmission approximation, with no extra rays or recursive refraction.
+    float wrap=pow(clamp((dot(-n,normalize(ld))+.45)/1.45,0.,1.),2.);
+    float thin=.18+.82*pow(1.-nv,2.);
+    col+=vec3(.58,.055,.018)*wrap*thin*(.5+.5*amb);
+  }
+  if(rough<.78&&(m<1.5||(m>6.5&&m<8.5)||(m>13.5&&m<17.5)||(m>18.5&&m<19.5)||m>21.5)){
     float cf=.04+.96*pow(1.-max(dot(geometric,v),0.),5.);
     // One shared reflection cone is an approximation; direct lobes remain independent.
     vec3 response=f*(1.-coat*cf)*(1.-coat*cf)+vec3(coat*cf);
@@ -967,16 +1061,24 @@ vec3 shade(vec3 p,vec3 geometric,float m,vec3 rd){
 #if GI_STEPS > 0
   if(m<1.5||(m>6.5&&m<8.5))col+=albedo*shortBounce(p,geometric)*amb;
 #endif
-  vec3 spill=lightSpill(p,geometric,vec3(uTarget.x,.16+uTargetY,uTarget.y),targetColor(),.9);
-  if(uTargetType>3.5)spill+=lightSpill(p,geometric,vec3(uTarget.x,.75+uTargetY,-3.08),targetColor(),1.3);
+  vec3 spill=lightSpill(p,geometric,vec3(uTarget.x,.16+uTargetY,uTarget.y),targetColor(),.9+uTransition.z*1.8);
+  if(uTargetType>3.5)spill+=lightSpill(p,geometric,vec3(uTarget.x,.75+uTargetY,-3.08),targetColor(),1.3+uTransition.z*2.);
 #if DETAIL_LEVEL > 0
   ${Array.from({length:8},(_,i)=>`spill+=zoneSpill(p,geometric,uZone${i});`).join('\n  ')}
 #endif
   col+=albedo*spill*amb;
-  if((m<2.5||(m>18.5&&m<19.5))&&geometric.y>.5){vec2 d=(p.xz-uCube)/vec2(.34,.32);float contact=exp(-dot(d,d)*1.6)*exp(-max(0.,uCubeFoot-p.y)*7.);col*=1.-.22*contact;}
+  if((m<2.5||(m>18.5&&m<19.5))&&geometric.y>.5){vec2 d=(p.xz-uCube)/(vec2(.34,.32)*cubeScale());float contact=exp(-dot(d,d)*1.6)*exp(-max(0.,uCubeFoot-p.y)*7.);col*=1.-.22*contact*min(1.,cubeScale());}
   if(m>14.5&&m<15.5){
     float frame=p.z< -3.09?smoothstep(.83,.94,max(abs(p.x-uTarget.x)/.58,abs(p.y-.74-uTargetY)/.70)):0.;
-    emit=portalEnergy(p,rd)*mix(1.,.32,frame);
+    emit=portalEnergy(p,rd)*mix(1.,.32,frame)*(1.+uTransition.z*1.8);
+  }
+  if(uTransition.z>.001){
+    float radius=length(p.xz-uTarget),wave=abs(radius-(.40+uTransition.w*.25));
+    float halo=aaLine(wave,.045)+aaLine(abs(radius-(.54+uTransition.w*.12)),.016)*.55;
+    halo*=exp(-abs(p.y-uTargetY)*18.)*max(geometric.y,0.);
+    col+=targetColor()*halo*uTransition.z*2.;
+    if((m>9.5&&m<12.5)||(m>14.5&&m<15.5))emit+=targetColor()*uTransition.z*(.65+.35*sin(radius*22.-uTransition.w*5.));
+    if(m>6.5&&m<7.5)emit+=mix(vec3(1.,.18,.04),targetColor(),.3)*uTransition.z*(.09+.65*cubeEdge(cubeLocal(p)));
   }
   float pulse=uPulse.z*uLook.w;
   if(pulse>.001){float ring=abs(length(p.xz-uPulse.xy)-mix(.14,2.08,1.-pulse));float glow=exp(-abs(p.y-uTargetY)*25.)*aaLine(ring,.030)*pulse;col+=targetColor()*glow*.75;}

@@ -1,7 +1,7 @@
 import {formatTime,clamp} from './math.js';
 import {CHAPTERS,ORIGINAL_COUNT,chapterForRoom,originalComplete,offerExpansion} from './campaign.js';
 import {previewSVG,mechanicsFor,TARGET_NAMES} from './campaign-view.js';
-const SURFACES={wood:'Madera',carpet:'Alfombra',ice:'Hielo',brake:'Freno viscoso',boost:'Impulso',ramp:'Rampa',platform:'Plataforma',air:'En el aire'};
+const SURFACES={wood:'Madera',carpet:'Alfombra',ice:'Agua resbaladiza',brake:'Slime pegajoso',boost:'Arena en movimiento',ramp:'Rampa',platform:'Plataforma',air:'En el aire'};
 export const SENSOR_MESSAGES={manual:'Sensores desactivados. Teclado, arrastre y stick disponibles.',active:'Inclinación activa. Recalibrá para usar otra posición cómoda.',calibrating:'Mantené el teléfono quieto un instante para calibrar.',unavailable:'Sensores no disponibles. Se requiere HTTPS y un dispositivo compatible.',denied:'Permiso no concedido. Podés seguir con los controles manuales.',timeout:'No llegaron lecturas estables. Usá los controles manuales o recalibrá.'};
 export class UI {
   constructor(levels){this.levels=levels;this.nodes=new Map();this.dialogs=[...document.querySelectorAll('dialog')];this.lastFocus=null;

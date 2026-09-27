@@ -19,7 +19,7 @@ async function render(data,type){
     if(type==='ready')await renderer.settleRenderTiming();
     if(renderer.lost)throw new Error('Se perdió el contexto WebGL.');
     // Keep interaction guides aligned with this image while newer physics waits.
-    const presentation={state:data.scene.state,settings:data.settings,reduced:data.reduced,width:bitmap.width,height:bitmap.height};
+    const presentation={state:data.scene.state,transition:data.scene.transition??null,room:data.scene.room,target:data.scene.target,settings:data.settings,reduced:data.reduced,width:bitmap.width,height:bitmap.height};
     self.postMessage({...status(type),id:data.id,renderMs,bitmap,presentation},[bitmap]);
   }catch(error){bitmap.close();throw error;}
 }
@@ -36,10 +36,10 @@ self.onmessage=async({data})=>{
       if(data.quality==='auto'&&['medium','high'].includes(data.tier))renderer.quality.tier=data.tier;
       renderer.onAutoTier=tier=>self.postMessage({type:'promotion',tier});
       self.postMessage({type:'preparing'});
-      // Cache the rescue tier before preparing the requested program.
+      // Only Automatic can fall back within this worker; fixed tiers never use a rescue program.
       const deadline=performance.now()+(data.prepareTimeoutMs??preparationTimeout(renderer.quality.tier));
       const preparation=()=>({timeoutMs:Math.max(0,deadline-performance.now())});
-      const tiers=data.quality==='auto'&&renderer.quality.tier==='high'?['low','medium','high']:['low',renderer.quality.tier];
+      const tiers=data.quality!=='auto'?[renderer.quality.tier]:renderer.quality.tier==='high'?['low','medium','high']:renderer.quality.tier==='medium'?['low','medium']:['low'];
       for(const tier of tiers)await renderer.prepareProgram(tier,preparation());
       self.postMessage({type:'prepared'});
       if(!data.scene)throw new Error('No hay una escena disponible para validar la calidad.');

@@ -22,7 +22,7 @@ test('cinematic and effects survive settings storage without touching progress',
 test('cinematic has bounded extras and preserves the camera and geometry',()=>{
   const s=fragmentShader('cinematic');assert.match(s,/#define STEPS 176/);assert.match(s,/#define GI_STEPS 3/);
   assert.match(s,/mix\(5\.78,5\.08,land\)/);assert.match(s,/float fov=mix\(1\.02,1\.34,land\)/);assert.match(s,/uPlat3/);
-  assert.match(s,/sdRoundBox\(cp,vec3\(\.245\),\.038\)/);assert.match(fragmentShader('low'),/#define GI_STEPS 0/);
+  assert.match(s,/sdRoundBox\(cp,vec3\(\.245\)\*cubeScale\(\),\.038\*cubeScale\(\)\)/);assert.match(fragmentShader('low'),/#define GI_STEPS 0/);
 });
 test('derivatives are opt-in and a portable shader remains available',()=>{
   assert.doesNotMatch(fragmentShader('high'),/#extension GL_OES_standard_derivatives/);

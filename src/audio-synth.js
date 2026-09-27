@@ -26,11 +26,11 @@ export function roomImpulse(ctx){
 const MATERIALS={
   wood:{hz:185,ratio:2.72,decay:.23,brightness:2600,grain:.055},
   carpet:{hz:108,ratio:1.83,decay:.11,brightness:650,grain:.026},
-  ice:{hz:820,ratio:2.13,decay:.45,brightness:6500,grain:.022},
+  ice:{hz:280,ratio:1.38,decay:.13,brightness:2200,grain:.048},
   platform:{hz:340,ratio:2.38,decay:.48,brightness:4400,grain:.04},
   ramp:{hz:240,ratio:2.64,decay:.27,brightness:2300,grain:.047},
-  brake:{hz:98,ratio:1.45,decay:.17,brightness:850,grain:.06},
-  boost:{hz:290,ratio:1.5,decay:.25,brightness:3300,grain:.035}
+  brake:{hz:82,ratio:1.25,decay:.19,brightness:650,grain:.036},
+  boost:{hz:155,ratio:1.73,decay:.09,brightness:3200,grain:.105}
 };
 export const materialSound=kind=>MATERIALS[kind]??MATERIALS.wood;
 

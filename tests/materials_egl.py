@@ -34,7 +34,7 @@ def main():
         params={m:a[80,c*32+8:c*32+24,:3].mean(axis=0)/255 for c,m in enumerate(ids)}
         rough={m:float(v[0]) for m,v in params.items()}
         check(tier+' perceptual roughness separates ice, wood, walls, carpet',rough[16]<rough[1]<rough[3]<rough[2],roughness=rough)
-        check(tier+' brake is matte and intact cube paint is dielectric',rough[17]>.88 and params[7][2]<.02)
+        check(tier+' slime is wet and intact cube paint is dielectric',.15<rough[17]<.5 and params[7][2]<.02)
         layers=a[48,6*32+8:6*32+24,:3].mean(axis=0)/255
         check(tier+' independent coat roughness',(.18<=layers[1]<=.32) and (layers[0]==0 if tier=='low' else layers[0]>.2))
     for label in ['cube','obstacle','platform','jump','bumper']:

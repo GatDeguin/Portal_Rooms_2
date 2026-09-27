@@ -1,7 +1,7 @@
 import {Renderer,RENDER_TIMEOUTS,preparationTimeout} from './renderer.js';
 
 const abortError=()=>new DOMException('Cambio de calidad cancelado.','AbortError');
-const snapshot=engine=>engine?{state:engine.state,room:engine.room,target:engine.target}:null;
+const snapshot=engine=>engine?{state:engine.state,room:engine.room,target:engine.target,transition:engine.transition??null}:null;
 const defaultWorker=()=>new Worker(new URL('./renderer-worker.js',import.meta.url),{type:'module'});
 const RECOVERING_WARNING='El render dejó de responder. Se está recuperando en Baja; la partida queda en pausa y tu progreso se conserva.';
 const RECOVERY_WARNING='El render no pudo continuar con la calidad solicitada. Se recuperó en Baja; la preferencia guardada y tu progreso se conservan.';
@@ -79,8 +79,8 @@ export class WorkerRenderer {
       renderer.current=session;renderer.pending=null;renderer.present(session,session.status);return renderer;
     }catch(error){renderer.destroy();throw error;}
   }
-  constructor(canvas,{workerFactory=defaultWorker,timeoutMs,prepareTimeoutMs,onContextLost=()=>{},onWarning=()=>{},engine=null,settings={}}={}){
-    Object.assign(this,{canvas,workerFactory,timeoutMs:timeoutMs??RENDER_TIMEOUTS.frame,prepareTimeoutMs:prepareTimeoutMs??timeoutMs,onContextLost,onWarning});
+  constructor(canvas,{workerFactory=defaultWorker,timeoutMs,prepareTimeoutMs,onContextLost=()=>{},onWarning=()=>{},onPresent=()=>{},engine=null,settings={}}={}){
+    Object.assign(this,{canvas,workerFactory,timeoutMs:timeoutMs??RENDER_TIMEOUTS.frame,prepareTimeoutMs:prepareTimeoutMs??timeoutMs,onContextLost,onWarning,onPresent});
     this.lastScene=snapshot(engine);this.lastSettings=settings;this.pending=null;this.current=null;this.epoch=0;this.lost=false;this.queued=null;this.recoveries=0;this.failedAutoTiers=new Set();
     this.resize();
   }
@@ -160,6 +160,7 @@ export class WorkerRenderer {
         this.context.transferFromImageBitmap(bitmap);
         this.presentation=data.presentation;
       }finally{bitmap.close();}
+      this.onPresent(this.presentation);
     }
     const queued=this.queued;this.queued=null;
     if(queued)session.frame(queued);
