@@ -1,6 +1,6 @@
-# Portal Room — Dominio de la gravedad, V.04
+# Portal Room — Dominio de la gravedad, V.05
 
-**42 salas: el circuito original de 22 más una expansión de 20.** Un cubo rojo, una habitación y control de gravedad mediante teclado, arrastre, stick o inclinación. Render procedural WebGL 1 con perfiles Baja, Media, Alta y Cinemática; Automática adapta solo los tres primeros.
+**62 salas: 22 originales, 20 de expansión y 20 nuevos desafíos de materiales y dominio.** Un cubo rojo, una habitación y control de gravedad mediante teclado, arrastre, stick o inclinación. Render procedural WebGL 1 con perfiles Baja, Media, Alta y Cinemática; Automática adapta solo los tres primeros.
 
 La aplicación activa usa `index.html`, `src/`, `styles/` y `assets/`. Los archivos homónimos de la raíz pertenecen a revisiones anteriores y no se deben mezclar con este catálogo.
 
@@ -14,15 +14,17 @@ Abrí `http://localhost:8080`. El juego base no requiere `npm install`, motor ex
 
 ## Campaña e integración
 
-Las nuevas salas 23–42 se organizan en **Inercia consciente**, **Ritmos de la sala**, **Transferencias** y **Convergencia**. Cada una incluye objetivo, pista y un recorrido construido con las mecánicas existentes. Los nombres y ajustes de construcción están en [docs/EXPANSION.md](docs/EXPANSION.md).
+Las salas 23–42 se organizan en **Inercia consciente**, **Ritmos de la sala**, **Transferencias** y **Convergencia**. Cada una incluye objetivo, pista y un recorrido construido con las mecánicas existentes. Los nombres y ajustes de construcción están en [docs/EXPANSION.md](docs/EXPANSION.md).
 
-El selector tiene ocho filtros de capítulo y planos derivados de los mismos datos que utiliza la física. Se pueden inspeccionar salas bloqueadas; mirar no inicia una partida. El botón de entrada respeta los desbloqueos.
+Las salas **43–62** agregan **Inercia y adherencia**, **Detrás del telón**, **Precisión y recuperación** y **Maestría combinada**. Sus soluciones y vías de recuperación están detalladas en [docs/MASTERY.md](docs/MASTERY.md).
 
-La integración de la expansión conservó las 22 salas originales, física, geometría, controles, almacenamiento y shader frente a `c907701e93c6c9798ecfb35b566269fa63cdc949`. `campaign.js` compone ambos catálogos y el motor lo recibe por constructor. La sala 22 celebra el cierre original y permite seguir a la 23; el final global está en la 42.
+El selector tiene doce filtros de capítulo y planos derivados de los mismos datos que utiliza la física. Se pueden inspeccionar salas bloqueadas; mirar no inicia una partida. El botón de entrada respeta los desbloqueos.
+
+La primera expansión conservó el circuito original. La revisión actual modifica las salas 5, 6, 16, 17, 19 y 31 para corregir recorridos y recuperación, y refuerza los materiales interactivos. `campaign.js` compone los tres catálogos y el motor lo recibe por constructor. La sala 22 celebra el cierre original y permite seguir a la 23; la sala 42 cierra esa expansión y la campaña continúa hasta la 62.
 
 ## Guardado
 
-Se mantienen `roomTiltGame.progress.v2` y `roomTiltGame.settings.v2`. No se archivan ni borran los récords anteriores. Una partida con 22/22 conserva sus tiempos, intentos y sala seleccionada; se ofrece un botón separado para continuar en la 23. Las partidas parciales conservan su progreso normal.
+Se mantienen `roomTiltGame.progress.v2` y `roomTiltGame.settings.v2`. No se archivan ni borran los récords anteriores. Una partida con 22/22 conserva sus tiempos, intentos y sala seleccionada; se ofrece un botón separado para continuar en la 23. Una partida que completó 42 salas recibe la misma opción para continuar en la 43, conservando sus récords. Las partidas parciales conservan su progreso normal.
 
 Las caídas y pausas conservan la secuencia durante la tentativa. Reiniciar o recargar vuelve al inicio de la sala: no hay checkpoints intermedios persistentes. El cronómetro mide tiempo de simulación activo; no es una clasificación competitiva entre dispositivos.
 
@@ -49,7 +51,7 @@ npm run test:course
 npm run test:static
 ```
 
-`test:course` verifica las **20 salas nuevas**, no afirma recorrer las 42 originales y nuevas. Guarda trazas e inputs reproducibles. Las originales conservan sus tests de regresión y guardas por hash.
+`test:course` verifica las **salas 23–42**. Las salas 43–62 tienen sus propios recorridos de prueba. Guarda trazas e inputs reproducibles. Las salas originales conservan pruebas de regresión, con nuevos controles específicos para los recorridos corregidos.
 
 Con Python, Playwright, Chromium y Pillow según la prueba:
 
@@ -100,3 +102,9 @@ El agua conserva inercia y deja una película húmeda temporal; el slime añade 
 Las salas 1, 6, 10, 15, 23, 30 y 38 incorporan paños con anclajes, pliegues, viento suave y contactos con cubo y manos. Tienen sombras y oclusión en la sala. Las telas se simulan con el mismo paso fijo del juego y se congelan al pausar o durante las transiciones.
 
 `npm run test:living-materials` verifica física y render juntos con Chrome/Chromium real, contactos reproducibles y capturas de escritorio/móvil. Admite `PLAYWRIGHT_MODULE` y `CHROMIUM_PATH`. Parámetros, límites y arquitectura: [materiales y telas](docs/MATERIALES-TELAS.md).
+
+## Sensaciones y dominio
+
+Agua con derrape, gotas y ondas; slime con memoria elástica y adherencia que cede bajo inclinación sostenida; arena con corriente finita. Las zonas admiten círculos, cápsulas y rectángulos redondeados. Los saltadores son casquetes de goma que se comprimen y vibran después del impulso. Las telas ocultan objetivos o dispositivos y se apartan con el cubo o las manos.
+
+La campaña ampliada conserva el progreso anterior: completar las primeras 42 salas habilita la 43 sin perder tiempos ni intentos. Diseño y verificación: [plan de sensaciones y dominio](docs/superpowers/plans/2026-09-27-sensaciones-y-dominio.md).

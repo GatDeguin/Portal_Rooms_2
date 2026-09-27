@@ -1,3 +1,4 @@
+import {SurfaceEffectsCache} from './surface-effects-geometry.js';
 import {RoomReceiverCache,dynamicReceivers} from './hand-room.js';
 import {RECEIVER_VERTEX,RECEIVER_FRAGMENT,SHADOW_FRAGMENT} from './hand-shaders.js';
 
@@ -59,15 +60,30 @@ void main(){
  vec3 c=color*(.27+lit*1.35*mix(.35,1.,shade)+max(dot(n,fill),0.)*.28+back*.12)+spec*shade+color*sheen;
  frag=vec4(pow(aces(c),vec3(1./2.2)),1.);
 }`;
+export const SURFACE_EFFECT_FRAGMENT=`#version 300 es
+precision highp float;
+in vec3 vP,vN;in vec2 vUV;out vec4 frag;
+uniform vec3 uCamera,uColor;uniform int uEffect;
+void main(){
+ vec3 n=normalize(vN),v=normalize(uCamera-vP);if(dot(n,v)<0.)n=-n;
+ vec3 l=normalize(vec3(0.,3.045,-.70)-vP),h=normalize(l+v);
+ float lit=max(dot(n,l),0.),rim=pow(1.-max(dot(n,v),0.),3.);
+ if(uEffect>=3){frag=vec4(mix(uColor,vec3(.85,.97,1.),.4),vUV.x);return;}
+ float gloss=pow(max(dot(n,h),0.),uEffect==2?65.:110.);
+ float reflection=pow(max(dot(n,normalize(vec3(-.5,.8,1.))),0.),14.);
+ vec3 color=uColor*(.34+lit*.82)+vec3(.85,.97,1.)*(gloss*.9+reflection*.26)+uColor*rim*.55;
+ color=pow(clamp(color,0.,1.),vec3(1./2.2));
+ frag=vec4(color,vUV.x*mix(.8,1.,rim));
+}`;
 function program(gl,vertex,fragment){
  const p=gl.createProgram(),shaders=[];
  try{
   for(const [kind,source] of [[gl.VERTEX_SHADER,vertex],[gl.FRAGMENT_SHADER,fragment]]){const shader=gl.createShader(kind);shaders.push(shader);gl.shaderSource(shader,source);gl.compileShader(shader);if(!gl.getShaderParameter(shader,gl.COMPILE_STATUS))throw Error(gl.getShaderInfoLog(shader));gl.attachShader(p,shader);}
   gl.linkProgram(p);if(!gl.getProgramParameter(p,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(p));
-  return {program:p,u:Object.fromEntries(['uOrigin','uRight','uUp','uForward','uAspectFov','uJitter','uShadowPass','uShadow','uColor','uCamera','uSupport','uDetail'].map(n=>[n,gl.getUniformLocation(p,n)]))};
+  return {program:p,u:Object.fromEntries(['uOrigin','uRight','uUp','uForward','uAspectFov','uJitter','uShadowPass','uShadow','uColor','uCamera','uSupport','uDetail','uEffect'].map(n=>[n,gl.getUniformLocation(p,n)]))};
  }catch(error){gl.deleteProgram(p);throw error;}finally{for(const shader of shaders)gl.deleteShader(shader);}
 }
-function railVertices(rail){
+function railVertices(rail,supports=[true,true],baseY=0){
  const out=[];
  const cylinder=(a,b,r)=>{
   const d=b.map((v,i)=>v-a[i]),length=Math.hypot(...d);if(length<1e-8)return;
@@ -83,7 +99,7 @@ function railVertices(rail){
   }
  };
  const [a,b]=rail;cylinder(a,b,.017);
- for(const p of [a,b]){cylinder([p[0],.022,p[2]],p,.014);cylinder([p[0],.015,p[2]],[p[0],.04,p[2]],.07);}
+ for(const [index,p] of [a,b].entries())if(supports[index]){cylinder([p[0],baseY+.022,p[2]],p,.014);cylinder([p[0],baseY+.015,p[2]],[p[0],baseY+.04,p[2]],.07);}
  return new Float32Array(out);
 }
 
@@ -103,6 +119,7 @@ export class ClothRenderer{
   const g=this.gl;this.resources=[];this.meshes=[];this.meshKey=null;this.receiverCache=new RoomReceiverCache();
   const makeProgram=(v,f)=>{const p=program(g,v,f);this.resource('Program',p.program);return p;};
   this.fabric=makeProgram(CLOTH_VERTEX,CLOTH_FRAGMENT);this.shadow=makeProgram(CLOTH_VERTEX,SHADOW_FRAGMENT);this.receiver=makeProgram(RECEIVER_VERTEX,RECEIVER_FRAGMENT);
+  this.effectsCache=new SurfaceEffectsCache();this.effects=makeProgram(CLOTH_VERTEX,SURFACE_EFFECT_FRAGMENT);this.effectMeshes=Array.from({length:4},(_,i)=>({...this.makeBuffer(),kind:i+1}));
   this.receivers=Array.from({length:3},()=>this.makeBuffer(false));
   this.shadowSize=512;this.shadowTexture=this.resource('Texture',g.createTexture());g.bindTexture(g.TEXTURE_2D,this.shadowTexture);
   g.texImage2D(g.TEXTURE_2D,0,g.DEPTH_COMPONENT24,this.shadowSize,this.shadowSize,0,g.DEPTH_COMPONENT,g.UNSIGNED_INT,null);
@@ -123,11 +140,11 @@ export class ClothRenderer{
   this.meshes=[];
  }
  updateMeshes(frames){
-  const g=this.gl,key=JSON.stringify(frames.map(f=>[f.id,f.positions.length,f.indices.length,f.rail]));
+  const g=this.gl,key=JSON.stringify(frames.map(f=>[f.id,f.positions.length,f.indices.length,f.rail,f.supports,f.baseY]));
   if(key!==this.meshKey){
    this.releaseMeshes();this.meshKey=key;
    this.meshes=frames.map(f=>{
-    const fabric=this.makeBuffer(),rail=this.makeBuffer(),vertices=railVertices(f.rail);
+    const fabric=this.makeBuffer(),rail=this.makeBuffer(),vertices=railVertices(f.rail,f.supports,f.baseY);
     g.bindBuffer(g.ARRAY_BUFFER,rail.buffer);g.bufferData(g.ARRAY_BUFFER,vertices,g.STATIC_DRAW);rail.count=vertices.length/8;
     g.bindVertexArray(fabric.vao);fabric.indices=this.resource('Buffer',g.createBuffer());g.bindBuffer(g.ELEMENT_ARRAY_BUFFER,fabric.indices);g.bufferData(g.ELEMENT_ARRAY_BUFFER,f.indices,g.STATIC_DRAW);fabric.count=f.indices.length;
     return {fabric,rail,vertices:new Float32Array(f.positions.length/3*8)};
@@ -152,17 +169,29 @@ export class ClothRenderer{
    g.uniform1i(entry.u.uSupport,0);g.uniform3fv(entry.u.uColor,mesh.color);g.bindVertexArray(mesh.fabric.vao);g.drawElements(g.TRIANGLES,mesh.fabric.count,g.UNSIGNED_SHORT,0);
   }
  }
+ uploadEffects(batches){
+  const g=this.gl;
+  for(const mesh of this.effectMeshes){const batch=batches.find(b=>b.kind===mesh.kind);mesh.count=batch?batch.vertices.length/8:0;if(batch){g.bindBuffer(g.ARRAY_BUFFER,mesh.buffer);g.bufferData(g.ARRAY_BUFFER,batch.vertices,g.DYNAMIC_DRAW);}}
+ }
+ drawEffects(entry,shadow=false){
+  const g=this.gl;g.useProgram(entry.program);g.uniform1i(entry.u.uShadowPass,shadow);
+  for(const mesh of this.effectMeshes){
+   if(!mesh.count||(shadow&&mesh.kind>=3))continue;
+   g.uniform1i(entry.u.uEffect,mesh.kind);g.uniform3fv(entry.u.uColor,mesh.kind%2?[.08,.54,.86]:[.48,.06,.72]);
+   g.bindVertexArray(mesh.vao);g.drawArrays(g.TRIANGLES,0,mesh.count);
+  }
+ }
  render(frames,camera,scene,settings={},reduced=false){
   if(!this.ready||this.destroyed||this.gl.isContextLost())return false;
   const g=this.gl,dpr=Math.min(globalThis.devicePixelRatio||1,settings.quality==='low'?1:1.5),width=Math.max(1,Math.round(camera.width*dpr)),height=Math.max(1,Math.round(camera.height*dpr));
   if(this.canvas.width!==width||this.canvas.height!==height){this.canvas.width=width;this.canvas.height=height;}
   g.bindFramebuffer(g.FRAMEBUFFER,null);g.viewport(0,0,width,height);g.depthMask(true);g.colorMask(true,true,true,true);g.clear(g.COLOR_BUFFER_BIT|g.DEPTH_BUFFER_BIT);
-  if(!frames.length){this.clear();return true;}
+  const effects=this.effectsCache.update(scene.state,{reduced,enabled:settings.effects!==false,transition:reduced?null:scene.transition});if(effects.changed)this.uploadEffects(effects.batches);if(!frames.length&&!effects.batches.length){this.clear();return true;}
   this.updateMeshes(frames);
-  g.disable(g.BLEND);g.depthFunc(g.LESS);g.bindFramebuffer(g.FRAMEBUFFER,this.shadowTarget);g.viewport(0,0,this.shadowSize,this.shadowSize);g.clear(g.DEPTH_BUFFER_BIT);this.drawMeshes(this.shadow,true);
+  g.disable(g.BLEND);g.depthFunc(g.LESS);g.bindFramebuffer(g.FRAMEBUFFER,this.shadowTarget);g.viewport(0,0,this.shadowSize,this.shadowSize);g.clear(g.DEPTH_BUFFER_BIT);this.drawMeshes(this.shadow,true);this.drawEffects(this.shadow,true);
   g.bindFramebuffer(g.FRAMEBUFFER,null);g.viewport(0,0,width,height);g.activeTexture(g.TEXTURE0);g.bindTexture(g.TEXTURE_2D,this.shadowTexture);
   this.setCamera(this.receiver,camera);g.uniform1i(this.receiver.u.uShadow,0);
-  const cached=this.receiverCache.update(scene.room,scene.state.time,scene.state.bumperJelly);
+  const cached=this.receiverCache.update(scene.room,scene.state.time,scene.state.bumperJelly,scene.state.jumpJelly);
   if(cached.staticChanged)this.uploadReceiver(0,cached.staticVertices);if(cached.movingChanged)this.uploadReceiver(2,cached.movingVertices);
   // Hands receive cloth depth too, but fabric must not pre-occlude its own mesh.
   this.uploadReceiver(1,dynamicReceivers(scene.state,scene.target,false,scene.transition));
@@ -171,7 +200,9 @@ export class ClothRenderer{
   g.colorMask(true,true,true,true);g.depthFunc(g.LEQUAL);g.depthMask(false);g.enable(g.BLEND);g.blendFuncSeparate(g.SRC_ALPHA,g.ONE_MINUS_SRC_ALPHA,g.ONE,g.ONE_MINUS_SRC_ALPHA);
   for(const r of this.receivers){g.bindVertexArray(r.vao);g.drawArrays(g.TRIANGLES,0,r.count);}
   g.depthMask(true);g.depthFunc(g.LESS);g.disable(g.BLEND);this.setCamera(this.fabric,camera);g.uniform1i(this.fabric.u.uShadow,0);g.uniform1f(this.fabric.u.uDetail,reduced||settings.effects===false?.3:1);
-  this.drawMeshes(this.fabric,false);g.bindVertexArray(null);this.canvas.hidden=false;return true;
+  this.drawMeshes(this.fabric,false);
+  this.setCamera(this.effects,camera);g.enable(g.BLEND);g.depthMask(false);this.drawEffects(this.effects);g.depthMask(true);g.disable(g.BLEND);
+  g.bindVertexArray(null);this.canvas.hidden=false;return true;
  }
  clear(){this.canvas.hidden=true;}
  destroy(){

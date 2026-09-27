@@ -29,13 +29,13 @@ export function itinerary(id,p){
     case 36:
       go(-1.85,1.1);wait(()=>platform(0).x<.7&&platform(0).vx>0);jump(0,0,{stage:[-1.85,1.1]});goal();go(2.65,-.75);go(2.65,-2.42);goal();break;
     case 37:
-      jump(0,0);goal();go(2.4,.5);go(2.4,-.8);go(1.7,-.85);go(.15,-.85);go(-.7,-.2);go(-.7,.7);jump(1,1,{stage:[0,.7]});goal();go(-1.3,-2.65);go(.6,-2.65);goal();break;
+      jump(0,0);goal();go(2.4,.5);go(2.4,-.8);go(1.7,-.85);go(.15,-.85);go(-.7,-.2);go(-.7,.7);jump(1,1,{stage:[0,.7],approachSpeed:.85});goal();go(-1.3,-2.65);go(.6,-2.65);goal();break;
     case 38:
       if(variant==='jump'){go(1.15,1.85);jump(0,0);}else{go(-2.75,1.7);go(-2.75,-1.25);go(0,-1.25,{y:.6});}
       goal();go(1.85,-1.25);goal();break;
     case 39:
       go(-.2,2.15);go(1.45,2.15);if(variant==='bumper')go(1.28,1.08,{radius:.035,stop:false});go(1.65,2.5);go(-1.75,2.5);go(-1.75,-.7,{y:.56});
-      wait(()=>platform(1).x<-.55);board(1);goal();ride(1,a=>a.x>.65);go(1.75,-.7,{y:.56});goal();go(1.75,-2.42);goal();break;
+      wait(()=>platform(1).x<-.55&&platform(1).vx<0);board(1);goal();ride(1,a=>a.x>.65);go(1.75,-.7,{y:.56});goal();go(1.75,-2.42);goal();break;
     case 40:
       go(-1.65,1.85);go(-1.65,-.55,{y:.35});goal();go(-1.65,1.9);go(0,2.45);
       if(variant==='jump'){go(-.55,.8);jump(0,1);}else{go(1.55,1.7);go(1.55,-1.1,{y:.7});}

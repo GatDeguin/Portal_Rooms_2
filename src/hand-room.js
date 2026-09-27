@@ -91,20 +91,30 @@ function appendBumpers(out,bumpers,poses){
  });
 }
 
+function jumpCompression(jelly){return Math.max(-.15,Math.min(.75,Number.isFinite(jelly?.compression)?jelly.compression:0));}
+function appendJumpPads(out,pads,compressions){
+ pads.forEach((pad,index)=>{
+  const r=pad.r,h=.14*(1-compressions[index]),R=(r*r+h*h)/(2*h),cy=(pad.y??0)+.012+h-R;
+  const point=(ring,segment)=>{const rr=r*ring/6,a=segment*Math.PI/16;return [pad.x+rr*Math.cos(a),cy+Math.sqrt(Math.max(0,R*R-rr*rr)),pad.z+rr*Math.sin(a)];};
+  for(let j=0;j<32;j++)triangle(out,point(0,0),point(1,j),point(1,j+1));
+  for(let i=1;i<6;i++)for(let j=0;j<32;j++)quad(out,point(i,j),point(i+1,j),point(i+1,j+1),point(i,j+1));
+ });
+}
+
 /** Content key survives structured cloning from the render worker. */
 export class RoomReceiverCache{
- update(room,time=0,bumperJelly=[]){
-  const geometry={obstacles:(room.obstacles??[]).slice(0,6),platforms:(room.platforms??[]).slice(0,4),ramps:(room.ramps??[]).slice(0,3),bumpers:(room.bumpers??[]).slice(0,3)};
+ update(room,time=0,bumperJelly=[],jumpJelly=[]){
+  const geometry={obstacles:(room.obstacles??[]).slice(0,6),platforms:(room.platforms??[]).slice(0,4),ramps:(room.ramps??[]).slice(0,3),bumpers:(room.bumpers??[]).slice(0,3),jumpPads:(room.jumpPads??[]).slice(0,Math.max(0,8-(room.zones?.length??0)))};
   const key=JSON.stringify(geometry),staticChanged=key!==this.key;
   if(staticChanged){
    this.key=key;
-   this.staticVertices=roomReceivers({...geometry,bumpers:[],obstacles:geometry.obstacles.filter(o=>!o.move),platforms:geometry.platforms.filter(o=>!o.move)});
+   this.staticVertices=roomReceivers({...geometry,bumpers:[],jumpPads:[],obstacles:geometry.obstacles.filter(o=>!o.move),platforms:geometry.platforms.filter(o=>!o.move)});
    this.moving={obstacles:geometry.obstacles.filter(o=>o.move),platforms:geometry.platforms.filter(o=>o.move)};
    this.hasMovement=this.moving.obstacles.length+this.moving.platforms.length>0;
   }
-  const poses=geometry.bumpers.map((_,i)=>bumperPose(bumperJelly?.[i])),jellyKey=JSON.stringify(poses);
+  const poses=geometry.bumpers.map((_,i)=>bumperPose(bumperJelly?.[i])),caps=geometry.jumpPads.map((_,i)=>jumpCompression(jumpJelly?.[i])),jellyKey=JSON.stringify([poses,caps]);
   const movingChanged=staticChanged||(this.hasMovement&&time!==this.time)||jellyKey!==this.jellyKey;
-  if(movingChanged){const out=[];appendObjects(out,this.moving,time);appendBumpers(out,geometry.bumpers,poses);this.movingVertices=new Float32Array(out);this.time=time;this.jellyKey=jellyKey;}
+  if(movingChanged){const out=[];appendObjects(out,this.moving,time);appendBumpers(out,geometry.bumpers,poses);appendJumpPads(out,geometry.jumpPads,caps);this.movingVertices=new Float32Array(out);this.time=time;this.jellyKey=jellyKey;}
   return {staticVertices:this.staticVertices,movingVertices:this.movingVertices,staticChanged,movingChanged};
  }
 }

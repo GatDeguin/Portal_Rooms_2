@@ -115,7 +115,7 @@ export class AtelierHandRenderer{
   g.bindFramebuffer(g.FRAMEBUFFER,null);g.viewport(0,0,width,height);
   g.activeTexture(g.TEXTURE1);g.bindTexture(g.TEXTURE_2D,this.shadowTexture);
   this.setCamera(this.receiver,camera);g.uniform1i(this.receiver.u.uShadow,1);
-  const cached=this.receiverCache.update(scene.room,scene.state.time,scene.state.bumperJelly);
+  const cached=this.receiverCache.update(scene.room,scene.state.time,scene.state.bumperJelly,scene.state.jumpJelly);
   if(cached.staticChanged)this.uploadReceiver(0,cached.staticVertices);
   if(cached.movingChanged)this.uploadReceiver(2,cached.movingVertices);
   this.uploadReceiver(1,dynamicReceivers(scene.state,scene.target));

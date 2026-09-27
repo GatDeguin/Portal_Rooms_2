@@ -24,7 +24,7 @@ function makeCloth(def){
   if(col<columns-1)link(a,a+2,.25);
   if(row<rows-1)link(a,a+stride*2,.25);
  }
- const frame={id:def.id,columns,rows,width,height,color:def.color,positions:new Float32Array(positions),normals:new Float32Array(count*3),uvs,indices:new Uint16Array(indices),rail:[Array.from(positions.slice(0,3)),Array.from(positions.slice(columns*3,columns*3+3))]};
+ const frame={id:def.id,columns,rows,width,height,color:def.color,baseY:def.baseY,supports:def.supports,reveal:def.reveal,positions:new Float32Array(positions),normals:new Float32Array(count*3),uvs,indices:new Uint16Array(indices),rail:[Array.from(positions.slice(0,3)),Array.from(positions.slice(columns*3,columns*3+3))]};
  return {def,positions,previous:positions.slice(),anchors:positions.slice(0,stride*3),constraints,frame,normal,freeStart:stride*3};
 }
 function normals(frame){

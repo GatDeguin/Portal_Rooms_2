@@ -1,4 +1,4 @@
-import {CAMPAIGN_LEVELS as LEVELS,ORIGINAL_COUNT} from './campaign.js';
+import {CAMPAIGN_LEVELS as LEVELS,ORIGINAL_COUNT,expansionStart} from './campaign.js';
 import {HandGameEngine} from './hand-physics.js';
 import {HandTracking} from './hand-tracking.js';
 import {HandView} from './hand-view.js';
@@ -124,7 +124,7 @@ function frame(now){
 async function action(name){
   switch(name){
     case 'start':if(phase==='menu')begin(store.progress.current);break;
-    case 'start-expansion':if(phase==='menu'&&store.progress.unlocked>ORIGINAL_COUNT)begin(ORIGINAL_COUNT);break;
+    case 'start-expansion':{const next=expansionStart(store.progress);if(phase==='menu'&&next!==null&&store.progress.unlocked>next)begin(next);break;}
     case 'play-preview':if(phase==='selector'&&ui.previewIndex<store.progress.unlocked)begin(ui.previewIndex);break;
     case 'help':openPanel('help');break;
     case 'start-gyro':if(phase==='menu'){const permission=input.enableSensors();begin(store.progress.current);await permission;}break;

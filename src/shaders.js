@@ -10,9 +10,9 @@ export function fragmentShader(tier='medium',precision='highp',capabilities={}) 
 precision ${portable?'mediump':'highp'} float;
 varying vec2 vUv;
 uniform sampler2D uReliefNoise,uSurfaceHits;
-uniform vec2 uRes,uCube,uGravity,uTarget,uBoost,uCubeVelocity;
+uniform vec2 uRes,uCube,uGravity,uTarget,uBoost,uCubeVelocity,uStickyStretch;
 uniform float uTime,uCubeY,uCubeFoot,uShake,uTargetY,uTargetType,uHold,uMotion;
-uniform vec4 uCubeQ,uPulse,uTransition,uSurfaceContact; // wet film, slime film, floor contact, reserved
+uniform vec4 uCubeQ,uPulse,uTransition,uSurfaceContact; // wet film, slime film, floor contact, sliding intensity
 // Scale, elevation, portal charge and local animation clock. Neutral: (1,0,0,0).
 float cubeScale(){return max(uTransition.x,.001);}
 vec3 cubeCenter(){return vec3(uCube.x,.255+uCubeY+uTransition.y,uCube.y);}
@@ -21,6 +21,9 @@ uniform vec4 uLook;
 ${uniforms('uObs',6)}
 ${uniforms('uZone',8)}
 ${uniforms('uZoneFlow',8)} // normalized current x/z and physical speed for EACH sand patch
+${uniforms('uZoneShape',8)} // half width, half depth, corner radius, authored angle
+${uniforms('uZoneBasis',8)} // precomputed cosine, sine, reserved, reserved
+${uniforms('uZoneMotion',8)} // jump compression, velocity, sphere radius, sphere centre Y
 ${uniforms('uRamp',3)}
 ${uniforms('uRampMeta',3)}
 ${uniforms('uPlat',4)}
@@ -90,7 +93,23 @@ float sdCyl(vec3 p,float r,float h){vec2 d=abs(vec2(length(p.xz),p.y))-vec2(r,h)
 float sdRing(vec3 p){vec2 q=vec2(abs(length(p.xz)-.45)-.065,abs(p.y)-.018);return min(max(q.x,q.y),0.)+length(max(q,0.));}
 vec2 opU(vec2 a,vec2 b){return b.x<a.x?b:a;}
 vec2 obstacle(vec3 p,vec4 o){if(o.z<=.001)return vec2(100,0);return vec2(sdRoundBox(p-vec3(o.x,.245,o.y),vec3(o.z*.5,.245,o.w*.5),.045),8.);}
-vec2 zoneObj(vec3 p,vec4 z){if(z.w<.5)return vec2(100,0);return vec2(sdCyl(p-vec3(z.x,.016,z.y),z.z,.012),15.+z.w);}
+vec3 zoneDimensions(vec4 z,vec4 shape){return shape.xyz+vec3(z.z)*(1.-step(.0001,shape.x));}
+vec2 zoneRotation(vec4 basis){return basis.xy+vec2(1,0)*(1.-step(.5,dot(basis.xy,basis.xy)));}
+vec2 zoneLocal(vec2 p,vec2 basis){return vec2(dot(p,basis),dot(p,vec2(-basis.y,basis.x)));}
+float sdZoneFootprint(vec2 p,vec3 shape){vec2 d=abs(p)-shape.xy+shape.z;return length(max(d,0.))+min(max(d.x,d.y),0.)-shape.z;}
+float zonePlate(vec3 p,vec3 shape,vec2 basis){vec2 d=vec2(sdZoneFootprint(zoneLocal(p.xz,basis),shape),abs(p.y)-.012);return min(max(d.x,d.y),0.)+length(max(d,0.));}
+float jumpCap(vec3 p,float footprintRadius,vec4 motion){
+  float legacy=1.-step(.001,motion.z),radius=motion.z+legacy*(footprintRadius*footprintRadius/ .28+.07);
+  float centre=motion.w+legacy*(.152-radius);
+  return max(length(vec3(p.x,p.y+.016-centre,p.z))-radius,centre+radius-.14*(1.-motion.x)-.016-p.y);
+}
+float zoneBase(vec4 motion,float type){return type>4.5&&motion.z>.001?motion.w+motion.z-.14*(1.-motion.x)-.012:0.;}
+vec2 zoneObj(vec3 p,vec4 z,vec4 shape,vec4 basis,vec4 motion){
+  if(z.w<.5)return vec2(100,0);
+  vec3 local=p-vec3(z.x,.016,z.y),size=zoneDimensions(z,shape);
+  float d=z.w>4.5?jumpCap(local,size.x,motion):zonePlate(local,size,zoneRotation(basis));
+  return vec2(d,15.+z.w);
+}
 // Bounded affine squash keeps the base planted. Zero compression is EXACTLY the
 // authored cylinder; no ambient wobble or radius change alters resting contacts.
 float jellyDistance(vec3 p,vec3 extent,float compression,vec4 warp){
@@ -126,7 +145,7 @@ vec2 mapScene(vec3 p){
   r=opU(r,vec2(sdRoundBox(p-vec3(0,3.095,-1.65),vec3(1.95,.025,.032),.012),13.));
   r=opU(r,vec2(sdRoundBox(p-vec3(-1.95,3.095,-.40),vec3(.032,.025,1.30),.012),13.));
   r=opU(r,vec2(sdRoundBox(p-vec3(1.95,3.095,-.40),vec3(.032,.025,1.30),.012),13.));
-  ${objects(8,i=>`zoneObj(p,uZone${i})`)}
+  ${objects(8,i=>`zoneObj(p,uZone${i},uZoneShape${i},uZoneBasis${i},uZoneMotion${i})`)}
   ${objects(3,i=>`rampObj(p,uRamp${i},uRampMeta${i})`,1921)}
   ${objects(4,i=>`platformObj(p,uPlat${i},uPlatMeta${i})`,1911)}
   if(uTargetType<3.5){vec3 tp=p-vec3(uTarget.x,.035+uTargetY,uTarget.y);float d=uTargetType<2.5?sdCyl(tp,.49,.020):sdRing(tp);r=opU(r,vec2(d,9.+uTargetType));}
@@ -140,7 +159,16 @@ vec2 mapScene(vec3 p){
   if(!includeSceneCandidate(700.)||uTransition.x<.008)return r;
   return opU(r,vec2(sdRoundBox(cp,vec3(.245)*cubeScale(),.038*cubeScale()),7.));
 }
-vec3 normalAt(vec3 p){vec2 e=vec2(.0022,0.);return normalize(vec3(mapScene(p+e.xyy).x-mapScene(p-e.xyy).x,mapScene(p+e.yxy).x-mapScene(p-e.yxy).x,mapScene(p+e.yyx).x-mapScene(p-e.yyx).x));}
+vec3 normalAt(vec3 p){
+  // The same six central differences, with one scene-call site rather than six
+  // cloned copies of all shaped zones in WebGL 1's HLSL compiler.
+  vec3 gradient=vec3(0);
+  for(int i=0;i<6;i++){
+    vec3 axis=i<2?vec3(1,0,0):(i<4?vec3(0,1,0):vec3(0,0,1));
+    float side=mod(float(i),2.)<.5?1.:-1.;gradient+=axis*side*mapScene(p+axis*(side*.0022)).x;
+  }
+  return normalize(gradient);
+}
 
 // mapScene remains the collision envelope; primary rays refine its visible surface below.
 vec3 cubeLocal(vec3 p){return qrot(vec4(-uCubeQ.xyz,uCubeQ.w),p-cubeCenter());}
@@ -188,8 +216,8 @@ vec3 portalEnergy(vec3 p,vec3 rd){
 }
 // Authored materials. Relief refines visual hits; mapScene keeps the original envelope.
 // A compact response vector: metal coverage, coat weight, coat roughness, cloth sheen.
-#define MAT_ARGS float m,vec3 p,vec3 n,vec3 extent,float seed,vec3 worldPoint,inout vec3 albedo,inout float rough,inout float spec,inout vec3 emit,inout vec4 layers,inout vec3 relief
-#define MAT_PASS m,q,ng,extent,seed,p,albedo,rough,spec,emit,layers,relief
+#define MAT_ARGS float m,vec3 p,vec3 n,vec3 extent,float seed,vec3 worldPoint,vec3 zoneEdge,inout vec3 albedo,inout float rough,inout float spec,inout vec3 emit,inout vec4 layers,inout vec3 relief
+#define MAT_PASS m,q,ng,extent,seed,p,edge,albedo,rough,spec,emit,layers,relief
 
 // Box-filter a periodic line analytically. Unresolved lines retain their mean coverage.
 float stripeIntegral(float x,float duty){return floor(x)*duty+min(fract(x),duty);}
@@ -235,6 +263,16 @@ float edgeMask(vec3 p,vec3 extent){
   float second=d.x+d.y+d.z-min(d.x,min(d.y,d.z))-max(d.x,max(d.y,d.z));
   return smoothstep(.78,.98,second);
 }
+// A branch-free slot selection lets all shaped zones share one distance call.
+// Dynamic indexing of individually named uniforms is unavailable in WebGL 1.
+void zoneSlot(float slot,out vec4 zone,out vec4 shape,out vec4 basis,out vec4 motion){
+  vec4 a=vec4(1)-step(vec4(.5),abs(vec4(slot)-vec4(0,1,2,3)));
+  vec4 b=vec4(1)-step(vec4(.5),abs(vec4(slot)-vec4(4,5,6,7)));
+  zone=uZone0*a.x+uZone1*a.y+uZone2*a.z+uZone3*a.w+uZone4*b.x+uZone5*b.y+uZone6*b.z+uZone7*b.w;
+  shape=uZoneShape0*a.x+uZoneShape1*a.y+uZoneShape2*a.z+uZoneShape3*a.w+uZoneShape4*b.x+uZoneShape5*b.y+uZoneShape6*b.z+uZoneShape7*b.w;
+  basis=uZoneBasis0*a.x+uZoneBasis1*a.y+uZoneBasis2*a.z+uZoneBasis3*a.w+uZoneBasis4*b.x+uZoneBasis5*b.y+uZoneBasis6*b.z+uZoneBasis7*b.w;
+  motion=uZoneMotion0*a.x+uZoneMotion1*a.y+uZoneMotion2*a.z+uZoneMotion3*a.w+uZoneMotion4*b.x+uZoneMotion5*b.y+uZoneMotion6*b.z+uZoneMotion7*b.w;
+}
 // Select the existing uniform slot only AFTER a hit. Slot seeds do not change as it moves.
 void materialCoordinates(float m,vec3 p,out vec3 q,out vec3 extent,out float seed){
   // Primary shading reuses the chosen instance even after secondary-ray exclusions
@@ -258,14 +296,14 @@ void materialCoordinates(float m,vec3 p,out vec3 q,out vec3 extent,out float see
     if(includeCandidate(1922.)&&uRamp1.z>.001){d=abs(rampObj(p,uRamp1,uRampMeta1).x);if(d<best){best=d;q=p-vec3(uRamp1.x,(uRampMeta1.x+uRampMeta1.w)*.5,uRamp1.y);extent=vec3(uRamp1.z*.5,(uRampMeta1.x-uRampMeta1.w)*.5,uRamp1.w*.5);seed=22.;}}
     if(includeCandidate(1923.)&&uRamp2.z>.001){d=abs(rampObj(p,uRamp2,uRampMeta2).x);if(d<best){best=d;q=p-vec3(uRamp2.x,(uRampMeta2.x+uRampMeta2.w)*.5,uRamp2.y);extent=vec3(uRamp2.z*.5,(uRampMeta2.x-uRampMeta2.w)*.5,uRamp2.w*.5);seed=23.;}}
   }else if((m>15.5&&m<18.5)||(m>19.5&&m<20.5)){
-    if(includeCandidate((15.+uZone0.w)*100.+31.)&&uZone0.w>.5&&abs(15.+uZone0.w-m)<.25){d=abs(zoneObj(p,uZone0).x);if(d<best){best=d;q=p-vec3(uZone0.x,.016,uZone0.y);extent=vec3(uZone0.z,.012,uZone0.z);seed=31.;}}
-    if(includeCandidate((15.+uZone1.w)*100.+32.)&&uZone1.w>.5&&abs(15.+uZone1.w-m)<.25){d=abs(zoneObj(p,uZone1).x);if(d<best){best=d;q=p-vec3(uZone1.x,.016,uZone1.y);extent=vec3(uZone1.z,.012,uZone1.z);seed=32.;}}
-    if(includeCandidate((15.+uZone2.w)*100.+33.)&&uZone2.w>.5&&abs(15.+uZone2.w-m)<.25){d=abs(zoneObj(p,uZone2).x);if(d<best){best=d;q=p-vec3(uZone2.x,.016,uZone2.y);extent=vec3(uZone2.z,.012,uZone2.z);seed=33.;}}
-    if(includeCandidate((15.+uZone3.w)*100.+34.)&&uZone3.w>.5&&abs(15.+uZone3.w-m)<.25){d=abs(zoneObj(p,uZone3).x);if(d<best){best=d;q=p-vec3(uZone3.x,.016,uZone3.y);extent=vec3(uZone3.z,.012,uZone3.z);seed=34.;}}
-    if(includeCandidate((15.+uZone4.w)*100.+35.)&&uZone4.w>.5&&abs(15.+uZone4.w-m)<.25){d=abs(zoneObj(p,uZone4).x);if(d<best){best=d;q=p-vec3(uZone4.x,.016,uZone4.y);extent=vec3(uZone4.z,.012,uZone4.z);seed=35.;}}
-    if(includeCandidate((15.+uZone5.w)*100.+36.)&&uZone5.w>.5&&abs(15.+uZone5.w-m)<.25){d=abs(zoneObj(p,uZone5).x);if(d<best){best=d;q=p-vec3(uZone5.x,.016,uZone5.y);extent=vec3(uZone5.z,.012,uZone5.z);seed=36.;}}
-    if(includeCandidate((15.+uZone6.w)*100.+37.)&&uZone6.w>.5&&abs(15.+uZone6.w-m)<.25){d=abs(zoneObj(p,uZone6).x);if(d<best){best=d;q=p-vec3(uZone6.x,.016,uZone6.y);extent=vec3(uZone6.z,.012,uZone6.z);seed=37.;}}
-    if(includeCandidate((15.+uZone7.w)*100.+38.)&&uZone7.w>.5&&abs(15.+uZone7.w-m)<.25){d=abs(zoneObj(p,uZone7).x);if(d<best){best=d;q=p-vec3(uZone7.x,.016,uZone7.y);extent=vec3(uZone7.z,.012,uZone7.z);seed=38.;}}
+    for(int i=0;i<8;i++){
+      float slot=float(i),instance=31.+slot;vec4 zone,shape,basis,motion;
+      zoneSlot(slot,zone,shape,basis,motion);
+      if(includeCandidate((15.+zone.w)*100.+instance)&&zone.w>.5&&abs(15.+zone.w-m)<.25){
+        d=abs(zoneObj(p,zone,shape,basis,motion).x);
+        if(d<best){best=d;q=p-vec3(zone.x,.016+zoneBase(motion,zone.w),zone.y);vec3 size=zoneDimensions(zone,shape);extent=vec3(size.x,.012,size.y);seed=instance;}
+      }
+    }
   }else if(m>21.5){
     if(includeCandidate(2241.)&&uBump0.z>.01){d=abs(bumperObj(p,uBump0,uBumpFx0,uBumpWarp0).x);if(d<best){best=d;float h=max(uBump0.w,.34);q=p-vec3(uBump0.x,h*.5,uBump0.y);extent=vec3(uBump0.z,h*.5,uBump0.z);seed=41.;}}
     if(includeCandidate(2242.)&&uBump1.z>.01){d=abs(bumperObj(p,uBump1,uBumpFx1,uBumpWarp1).x);if(d<best){best=d;float h=max(uBump1.w,.34);q=p-vec3(uBump1.x,h*.5,uBump1.y);extent=vec3(uBump1.z,h*.5,uBump1.z);seed=42.;}}
@@ -290,6 +328,16 @@ vec4 zoneFlow(float seed){
     uZoneFlow5*(1.-step(.5,abs(seed-36.)))+
     uZoneFlow6*(1.-step(.5,abs(seed-37.)))+
     uZoneFlow7*(1.-step(.5,abs(seed-38.)));
+}
+vec4 zoneShapeAt(float seed){return uZoneShape0*(1.-step(.5,abs(seed-31.)))+uZoneShape1*(1.-step(.5,abs(seed-32.)))+uZoneShape2*(1.-step(.5,abs(seed-33.)))+uZoneShape3*(1.-step(.5,abs(seed-34.)))+uZoneShape4*(1.-step(.5,abs(seed-35.)))+uZoneShape5*(1.-step(.5,abs(seed-36.)))+uZoneShape6*(1.-step(.5,abs(seed-37.)))+uZoneShape7*(1.-step(.5,abs(seed-38.)));}
+vec4 zoneBasisAt(float seed){return uZoneBasis0*(1.-step(.5,abs(seed-31.)))+uZoneBasis1*(1.-step(.5,abs(seed-32.)))+uZoneBasis2*(1.-step(.5,abs(seed-33.)))+uZoneBasis3*(1.-step(.5,abs(seed-34.)))+uZoneBasis4*(1.-step(.5,abs(seed-35.)))+uZoneBasis5*(1.-step(.5,abs(seed-36.)))+uZoneBasis6*(1.-step(.5,abs(seed-37.)))+uZoneBasis7*(1.-step(.5,abs(seed-38.)));}
+vec4 zoneMotionAt(float seed){return uZoneMotion0*(1.-step(.5,abs(seed-31.)))+uZoneMotion1*(1.-step(.5,abs(seed-32.)))+uZoneMotion2*(1.-step(.5,abs(seed-33.)))+uZoneMotion3*(1.-step(.5,abs(seed-34.)))+uZoneMotion4*(1.-step(.5,abs(seed-35.)))+uZoneMotion5*(1.-step(.5,abs(seed-36.)))+uZoneMotion6*(1.-step(.5,abs(seed-37.)))+uZoneMotion7*(1.-step(.5,abs(seed-38.)));}
+vec3 zoneEdgeInfo(vec2 p,vec3 extent,float seed){
+  vec4 authored=zoneShapeAt(seed);vec3 shape=zoneDimensions(vec4(0,0,extent.x,0),authored);vec2 basis=zoneRotation(zoneBasisAt(seed));
+  vec2 local=zoneLocal(p,basis),d=abs(local)-shape.xy+shape.z,positive=max(d,0.);
+  vec2 cornerNormal=positive/max(length(positive),.0001),faceNormal=mix(vec2(0,1),vec2(1,0),step(d.y,d.x));
+  vec2 normal=mix(faceNormal,cornerNormal,step(.00001,dot(positive,positive)))*sign(local);
+  return vec3(-sdZoneFootprint(local,shape),basis.x*normal.x-basis.y*normal.y,basis.y*normal.x+basis.x*normal.y);
 }
 vec4 jellyState(float seed){return seed<41.5?uBumpFx0:(seed<42.5?uBumpFx1:uBumpFx2);}
 vec4 jellyWarp(float seed){return seed<41.5?uBumpWarp0:(seed<42.5?uBumpWarp1:uBumpWarp2);}
@@ -438,7 +486,11 @@ ReliefCandidate reliefCandidate(vec3 ro,vec3 rd,vec2 hit){
     if(includeCandidate(1501.)&&(!includeCandidate(1502.)||sdRoundBox(p-wall,vec3(.58,.70,.030),.045)<sdRing(p-ring))){
       center=wall;e=vec3(.58,.70,.030);c.radius=.045;c.key=1501.;
     }else{center=ring;e=vec3(.515,.018,.515);c.shape=4.;c.key=1502.;}
-  }else if((m>15.5&&m<18.5)||(m>19.5&&m<20.5))c.shape=2.;
+  }else if((m>15.5&&m<18.5)||(m>19.5&&m<20.5)){
+    vec3 shape=zoneDimensions(vec4(0,0,e.x,0),zoneShapeAt(seed));vec2 basis=zoneRotation(zoneBasisAt(seed));
+    c.shape=m>19.5?5.:6.;c.ramp=vec4(shape.z,basis,0);c.warp=zoneMotionAt(seed);
+    if(m>19.5)c.warp.w-=center.y-.016;
+  }
   else if(m>18.5&&m<19.5){
     c.radius=.018;
     if(seed>20.){
@@ -454,6 +506,8 @@ ReliefCandidate reliefCandidate(vec3 ro,vec3 rd,vec2 hit){
 }
 float candidateBaseDistance(ReliefCandidate c,vec3 p){
   if(c.material>21.5)return jellyDistance(p,c.extent,c.ramp.x,c.warp);
+  if(c.shape>5.5)return zonePlate(p,vec3(c.extent.x,c.extent.z,c.ramp.x),c.ramp.yz);
+  if(c.shape>4.5)return jumpCap(p,c.extent.x,c.warp);
   if(c.shape>3.5)return sdRing(p);
   if(c.shape>2.5)return rampObj(p+vec3(0,c.extent.y,0),vec4(0,0,c.extent.x*2.,c.extent.z*2.),c.ramp).x;
   if(c.shape>1.5)return sdCyl(p,c.extent.x,c.extent.y);
@@ -467,9 +521,15 @@ float candidateReliefDistance(ReliefCandidate c,vec3 p,out float envelope){
 }
 vec3 candidateNormal(ReliefCandidate c,float t){
   vec3 p=c.origin+c.direction*t;vec2 d=vec2(.0022,0.);
-  vec3 n=normalize(vec3(candidateBaseDistance(c,p+d.xyy)-candidateBaseDistance(c,p-d.xyy),
-    candidateBaseDistance(c,p+d.yxy)-candidateBaseDistance(c,p-d.yxy),
-    candidateBaseDistance(c,p+d.yyx)-candidateBaseDistance(c,p-d.yyx)));
+  // One primitive call site preserves all six samples without cloning every
+  // candidate shape six times in WebGL 1's shader compiler.
+  vec3 gradient=vec3(0);
+  for(int i=0;i<6;i++){
+    vec3 axis=i<2?vec3(1,0,0):(i<4?vec3(0,1,0):vec3(0,0,1));
+    float side=mod(float(i),2.)<.5?1.:-1.;
+    gradient+=axis*side*candidateBaseDistance(c,p+axis*(side*d.x));
+  }
+  vec3 n=normalize(gradient);
   return c.material>6.5&&c.material<7.5?qrot(uCubeQ,n):n;
 }
 float candidateBoxExit(ReliefCandidate c,float t){
@@ -703,7 +763,7 @@ void iceMaterial(MAT_ARGS){
   float time=effectTime(),radius=length(delta),speed=min(length(uCubeVelocity),4.);
   vec2 direction=length(uCubeVelocity)>.001?normalize(uCubeVelocity):vec2(1,0);
   float behind=-dot(delta,direction),side=dot(delta,vec2(-direction.y,direction.x));
-  float contact=uSurfaceContact.x*uSurfaceContact.z*uLook.w;
+  float contact=uSurfaceContact.x*uSurfaceContact.z*uLook.w,skid=uSurfaceContact.w;
   float wake=exp(-side*side*22.)*smoothstep(0.,.22,behind)*(1.-smoothstep(.25,1.25,behind))*contact*speed*.25;
   float ripple=sin(radius*24.-time*5.)*exp(-max(radius-.24,0.)*3.)*smoothstep(.20,.34,radius)*contact;
   // Cheap tiers retain liquid waves without expanding four hash trees per field.
@@ -714,13 +774,16 @@ void iceMaterial(MAT_ARGS){
 #else
   vec3 swell=materialNoise(uv*3.4+vec2(time*.12,-time*.08)+seed,3.4);
 #endif
-  float meniscus=1.-smoothstep(.008,.050,extent.x-length(uv));
-  albedo=mix(vec3(.095,.37,.46),vec3(.22,.59,.65),swell.x*.22+meniscus*.25);
-  albedo+=vec3(.04,.09,.10)*wake*(.5+.5*sin(behind*25.-time*6.));
-  rough=.18+.025*swell.x;spec=.32;layers.y=.68;layers.z=.18;
-  relief=vec3(swell.yz*.035,0.);
-  relief.xy+=delta/max(radius,.03)*ripple*.040+vec2(-direction.y,direction.x)*wake*sin(side*20.)*.08;
-  relief.xy+=uv/max(length(uv),.03)*meniscus*.11;
+  float meniscus=1.-smoothstep(.008,.075,zoneEdge.x);
+  float crest=smoothstep(.55,.93,sin(radius*24.-time*5.))*exp(-max(radius-.30,0.)*2.5)*contact;
+  float spread=.16+max(behind,0.)*.30,foamSide=(abs(side)-spread)*11.;
+  float foam=exp(-foamSide*foamSide)*smoothstep(0.,.20,behind)*(1.-smoothstep(.4,1.5,behind))*contact*(speed*.22+skid*.75);
+  albedo=mix(vec3(.025,.24,.37),vec3(.10,.55,.65),swell.x*.45+meniscus*.30);
+  albedo=mix(albedo,vec3(.72,.91,.93),clamp(foam*.80+crest*(speed*.10+skid*.22),0.,.8));
+  rough=.18+.015*swell.x;spec=.42;layers.y=.94;layers.z=.18;
+  relief=vec3(swell.yz*.105,0.);
+  relief.xy+=delta/max(radius,.03)*ripple*(.10+skid*.12)+vec2(-direction.y,direction.x)*wake*sin(side*20.)*.21;
+  relief.xy+=zoneEdge.yz*meniscus*.18;
 }
 void brakeMaterial(MAT_ARGS){
   vec2 uv=p.xz,world=worldPoint.xz,delta=world-uCube;
@@ -732,19 +795,23 @@ void brakeMaterial(MAT_ARGS){
 #else
   vec3 lobes=materialNoise((uv-pull)*5.2+seed+vec2(sin(time*.32)*.09,cos(time*.27)*.07),5.2);
 #endif
-  float rim=1.-smoothstep(.008,.075,extent.x-length(uv));
+  float rim=1.-smoothstep(.008,.13,zoneEdge.x);
   float radius=length(delta),separation=(radius-.28)/.11;
   float adhesion=exp(-separation*separation)*uSurfaceContact.y*uSurfaceContact.z;
   float bubble=0.;
 #if DETAIL_LEVEL >= 2
   bubble=smoothstep(.77,.88,materialNoise(uv*19.+seed,19.).x)*detailWeight(19.);
 #endif
-  albedo=mix(vec3(.25,.055,.34),vec3(.56,.17,.64),lobes.x);
-  albedo=mix(albedo,vec3(.63,.30,.68),rim*.22+bubble*.30);
-  rough=.245+.065*(1.-lobes.x);spec=.34;layers.y=.82;layers.z=.19;
-  relief=vec3(lobes.yz*.15,0.);
-  relief.xy+=uv/max(length(uv),.03)*rim*.19+delta/max(radius,.03)*adhesion*(.16+speed*.025);
-  emit=vec3(.12,.018,.15)*adhesion*.06;
+  float stretchLength=length(uStickyStretch),along=clamp(dot(delta,uStickyStretch)/max(dot(uStickyStretch,uStickyStretch),.001),0.,1.);
+  vec2 tether=delta-uStickyStretch*along;
+  float pullRidge=exp(-dot(tether,tether)*90.)*smoothstep(.04,.25,stretchLength)*uSurfaceContact.y*uSurfaceContact.z;
+  albedo=mix(vec3(.20,.014,.33),vec3(.67,.075,.83),smoothstep(.22,.78,lobes.x));
+  albedo=mix(albedo,vec3(.75,.32,.89),rim*.28+bubble*.34+pullRidge*.20);
+  rough=.205+.045*(1.-lobes.x);spec=.42;layers.y=.96;layers.z=.18;
+  relief=vec3(clamp(lobes.yz*.46,vec2(-.42),vec2(.42)),0.);
+  relief.xy+=zoneEdge.yz*rim*.29+delta/max(radius,.03)*adhesion*(.30+speed*.06);
+  relief.xy+=uStickyStretch/max(stretchLength,.04)*pullRidge*.28;
+  emit=vec3(.19,.006,.27)*(adhesion*.06+pullRidge*.035);
 }
 void boostMaterial(MAT_ARGS){
   vec4 current=zoneFlow(seed);vec2 dir=dot(current.xy,current.xy)>.01?current.xy:vec2(1,0);
@@ -761,10 +828,11 @@ void boostMaterial(MAT_ARGS){
 #endif
   vec3 grains=materialNoise(uv*31.+seed,31.);
   float ripple=.5+.5*sin(uv.x*18.+dunes.x*3.);
-  float strata=mix(.5,ripple,.20+.18*uLook.w);
-  albedo=mix(vec3(.55,.32,.12),vec3(.87,.64,.32),.35+strata*.34+(grains.x-.5)*(.12+.13*uLook.w));
+  float strata=mix(.5,ripple,.42+.33*uLook.w);
+  albedo=mix(vec3(.40,.23,.075),vec3(.94,.71,.36),.25+strata*.50+(grains.x-.5)*(.30+.35*uLook.w));
+  albedo+=vec3(.10,.075,.025)*smoothstep(.68,.88,grains.x)*uLook.w;
   rough=.79+(grains.x-.5)*.12;spec=.17;
-  vec2 slope=vec2(cos(uv.x*18.+dunes.x*3.)*.065,dunes.z*.055)+grains.yz*(.015+.025*uLook.w);
+  vec2 slope=vec2(cos(uv.x*18.+dunes.x*3.)*.16,dunes.z*.13)+grains.yz*(.035+.055*uLook.w);
   relief=vec3(dir*slope.x+crossFlow*slope.y,.001);
 }
 void platformMaterial(MAT_ARGS){
@@ -786,11 +854,14 @@ void platformMaterial(MAT_ARGS){
   if(abs(n.y)>.5&&!alongZ)relief.xy=relief.yx;
 }
 void jumpMaterial(MAT_ARGS){
-  float ring=filteredStripe(length(p.xz)-effectTime()*.065,.145,.013);
-  float hub=1.-smoothstep(.04,.17,length(p.xz));
-  albedo=vec3(.12,.77,.87);rough=.34;spec=.27;
-  emit=vec3(.025,.66,.95)*(.35+ring*.30+hub*.14);
-  relief=microRelief(p.xz,vec2(19.,19.),.008);
+  vec4 spring=zoneMotionAt(seed);float radial=length(p.xz)/max(extent.x,.01),strain=max(spring.x,0.);
+  float shoulder=smoothstep(.52,.96,radial),ribs=filteredStripe(length(p.xz),.105,.007);
+  float pulse=sin(radial*18.-effectTime()*10.)*min(abs(spring.y)*.15,1.)*uLook.w;
+  albedo=mix(vec3(.035,.34,.38),vec3(.12,.77,.80),1.-shoulder*.72);
+  albedo*=1.-ribs*.10;albedo+=vec3(.06,.13,.12)*(strain*.7+pulse*.08);
+  rough=.43;spec=.30;layers.y=.32;layers.z=.28;
+  relief=vec3(p.xz/max(length(p.xz),.03)*pulse*.035,0.);
+  emit=vec3(.015,.22,.24)*strain*.12;
 }
 void bumperMaterial(MAT_ARGS){
   vec2 uv=faceUV(p,n);vec4 jelly=jellyState(seed);
@@ -811,6 +882,7 @@ void bumperMaterial(MAT_ARGS){
 void surfaceMaterial(float m,vec3 p,vec3 geometric,out vec3 albedo,out float rough,out float spec,out vec3 emit,out vec4 layers,out vec3 normal){
   vec3 q,extent,relief=vec3(0),ng=geometric;float seed;
   materialCoordinates(m,p,q,extent,seed);
+  vec3 edge=vec3(1,0,0);if(m>15.5&&m<17.5)edge=zoneEdgeInfo(q.xz,extent,seed);
   bool cube=m>6.5&&m<7.5;
   if(cube)ng=qrot(vec4(-uCubeQ.xyz,uCubeQ.w),geometric);
   albedo=vec3(.65);rough=.65;spec=.20;emit=vec3(0);layers=vec4(0,0,.3,0);
@@ -1046,6 +1118,7 @@ vec3 shade(vec3 p,vec3 geometric,float m,vec3 rd){
   col+=direct(p,n,v,rim,vec3(1.,.86,.69),1.7,rough,f0,albedo,metallic,rimShadow,coat,coatRough,geometric);
   col+=albedo*layers.w*pow(1.-nv,4.)*roomBounce(p,geometric)*amb;
   col*=.88+.12*amb;
+  if(m>16.5&&m<17.5)col+=vec3(.19,.009,.29)*pow(1.-nv,2.)*(.55+.45*amb);
   if(m>21.5){
     // Thin-edge transmission approximation, with no extra rays or recursive refraction.
     float wrap=pow(clamp((dot(-n,normalize(ld))+.45)/1.45,0.,1.),2.);
