@@ -44,7 +44,8 @@ export function itinerary(id,p){
       go(-.7,2.7);go(1.65,2.7);goal();go(1.7,.95);go(.8,.95);wait(s=>Math.sin(s.time*.8)>.65&&Math.cos(s.time*.8)>0);go(-1.1,.95);go(-1.1,2.15);go(-1.9,2.15);go(-1.9,-.6,{y:.55});
       wait(()=>platform(1).x<-.75);board(1);goal();go(.3,-.15);go(.55,.95);go(1.1,1.15);jump(0,2);goal();go(2.7,-1.65);go(2.7,-2.65);go(0,-2.65);goal();break;
     case 42:
-      go(-.65,2.55);wait(s=>Math.sin(s.time*.8)<-.5);go(1.85,2.25);goal();go(1.95,1.55);go(1.95,-.65,{y:.55});
+      // Stage on dry floor before the gate, clear of the moving-sand rim.
+      go(-.65,2.7);wait(s=>Math.sin(s.time*.8)<-.5);go(1.85,2.25);goal();go(1.95,1.55);go(1.95,-.65,{y:.55});
       wait(()=>platform(1).x>.75);board(1);goal();ride(1,a=>a.x<-.55);go(-1.6,-.65,{y:.55});go(-2,-.65);go(-2,.8);go(-1.3,1.45);jump(0,3,{stage:[-1.3,1.45]});if(variant==='recovery'){go(-2.8,-2,{y:0});go(-2.8,.8);go(-1.3,1.45);jump(0,3,{stage:[-1.3,1.45]});}goal();goal();break;
     default:throw Error(`No itinerary for ${id}`);
   }

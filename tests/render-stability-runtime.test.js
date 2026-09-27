@@ -127,3 +127,16 @@ test('recovery warning arrives before recovery worker creation and first readine
   await new Promise(resolve=>setTimeout(resolve,0));assert.equal(warnings.length,2);assert.equal(r.recovering,false);assert.equal(phase,'paused');assert.equal(r.quality.mode,'auto');assert.deepEqual(settings,{quality:'auto'});
  }finally{r.destroy();}
 });
+
+test('worker frame carries the cube and portal presentation separately from physics',async()=>{
+ const f=fixture(),r=await WorkerRenderer.create(f.canvas,{workerFactory:f.workerFactory,quality:'low'});
+ const transition={scale:.5,lift:.3,spin:.8,energy:1,clock:.4};r.draw({...scene,transition},{});
+ const packet=f.workers[0].posts.find(p=>p.type==='frame');assert.deepEqual(packet.scene.transition,transition);assert.deepEqual(packet.scene.state,scene.state);r.destroy();
+});
+
+test('a bitmap arriving after pause notifies overlay consumers with the presented snapshot',async()=>{
+ const f=fixture(),seen=[],r=await WorkerRenderer.create(f.canvas,{workerFactory:f.workerFactory,quality:'low',onPresent:p=>seen.push(p)});seen.length=0;
+ r.draw(scene,{});r.pause();const w=f.workers[0],frame=w.posts.find(p=>p.type==='frame'),presentation={state:{time:2,cloths:[{id:'updated'}]}};
+ w.onmessage({data:{type:'frame',id:frame.id,bitmap:{width:640,height:360,close(){}},quality:{mode:'low',tier:'low',scale:1},description:'low',presentation}});
+ assert.deepEqual(seen,[presentation]);assert.strictEqual(r.presentation,presentation);assert.equal(w.posts.filter(p=>p.type==='frame').length,1,'overlay notification must not request a room draw itself');r.destroy();
+});

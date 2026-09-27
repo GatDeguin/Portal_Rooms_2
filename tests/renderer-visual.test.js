@@ -45,3 +45,13 @@ test('relief lattice is lazy, bound to sampler zero, reused between heavy tiers,
  r.setQuality('high');r.draw(engine,{});const lattice=r.reliefNoiseTexture;assert.equal(flags.textures,2);assert.equal(flags.uploads,2);assert.deepEqual(commands.uReliefNoise,[0]);
  r.setQuality('cinematic');r.draw(engine,{});assert.equal(r.reliefNoiseTexture,lattice);assert.equal(flags.textures,2);r.destroy();r.destroy();assert.equal(flags.deletedTextures.filter(t=>t===lattice).length,1);assert.equal(flags.deletedTextures.length,2);
 });
+
+test('level animation reaches the renderer without mutating physics or moving the camera',()=>{
+ const {r,commands}=fixture(),engine=new GameEngine(),before=structuredClone(engine.state);
+ const transition={scale:.5,lift:.4,spin:1,energy:.8,clock:1.2};
+ r.draw({state:engine.state,room:engine.room,target:engine.target,transition},{effects:true,dynamicCamera:false});
+ assert.deepEqual(commands.uTransition,[.5,.4,.8,1.2]);assert.notDeepEqual(commands.uCubeQ,engine.state.cube.q);
+ assert.equal(commands.uCubeY[0],0);assert.equal(commands.uTime[0],0);assert.deepEqual(engine.state,before);
+ r.draw(engine,{effects:true});assert.deepEqual(commands.uTransition,[1,0,0,0]);assert.deepEqual(commands.uCubeQ,engine.state.cube.q);
+ r.draw({state:engine.state,room:engine.room,target:engine.target,transition},{effects:false});assert.deepEqual(commands.uTransition,[1,0,0,0]);
+});

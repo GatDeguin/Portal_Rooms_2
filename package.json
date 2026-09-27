@@ -22,9 +22,12 @@
     "test:materials:webgl": "python3 tests/materials_egl.py --webgl",
     "benchmark:render": "node tests/render-benchmark.mjs",
     "test:regressions": "python3 tests/review-regressions-browser.py",
+    "test:hand-render": "node tests/hand-atelier-browser.mjs",
+    "test:transitions": "node tests/level-transition-browser.mjs",
     "test:hands": "node tests/hand-mediapipe-browser.mjs",
-    "test:audio":"python3 tests/audio-browser.py",
-    "test:hand-menu": "python3 tests/hand-menu-browser.py"
+    "test:audio": "python3 tests/audio-browser.py",
+    "test:hand-menu": "python3 tests/hand-menu-browser.py",
+    "test:living-materials": "node tests/living-materials-browser.mjs"
   },
   "engines": {
     "node": ">=22"

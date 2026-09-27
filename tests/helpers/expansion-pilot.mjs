@@ -38,9 +38,15 @@ export function playExpansion(id,{fps=60,strongGravity=true,delay=0,speed=1.35,v
     const s=engine.state,c=s.cube,dx=x-c.x,dz=z-c.z,d=Math.hypot(dx,dz),v=Math.min(maxSpeed,d*3);
     const carry=c.grounded&&c.support>=0?platform(c.support):{vx:0,vz:0};
     const desired={x:(d>1e-8?dx/d*v:0)+vx-carry.vx,z:(d>1e-8?dz/d*v:0)+vz-carry.vz};
-    const f=c.grounded?({ice:.13,brake:3.4,carpet:1.28}[s.surface]??.92):.08;
+    const f=c.grounded?({ice:.13,brake:3.4,boost:.12,carpet:1.28}[s.surface]??.92):.08;
     let ax=(desired.x-c.vx)*4+f*c.vx,az=(desired.z-c.vz)*4+f*c.vz;
-    if(c.grounded&&c.y<.12)for(const b of engine.room.zones)if(b.type===3&&Math.hypot(c.x-b.x,c.z-b.z)<=b.r){const d=Math.hypot(b.dx,b.dz);ax-=b.dx/d*4.4;az-=b.dz/d*4.4;}
+    // Feed-forward compensates a finite sand current, not the former constant 4.4 thrust.
+    // The driver still supplies only bounded input; replay validates the actual engine.
+    if(c.grounded&&c.y<.08)for(const b of engine.room.zones)if(b.type===3&&Math.hypot(c.x-b.x,c.z-b.z)<=b.r){
+      const length=Math.hypot(b.dx??1,b.dz??0),dx=length>1e-8?(b.dx??1)/length:1,dz=length>1e-8?(b.dz??0)/length:0;
+      const flow=clamp(b.flowSpeed??2.4,0,4),along=c.vx*dx+c.vz*dz,traction=Math.min(1.45,3.35/Math.max(flow,.01));
+      ax-=dx*(flow-along)*traction-(c.vx-along*dx)*2.5;az-=dz*(flow-along)*traction-(c.vz-along*dz)*2.5;
+    }
     return unit2(ax/(g*(c.grounded?1:.38)),az/(g*(c.grounded?1:.38)));
   }
   function run(label,condition,control,timeout=25){

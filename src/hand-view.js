@@ -1,4 +1,5 @@
 import {HAND_CONNECTIONS} from './hand-tracking.js';
+import {AtelierHandRenderer} from './hand-renderer.js';
 
 const dot=(a,b)=>a.reduce((sum,value,i)=>sum+value*b[i],0);
 const cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
@@ -36,14 +37,26 @@ export function handInteraction(hands,grab){
   return {kind:'searching',message:'Mostrá una mano completa frente a la cámara'};
 }
 
-/** A translucent interaction guide over the room, never a pointer/input target. */
+/** Articulated skin and room shadows, with the original guide as a loading/failure fallback. */
 export class HandView{
   constructor(canvas,feedback){this.canvas=canvas;this.feedback=feedback;this.ctx=canvas.getContext('2d');}
+  prepare(){
+    if(this.loading||this.meshView||this.meshError||this.destroyed||!globalThis.document)return;
+    this.meshCanvas=document.createElement('canvas');this.meshCanvas.className='hand-world';this.meshCanvas.hidden=true;
+    this.meshCanvas.setAttribute('aria-hidden','true');this.meshCanvas.dataset.render='atelier-v03';
+    this.canvas.before(this.meshCanvas);this.abort=new AbortController();
+    this.loading=AtelierHandRenderer.create(this.meshCanvas,{signal:this.abort.signal}).then(view=>{
+      if(this.destroyed){view.destroy();return;}this.meshView=view;
+    }).catch(error=>{if(!this.destroyed){this.meshError=error;this.meshCanvas.remove();}}).finally(()=>{this.loading=null;});
+  }
+  destroy(){this.destroyed=true;this.abort?.abort();this.meshView?.destroy();this.meshCanvas?.remove();this.clear();}
   clear(){
+    this.meshView?.clear();if(this.meshCanvas)this.meshCanvas.hidden=true;
     this.ctx?.clearRect(0,0,this.canvas.width,this.canvas.height);this.canvas.hidden=true;this.feedback.hidden=true;
   }
   render(hands,engine,settings,{enabled=false,reduced=false,message='',presentation=null}={}){
     if(!enabled||!this.ctx){this.clear();return;}
+    this.prepare();
     const width=this.canvas.clientWidth||this.canvas.parentElement.clientWidth,height=this.canvas.clientHeight||this.canvas.parentElement.clientHeight;
     if(!width||!height){this.clear();return;}
     const dpr=Math.min(globalThis.devicePixelRatio||1,2),ctx=this.ctx;
@@ -52,13 +65,21 @@ export class HandView{
     const shown=presentation?.state?presentation:{state:engine.state,settings,reduced,width,height};
     const camera=cameraForHands(shown.state,shown.settings,{width,height,reduced:shown.reduced,renderWidth:shown.width,renderHeight:shown.height});
     this.canvas.hidden=false;
-    // Far hands first. No scene depth test: the guide remains legible at walls.
+    const scene={state:shown.state,room:presentation?.room??engine.room,target:presentation?.target??engine.target};
+    const volume=this.meshView?.render(hands,camera,scene,settings,engine.handGrab)===true;
+    // A lightweight guide remains available while local assets load or GL is unavailable.
     const ordered=[...hands].sort((a,b)=>(projectPoint(b.palm,camera)?.depth??0)-(projectPoint(a.palm,camera)?.depth??0));
-    for(const hand of ordered)this.drawHand(hand,camera,{state:shown.state,handGrab:engine.handGrab});
+    for(const hand of ordered){if(!volume)this.drawHand(hand,camera,{state:shown.state,handGrab:engine.handGrab});else this.drawInteraction(hand,camera,engine.handGrab);}
     const interaction=handInteraction(hands,engine.handGrab);
-    this.feedback.dataset.state=interaction.kind;const text=hands.length?interaction.message:message||interaction.message;
+    this.feedback.dataset.state=interaction.kind;const text=(this.meshError||this.meshView?.error?'Vista simplificada · ':'')+(hands.length?interaction.message:message||interaction.message);
     if(this.feedback.textContent!==text)this.feedback.textContent=text;
     this.feedback.hidden=false;
+  }
+  drawInteraction(hand,camera,grab){
+    if(!hand.pinch.active)return;
+    const p=projectPoint(hand.pinch,camera);if(!p)return;
+    const ctx=this.ctx;ctx.save();ctx.strokeStyle=hand.id===grab?'#77efb6':'#ffd479';ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.arc(p.x,p.y,hand.id===grab?14:9,0,Math.PI*2);ctx.stroke();ctx.restore();
   }
   drawHand(hand,camera,engine){
     if(hand.joints?.length!==21)return;

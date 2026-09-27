@@ -2,6 +2,8 @@ import {CAMPAIGN_LEVELS as LEVELS,ORIGINAL_COUNT} from './campaign.js';
 import {HandGameEngine} from './hand-physics.js';
 import {HandTracking} from './hand-tracking.js';
 import {HandView} from './hand-view.js';
+import {ClothView} from './cloth-view.js';
+import {LevelTransition} from './level-transition.js';
 import {HandMenu} from './hand-menu.js';
 import {InputController} from './input.js';
 import {SaveStore} from './storage.js';
@@ -11,6 +13,7 @@ import {AudioFeedback,AUDIO_KEYS,readAudioFrame} from './audio.js';
 
 const ui=new UI(LEVELS),app=ui.el('app'),canvas=ui.el('gl');
 const handView=new HandView(ui.el('handWorld'),ui.el('handFeedback'));
+const clothView=new ClothView(app);
 const handMenu=new HandMenu({layer:ui.el('handMenuLayer'),canvas:ui.el('handMenuCanvas'),cursor:ui.el('handMenuCursor'),hint:ui.el('handMenuHint')});
 const motion=window.matchMedia('(prefers-reduced-motion: reduce)');
 let storageProblem=false,adapter=null;
@@ -22,12 +25,15 @@ handMenu.onTarget=target=>{if(target)audio.event({type:'hover'});};
 function visualPreferences(){app.classList.toggle('reduced-effects',motion.matches||store.settings.effects===false);}
 visualPreferences();
 const startupController=new AbortController();
-let phase='loading',renderer=null,input=null,hands=null,raf=0,last=0,transitionTimer=null,panelStack=[],dirty=true,sceneDrawn=false,qualityRequest=null;
+let phase='loading',renderer=null,input=null,hands=null,raf=0,last=0,panelStack=[],dirty=true,sceneDrawn=false,qualityRequest=null;
+const levelTransition=new LevelTransition();
+let pausedAnimation=null,completionPhase='victory';
+const animating=()=>phase==='transition'||phase==='completing';
 const DIALOGS={menu:'startDialog',paused:'pauseDialog',settings:'settingsDialog',selector:'levelsDialog',victory:'victoryDialog',final:'finalDialog',confirm:'confirmDialog',help:'helpDialog'};
 
 function fail(error){
   cancelQuality();renderer?.destroy();hands?.disable();
-  handView.clear();handMenu.clear();phase='error';app.dataset.phase=phase;engine.pause();input?.clear();audio.suspend();clearTimeout(transitionTimer);
+  handView.clear();clothView.clear();handMenu.clear();phase='error';app.dataset.phase=phase;engine.pause();input?.clear();audio.suspend();
   if(raf)cancelAnimationFrame(raf);raf=0;app.classList.remove('switching');ui.error(error);console.error(error);
 }
 function requestFrame(){if(!raf&&!document.hidden&&phase!=='error')raf=requestAnimationFrame(frame);}
@@ -42,32 +48,42 @@ function showPhase(next){
   ui.update(engine,store);renderer?.resize();ui.dialog(DIALOGS[next]??null);invalidate();
 }
 function pauseGame(){
-  if(phase!=='playing'&&phase!=='transition')return;
-  clearTimeout(transitionTimer);app.classList.remove('switching');panelStack=[];audio.event({type:'pause'});showPhase('paused');
+  if(phase!=='playing'&&!animating())return;
+  pausedAnimation=animating()?phase:null;
+  app.classList.remove('switching');panelStack=[];audio.event({type:'pause'});showPhase('paused');
 }
 function resume(){
-  if(phase!=='paused'||document.hidden||engine.state.solved)return;
+  if(phase!=='paused'||document.hidden||(engine.state.solved&&pausedAnimation!=='completing'))return;
   if(renderer?.recovering){ui.toast('El render se está recuperando. Esperá un momento para seguir.');return;}
-  input.clear();audio.unlock();audio.event({type:'resume'});renderer.quality.resetSamples();showPhase('playing');engine.start();last=performance.now();canvas.focus({preventScroll:true});requestFrame();
+  input.clear();audio.unlock();audio.event({type:'resume'});renderer.quality.resetSamples();
+  if(pausedAnimation){const next=pausedAnimation;pausedAnimation=null;showPhase(next);last=performance.now();requestFrame();return;}
+  showPhase('playing');engine.start();last=performance.now();canvas.focus({preventScroll:true});requestFrame();
 }
 function openPanel(panel){
-  if(phase==='loading'||phase==='error'||phase==='transition')return;
+  if(phase==='loading'||phase==='error'||animating())return;
   const previous=phase==='playing'?'paused':phase;panelStack.push(previous);showPhase(panel);
 }
 function back(){
   if(!['settings','selector','confirm','help'].includes(phase))return;
   showPhase(panelStack.pop()??'menu');
 }
+function finishLevelTransition(){
+  if(phase==='transition'){
+    levelTransition.clear();showPhase('playing');engine.start();last=performance.now();canvas.focus({preventScroll:true});requestFrame();
+  }else if(phase==='completing'){
+    showPhase(completionPhase);if(completionPhase==='final')audio.event({type:'final'});
+  }
+}
+function startLevelTransition(kind){
+  levelTransition.start(kind,{reduced:motion.matches,enabled:store.settings.effects!==false});
+  pausedAnimation=null;last=performance.now();showPhase(kind==='enter'?'transition':'completing');
+  if(levelTransition.done)finishLevelTransition();else requestFrame();
+}
 function begin(index,restart=false){
   if(renderer?.recovering){ui.toast('El render se está recuperando. Esperá un momento para seguir.');return;}
   if(!store.startAttempt(index,restart))return;
-  clearTimeout(transitionTimer);input.clear();panelStack=[];engine.settings=store.settings;engine.reset(index);audio.unlock();renderer.quality.resetSamples();
-  showPhase('transition');audio.event({type:'enter'});app.classList.add('switching');
-  const finish=()=>{
-    if(phase!=='transition'||document.hidden)return;
-    app.classList.remove('switching');showPhase('playing');engine.start();last=performance.now();canvas.focus({preventScroll:true});requestFrame();
-  };
-  if(motion.matches)finish();else transitionTimer=setTimeout(finish,180);
+  levelTransition.clear();input.clear();panelStack=[];engine.settings=store.settings;engine.reset(index);audio.unlock();renderer.quality.resetSamples();
+  audio.event({type:'enter'});startLevelTransition('enter');
 }
 function frame(now){
   raf=0;
@@ -83,15 +99,24 @@ function frame(now){
         if(event.type==='complete'){
           const result=store.complete(engine.state.level,engine.state.elapsed);ui.victory(engine,store,result);
           const final=store.progress.completed.length===LEVELS.length&&engine.state.level===LEVELS.length-1;
-          showPhase(final?'final':'victory');if(final)audio.event({type:'final'});
+          completionPhase=final?'final':'victory';startLevelTransition('exit');
         }else if(event.type==='goal'&&!engine.state.solved){ui.toast(`Paso ${engine.state.seq} activado. Buscá el siguiente objetivo.`);}
       }
       dirty=true;
     }
+    const animated=animating();
+    if(animated){
+      const ms=Math.max(0,now-last);last=now;
+      if(motion.matches||store.settings.effects===false)levelTransition.clear();else levelTransition.advance(ms);
+      dirty=true;
+      // Phase changes pause the worker queue; submit the terminal image afterward.
+      if(levelTransition.done)finishLevelTransition();else requestFrame();
+    }
     if(dirty){
-      if(!sceneDrawn||phase==='playing'||phase==='transition'){renderer.draw(engine,store.settings);sceneDrawn=true;}
+      if(!sceneDrawn||phase==='playing'||animated){renderer.draw({state:engine.state,room:engine.room,target:engine.target,transition:levelTransition.sample()},store.settings);sceneDrawn=true;}
       ui.update(engine,store);dirty=false;
     }
+    if(renderer)clothView.render({state:engine.state,room:engine.room,target:engine.target,transition:levelTransition.sample()},store.settings,{presentation:renderer.presentation,reduced:motion.matches});
     if(phase==='playing'){handView.render(hands.sample(),engine,store.settings,{enabled:hands.enabled,reduced:motion.matches,presentation:renderer.presentation,message:hands.statusKind==='active'?'':hands.statusMessage});requestFrame();}
     else if(hands?.enabled&&DIALOGS[phase]){handMenu.update(hands.sample(),ui.el(DIALOGS[phase]),now);requestFrame();}
   }catch(error){fail(error);}
@@ -104,7 +129,7 @@ async function action(name){
     case 'help':openPanel('help');break;
     case 'start-gyro':if(phase==='menu'){const permission=input.enableSensors();begin(store.progress.current);await permission;}break;
     case 'start-hands':if(phase==='menu'&&await hands.enable()&&phase==='menu'&&!document.hidden)begin(store.progress.current);break;
-    case 'pause':if(phase==='playing'||phase==='transition')pauseGame();else if(phase==='paused')resume();else back();break;
+    case 'pause':if(phase==='playing'||animating())pauseGame();else if(phase==='paused')resume();else back();break;
     case 'resume':resume();break;
     case 'restart':if(['playing','paused'].includes(phase))begin(engine.state.level,true);break;
     case 'retry':if(['victory','final'].includes(phase))begin(engine.state.level);break;
@@ -113,7 +138,7 @@ async function action(name){
     case 'levels':openPanel('selector');break;
     case 'settings':openPanel('settings');break;
     case 'back':back();break;
-    case 'menu':clearTimeout(transitionTimer);panelStack=[];showPhase('menu');break;
+    case 'menu':levelTransition.clear();pausedAnimation=null;panelStack=[];showPhase('menu');break;
     case 'gyro':if(input.sensorEnabled||input.sensorWaiting)input.recalibrate();else await input.enableSensors();break;
     case 'manual':input.disableSensors();break;
     case 'hands':await hands.enable();break;
@@ -200,12 +225,12 @@ document.addEventListener('visibilitychange',()=>{
   if(document.hidden){handMenu.clear();cancelQuality();renderer?.pause?.();pauseGame();engine.pause();input.clear();audio.suspend();if(raf)cancelAnimationFrame(raf);raf=0;}
   else{last=performance.now();renderer?.quality.resetSamples();invalidate();}
 });
-window.addEventListener('pagehide',event=>{if(phase==='loading')startupController.abort();hands?.disable();if(!event.persisted)renderer?.destroy();cancelQuality();renderer?.pause?.();pauseGame();if(raf)cancelAnimationFrame(raf);raf=0;if(event.persisted)audio.suspend();else audio.destroy();});
+window.addEventListener('pagehide',event=>{if(phase==='loading')startupController.abort();hands?.disable();if(!event.persisted)renderer?.destroy();cancelQuality();renderer?.pause?.();pauseGame();if(raf)cancelAnimationFrame(raf);raf=0;if(event.persisted)audio.suspend();else{audio.destroy();handView.destroy();clothView.destroy();}});
 window.addEventListener('pageshow',event=>{if(event.persisted&&phase==='loading'&&startupController.signal.aborted){location.reload();return;}if(phase!=='loading')invalidate();});
 motion.addEventListener?.('change',e=>{if(e.matches){store.setSettings({dynamicCamera:false});engine.settings=store.settings;}visualPreferences();ui.settings(store.settings,renderer);invalidate();});
 canvas.addEventListener('contextmenu',e=>e.preventDefault());
 try{
-  renderer=await createRenderer(canvas,{signal:startupController.signal,quality:store.settings.quality,engine,settings:store.settings,onWarning:message=>{pauseGame();ui.qualityStatus(null,message);ui.toast(message);},onContextLost:error=>fail(error??new Error('Se perdió el contexto WebGL. El progreso guardado no se elimina al recargar.'))});
+  renderer=await createRenderer(canvas,{signal:startupController.signal,quality:store.settings.quality,engine,settings:store.settings,onPresent:()=>{if(renderer)invalidate();},onWarning:message=>{pauseGame();ui.qualityStatus(null,message);ui.toast(message);},onContextLost:error=>fail(error??new Error('Se perdió el contexto WebGL. El progreso guardado no se elimina al recargar.'))});
   ui.el('loading').hidden=true;ui.sensor('manual');showPhase('menu');
   if(renderer.startupQuality)void applyQuality(renderer.startupQuality,{startup:true});
   if(renderer.warning){ui.qualityStatus(null,renderer.warning);ui.toast(renderer.warning);}

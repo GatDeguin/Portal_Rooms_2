@@ -124,7 +124,7 @@ export class AudioFeedback{
     switch(type){
       case 'impact':rack.impact(details.surface??'wood',power,pan);break;
       case 'jump':rack.sweep({from:140,to:700,duration:.48,gain:.15,pan});rack.sweep({from:900,to:3800,duration:.22,gain:.08,pan,noise:true});break;
-      case 'bumper':rack.impact('platform',.8,pan);rack.sweep({from:410,to:170,duration:.35,gain:.16,pan});break;
+      case 'bumper':rack.impact('brake',.8,pan);rack.sweep({from:230,to:72,duration:.42,gain:.13,pan});break;
       case 'goal':{
         const intervals={1:[12,19],2:[14,21],3:[17,24],4:[12,26]}[details.targetType]??[12,19];
         this.duck(.9);note(intervals[0],0,.13);note(intervals[1],.13,.09,1.15);
@@ -135,7 +135,7 @@ export class AudioFeedback{
       case 'final':this.duck(3);[12,19,24,26,31].forEach((n,i)=>note(n,i*.22,.08,2.7,'bell'));break;
       case 'grab':rack.sweep({from:150,to:320,duration:.16,gain:.075,pan});note(7,.02,.04,.28,'key');break;
       case 'release':rack.sweep({from:300,to:180,duration:.16,gain:.065,pan});break;
-      case 'surface':if(details.surface==='ice')note(26,0,.035,.7);else if(details.surface==='boost')rack.sweep({from:160,to:450,duration:.33,gain:.055,pan});else if(details.surface==='brake')rack.sweep({from:620,to:100,duration:.25,gain:.05,pan,noise:true});break;
+      case 'surface':if(details.surface==='ice')rack.sweep({from:1100,to:260,duration:.24,gain:.055,pan,noise:true});else if(details.surface==='boost')rack.sweep({from:480,to:1700,duration:.3,gain:.06,pan,noise:true});else if(details.surface==='brake')rack.sweep({from:220,to:65,duration:.3,gain:.055,pan});break;
       case 'enter':rack.sweep({from:500,to:1800,duration:.7,gain:.055,noise:true});note(12,.1,.055,1.5,'key');break;
       case 'pause':note(7,0,.035,.2,'key','ui');note(0,.08,.035,.3,'key','ui');break;
       case 'resume':note(0,0,.035,.2,'key','ui');note(7,.08,.035,.3,'key','ui');break;
