@@ -1,0 +1,120 @@
+{
+  "mode": "DOM with declared WebGL stub",
+  "browser": "154.0.4258.53",
+  "checks": [
+    {
+      "name": "entry persists attempts before presentation settles: normal",
+      "status": "passed"
+    },
+    {
+      "name": "entry persists attempts before presentation settles: reduced",
+      "status": "passed"
+    },
+    {
+      "name": "entry persists attempts before presentation settles: off",
+      "status": "passed"
+    },
+    {
+      "name": "entry persists attempts before presentation settles: unsupported",
+      "status": "passed"
+    },
+    {
+      "name": "nested panel back restores the invoking control",
+      "status": "passed"
+    },
+    {
+      "name": "filter preserves room node identity and selected content",
+      "status": "passed"
+    },
+    {
+      "name": "refreshing a retained room preserves the hand target highlight",
+      "status": "passed",
+      "fixture": "Production HandMenu highlight and DOM refresh; target supplied without webcam inference"
+    },
+    {
+      "name": "selection border changes synchronously without a second apparent selected room",
+      "status": "passed"
+    },
+    {
+      "name": "reversing modal at 0 ms discards stale presentation",
+      "status": "passed"
+    },
+    {
+      "name": "reversing modal at 90 ms discards stale presentation",
+      "status": "passed"
+    },
+    {
+      "name": "reversing modal at 175 ms discards stale presentation",
+      "status": "passed"
+    },
+    {
+      "name": "reduced motion change during animation settles immediately and can resume",
+      "status": "passed"
+    },
+    {
+      "name": "effects preference disables a pending transition without changing navigation",
+      "status": "passed"
+    },
+    {
+      "name": "20 navigation cycles keep one modal, bounded nodes and no animation or rAF leak",
+      "status": "passed",
+      "cycles": 20,
+      "beforeNodes": 479,
+      "afterNodes": 750,
+      "active": 0,
+      "raf": 0,
+      "cards": 62,
+      "returns": 1,
+      "unhandled": []
+    },
+    {
+      "name": "fast selection and filter reversal settle on latest room without duplicates",
+      "status": "passed"
+    },
+    {
+      "name": "expanding a chapter filter makes every new visible room immediately clickable",
+      "status": "passed"
+    },
+    {
+      "name": "resize and scroll during filter settle into the actual layout",
+      "status": "passed",
+      "animatedTargetsBeforeResize": [
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "11",
+        "12",
+        "13",
+        "selectedPreview"
+      ]
+    },
+    {
+      "name": "filter recovers focus if its focused room disappears",
+      "status": "passed"
+    },
+    {
+      "name": "visibility interruption clears transient motion and preserves paused state",
+      "status": "passed"
+    },
+    {
+      "name": "touch viewport, long text and CSS zoom keep controls usable",
+      "status": "passed",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "cssZoom": 1.25,
+      "longContent": "Preview briefing expanded to twelve sentences",
+      "overflow": false,
+      "scroll": true
+    },
+    {
+      "name": "victory is persisted before check animation; reduced change leaves a full check",
+      "status": "passed",
+      "fixture": "cube placed on actual target; completion event and persistence use production engine, not a traversal playtest"
+    }
+  ],
+  "errors": []
+}

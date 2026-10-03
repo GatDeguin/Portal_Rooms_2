@@ -36,6 +36,8 @@ WASD o flechas inclinan; Escape pausa, R reinicia y H muestra la pista de la sal
 
 La partida se pausa al perder foco. Los menús detienen la simulación. Movimiento reducido y efectos desactivados afectan la decoración, no el transporte ni las compuertas.
 
+Los diálogos y el selector incorporan movimiento semántico, retorno de foco y cancelación segura. La evaluación de las 16 técnicas, los contratos y la evidencia de pruebas están en [docs/MOTION-SEMANTICO.md](docs/MOTION-SEMANTICO.md). Se conservan las transiciones 3D, las manos y el catálogo de 62 salas de V.05.
+
 ## Relieve y color de materiales
 
 Alta y Cinemática incorporan relieve con silueta, intersección de mapas de profundidad procedurales y autooclusión local. Todos los perfiles incorporan variación de color interpolada en el espacio de cada objeto, equivalente a vertex paint para este renderer sin mallas. Configuración, límites y prueba WebGL: [docs/RELIEF.md](docs/RELIEF.md).

@@ -27,7 +27,9 @@
     "test:hands": "node tests/hand-mediapipe-browser.mjs",
     "test:audio": "python3 tests/audio-browser.py",
     "test:hand-menu": "python3 tests/hand-menu-browser.py",
-    "test:living-materials": "node tests/living-materials-browser.mjs"
+    "test:living-materials": "node tests/living-materials-browser.mjs",
+    "test:motion": "node tests/motion-browser.mjs",
+    "test:motion-visual": "node tests/motion-visual.mjs"
   },
   "engines": {
     "node": ">=22"

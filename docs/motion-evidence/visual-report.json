@@ -1,0 +1,147 @@
+{
+  "browser": "154.0.8037.95",
+  "renderer": "Real WebGL startup via SwiftShader; software renderer, no hardware certification",
+  "fixtures": "Victory capture uses placement on actual target; not route traversal",
+  "checks": [
+    {
+      "name": "dialog-start",
+      "time": 0,
+      "animations": [
+        {
+          "target": "settingsDialog",
+          "duration": 180,
+          "time": 0
+        }
+      ]
+    },
+    {
+      "name": "dialog-mid",
+      "time": 90,
+      "animations": [
+        {
+          "target": "settingsDialog",
+          "duration": 180,
+          "time": 90
+        }
+      ]
+    },
+    {
+      "name": "dialog-final",
+      "time": 180,
+      "animations": [
+        {
+          "target": "settingsDialog",
+          "duration": 180,
+          "time": 180
+        }
+      ]
+    },
+    {
+      "name": "filter-mid",
+      "time": 110,
+      "animations": [
+        {
+          "target": "6",
+          "duration": 220,
+          "time": 110
+        },
+        {
+          "target": "7",
+          "duration": 220,
+          "time": 110
+        },
+        {
+          "target": "8",
+          "duration": 220,
+          "time": 110
+        },
+        {
+          "target": "9",
+          "duration": 220,
+          "time": 110
+        },
+        {
+          "target": "10",
+          "duration": 220,
+          "time": 110
+        },
+        {
+          "target": "11",
+          "duration": 220,
+          "time": 110
+        },
+        {
+          "target": "12",
+          "duration": 220,
+          "time": 110
+        },
+        {
+          "target": "13",
+          "duration": 220,
+          "time": 110
+        },
+        {
+          "target": "selectedPreview",
+          "duration": 140,
+          "time": 110
+        }
+      ]
+    },
+    {
+      "name": "preview-mid",
+      "time": 70,
+      "animations": [
+        {
+          "target": "selectedPreview",
+          "duration": 140,
+          "time": 70
+        }
+      ]
+    },
+    {
+      "name": "selector-mobile",
+      "time": 0,
+      "animations": [
+        {
+          "target": "selectedPreview",
+          "duration": 140,
+          "time": 0
+        }
+      ]
+    },
+    {
+      "name": "victory-mid",
+      "time": 120,
+      "animations": [
+        {
+          "target": "victoryDialog",
+          "duration": 180,
+          "time": 120
+        },
+        {
+          "target": "path",
+          "duration": 240,
+          "time": 120
+        }
+      ]
+    },
+    {
+      "name": "victory-final",
+      "time": 240,
+      "animations": [
+        {
+          "target": "victoryDialog",
+          "duration": 180,
+          "time": 240
+        },
+        {
+          "target": "path",
+          "duration": 240,
+          "time": 240
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "externalRequests": []
+}

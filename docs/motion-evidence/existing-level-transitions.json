@@ -1,0 +1,13 @@
+{
+  "mode": "Real Chrome WebGL + real worker, deterministic presentation clock and test completion fixture",
+  "checks": [
+    "Entry animates, pauses/resumes, then starts physics from an unchanged attempt clock",
+    "A delayed real worker response cannot discard the final disappearance frame",
+    "Completion persists immediately, blocks input/time, pauses/resumes even with solved state, then shows victory",
+    "Next level has a fresh entrance; reduced motion cancels it cleanly",
+    "Wall portal and cube visibly animate; disabling effects finishes without trapping the victory flow"
+  ],
+  "errors": [],
+  "consoleErrors": [],
+  "status": "passed"
+}
