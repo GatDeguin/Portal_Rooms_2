@@ -1,0 +1,54 @@
+{
+  "date": "2026-10-03T12:51:05.819Z",
+  "baseCommit": "5358645e1c755861acc02992e16266bd4463a7a5",
+  "environment": {
+    "os": "Windows 10 x64 10.0.19045",
+    "cpu": "Intel Core i7-9700K",
+    "node": "v24.20.0",
+    "chrome": "154.0.8037.95",
+    "edge": "154.0.4258.53",
+    "playwright": "1.62.1",
+    "viewportDesktop": [
+      1280,
+      900
+    ],
+    "viewportTouch": [
+      390,
+      844
+    ]
+  },
+  "results": {
+    "unitTests": 802,
+    "unitPassed": 802,
+    "static": {
+      "modules": 40,
+      "htmlIds": 158
+    },
+    "chromeContracts": 21,
+    "edgeContracts": 21,
+    "handMenuChecks": 23,
+    "handMenuStatus": "passed",
+    "existingTransitionChecks": 5,
+    "existingTransitionStatus": "passed"
+  },
+  "source": {
+    "hashes": {
+      "src/app.js": "873ea78e5f2c74b0a9ce6f4463af62a4e93a5650d3a3dc5173e159f9ec7f383d",
+      "src/ui.js": "c83fb3577a24329606824ae8b9bcf60c1bd63ec19cbe664fa403a3c828c6ddbf",
+      "src/motion.js": "8b0bdd97277101809b05a5e9aeb7374586c3aa2dc42d559fa5cb38b932048b86",
+      "styles/game.css": "9257dc3e3dc46b521d2a1ab51e2b2af1d26bf32711377cc03792b0b1af4708d9"
+    },
+    "changedRuntimeBeforeBytes": 57595,
+    "changedRuntimeAfterBytes": 63674,
+    "deltaBytes": 6079,
+    "dependenciesAdded": 0
+  },
+  "scope": "V.05 UI port. No physics/storage/input/renderer/catalog/audio changes. GL stub for DOM contracts; real WebGL + worker for existing transitions; SwiftShader for temporal visual evidence and UI performance. Camera and inference are synthetic in hand tests.",
+  "limitations": [
+    "Physical webcam, touch device, gamepad and sensors were not tested in this port.",
+    "No hardware GPU FPS or memory certification.",
+    "Gecko, WebKit and screen readers remain unverified.",
+    "CSS zoom is a test approximation, not native text zoom.",
+    "No new Windows package or release was produced for V.05."
+  ]
+}

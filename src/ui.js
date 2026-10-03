@@ -1,13 +1,16 @@
 import {formatTime,clamp} from './math.js';
 import {CHAPTERS,ORIGINAL_COUNT,chapterForRoom,originalComplete,offerExpansion,expansionStart} from './campaign.js';
 import {previewSVG,mechanicsFor,TARGET_NAMES} from './campaign-view.js';
+import {UIMotion} from './motion.js';
 const SURFACES={wood:'Madera',carpet:'Alfombra',ice:'Agua resbaladiza',brake:'Slime pegajoso',boost:'Arena en movimiento',ramp:'Rampa',platform:'Plataforma',air:'En el aire'};
 export const SENSOR_MESSAGES={manual:'Sensores desactivados. Teclado, arrastre y stick disponibles.',active:'Inclinación activa. Recalibrá para usar otra posición cómoda.',calibrating:'Mantené el teléfono quieto un instante para calibrar.',unavailable:'Sensores no disponibles. Se requiere HTTPS y un dispositivo compatible.',denied:'Permiso no concedido. Podés seguir con los controles manuales.',timeout:'No llegaron lecturas estables. Usá los controles manuales o recalibrá.'};
 export class UI {
-  constructor(levels){this.levels=levels;this.nodes=new Map();this.dialogs=[...document.querySelectorAll('dialog')];this.lastFocus=null;
+  constructor(levels){this.levels=levels;this.nodes=new Map();this.dialogs=[...document.querySelectorAll('dialog')];this.returnFocus=new Map();this.levelCards=new Map();
+    this.motion=new UIMotion(this.el('app'));
+    for(const dialog of this.dialogs)dialog.addEventListener('scroll',()=>this.motion.cancelWithin(dialog),{passive:true});
     for(const dialog of this.dialogs)dialog.addEventListener('keydown',event=>{
       if(event.key!=='Tab')return;
-      const items=[...dialog.querySelectorAll('button:not(:disabled),input:not(:disabled),select:not(:disabled),textarea:not(:disabled),summary,a[href],[tabindex]:not([tabindex="-1"])')].filter(el=>el.getClientRects().length);
+      const items=[...dialog.querySelectorAll('button:not(:disabled),input:not(:disabled),select:not(:disabled),textarea:not(:disabled),summary,a[href],[tabindex]:not([tabindex="-1"])')].filter(el=>el.tabIndex>=0&&el.getClientRects().length);
       if(!items.length){event.preventDefault();return;}
       const first=items[0],last=items.at(-1),current=document.activeElement;
       if(event.shiftKey&&(current===first||!dialog.contains(current))){event.preventDefault();last.focus();}
@@ -20,9 +23,18 @@ export class UI {
   el(id){if(!this.nodes.has(id))this.nodes.set(id,document.getElementById(id));return this.nodes.get(id);}
   text(id,text){const node=this.el(id),value=String(text);if(node&&node.textContent!==value)node.textContent=value;}
   dialog(id){
-    const desired=id?this.el(id):null;
+    const desired=id?this.el(id):null,current=this.dialogs.find(dialog=>dialog.open);
+    if(current===desired)return;
+    const focused=document.activeElement,restore=current?this.returnFocus.get(current):null;
+    this.motion.cancelAll();
+    if(desired&&!desired.open&&!(restore&&desired.contains(restore)))this.returnFocus.set(desired,focused);
     for(const dialog of this.dialogs)if(dialog.open&&dialog!==desired)dialog.close();
-    if(desired&&!desired.open){this.lastFocus=document.activeElement;desired.showModal();desired.scrollTop=0;}
+    if(desired&&!desired.open){
+      desired.showModal();desired.scrollTop=0;
+      if(restore&&desired.contains(restore)&&!restore.disabled&&restore.getClientRects().length){restore.focus();this.returnFocus.delete(current);}
+      this.motion.enter(desired);
+      if(id==='victoryDialog')this.motion.confirm(desired.querySelector('.victory-mark path'));
+    }
   }
   toast(message){this.text('toast',message);this.el('toast').hidden=false;clearTimeout(this.toastTimer);this.toastTimer=setTimeout(()=>{this.el('toast').hidden=true;},3300);}
   handStatus(kind,message){
@@ -55,10 +67,11 @@ export class UI {
   settingsTab(key,focus=false){
     const tabs=[...document.querySelectorAll('[data-settings-tab]')];
     if(!tabs.some(tab=>tab.dataset.settingsTab===key))return;
+    const changed=tabs.find(tab=>tab.getAttribute('aria-selected')==='true')?.dataset.settingsTab!==key;
     for(const tab of tabs){
       const selected=tab.dataset.settingsTab===key;
       tab.setAttribute('aria-selected',String(selected));tab.tabIndex=selected?0:-1;
-      const panel=this.el(tab.getAttribute('aria-controls'));if(panel)panel.hidden=!selected;
+      const panel=this.el(tab.getAttribute('aria-controls'));if(panel){if(!selected)this.motion.cancelWithin(panel);panel.hidden=!selected;if(selected&&changed)this.motion.reveal(panel);}
       if(selected&&focus)tab.focus();
     }
   }
@@ -107,7 +120,8 @@ export class UI {
     }
   }
   levelsGrid(store){
-    const grid=this.el('levelGrid'),p=store.progress,tabs=this.el('chapterTabs');grid.replaceChildren();
+    const grid=this.el('levelGrid'),p=store.progress,tabs=this.el('chapterTabs'),focused=document.activeElement;
+    const before=this.motion.capture(grid.children);this.motion.cancelWithin(grid);
     if(!tabs.childElementCount){
       for(const c of [{id:0,roman:'Todas',name:'Todas las salas'},...CHAPTERS]){
         const button=document.createElement('button');button.dataset.chapter=c.id;button.textContent=c.id?`${c.roman} · ${c.name}`:c.roman;button.type='button';tabs.append(button);
@@ -117,26 +131,36 @@ export class UI {
     const list=this.levels.map((l,i)=>({l,i})).filter(({l})=>!this.chapterFilter||chapterForRoom(l.id).id===this.chapterFilter);
     this.text('levelsSummary',`${p.completed.length} de ${this.levels.length} completadas · ${p.unlocked} desbloqueadas · ${list.length} en esta vista.`);
     if(!list.some(({i})=>i===this.previewIndex))this.previewIndex=list.some(({i})=>i===p.current)?p.current:list[0]?.i??0;
+    const cards=[];
     for(const {l:level,i} of list){
-      const button=document.createElement('button');button.className='level-card';button.dataset.previewRoom=i;button.type='button';
-      const locked=i>=p.unlocked;if(locked)button.classList.add('locked');if(p.completed.includes(i))button.classList.add('completed');
+      let button=this.levelCards.get(i);
+      if(!button){button=document.createElement('button');button.dataset.previewRoom=i;button.type='button';this.levelCards.set(i,button);}
+      button.classList.add('level-card');
+      const locked=i>=p.unlocked;button.classList.toggle('locked',locked);button.classList.toggle('completed',p.completed.includes(i));
       const number=document.createElement('span');number.className='level-number';number.textContent=String(i+1).padStart(2,'0')+(p.completed.includes(i)?' ✓':'');
       const name=document.createElement('span');name.className='level-name';name.textContent=level.name;
       const record=document.createElement('span');record.className='level-record';record.textContent=locked?'Bloqueada · ver plano':p.bestTimes[i]===null?'Sin récord':formatTime(p.bestTimes[i]);
-      button.append(number,name,record);button.setAttribute('aria-label',`Ver sala ${i+1}: ${level.name}. ${record.textContent}`);grid.append(button);
+      button.replaceChildren(number,name,record);button.setAttribute('aria-label',`Ver sala ${i+1}: ${level.name}. ${record.textContent}`);cards.push(button);
     }
+    grid.replaceChildren(...cards);
+    if(grid.contains(focused))focused.focus({preventScroll:true});
+    else if(focused?.matches('[data-preview-room]'))tabs.querySelector('[aria-pressed="true"]')?.focus({preventScroll:true});
+    this.motion.layout(before,cards);
     this.previewRoom(this.previewIndex,store);
   }
   previewRoom(index,store){
     if(!Number.isInteger(index)||index<0||index>=this.levels.length)return;
     this.previewIndex=index;const room=this.levels[index],chapter=chapterForRoom(room.id),locked=index>=store.progress.unlocked;
     for(const card of this.el('levelGrid').children){const selected=Number(card.dataset.previewRoom)===index;card.classList.toggle('selected',selected);card.setAttribute('aria-pressed',String(selected));}
+    const key=`${index}:${store.progress.unlocked}:${store.progress.bestTimes[index]}`;
+    if(key===this.previewKey)return;this.previewKey=key;
     this.text('previewChapter',`${chapter.roman} · ${chapter.name}`);this.text('previewNumber',String(room.id).padStart(2,'0'));
     this.text('previewTitle',room.name);this.text('previewBriefing',room.objective);this.text('previewMechanics',mechanicsFor(room).join(' · '));
     this.text('previewRecord',store.progress.bestTimes[index]===null?'Sin récord personal':`Tu mejor marca: ${formatTime(store.progress.bestTimes[index])}`);
     this.text('previewLocked',locked?`Completá la sala ${index} para desbloquearla.`:room.lesson??room.hint);
     this.el('previewPlayBtn').disabled=locked;this.text('previewPlayBtn',locked?'Sala bloqueada':`Entrar a la sala ${String(room.id).padStart(2,'0')} →`);
     this.el('selectedPreview').innerHTML=previewSVG(room,{prefix:'selected'});
+    if(this.el('levelsDialog').open)this.motion.reveal(this.el('selectedPreview'));
   }
   victory(engine,store,result){
     const s=engine.state,p=store.progress,i=s.level;

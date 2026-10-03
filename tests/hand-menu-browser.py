@@ -4,7 +4,7 @@ WebGL, model inference and camera are explicit test adapters; no physical webcam
 """
 import json,os
 from playwright.sync_api import sync_playwright
-from browser import ROOT,load_page,INSTRUMENT
+from browser import ROOT,load_page,INSTRUMENT,STUB
 OUT=ROOT/'test-results'/'hand-menu'
 SETUP=r"""async()=>{
  const {HandTracking}=await import('portal/hand-tracking.js');const enable=HandTracking.prototype.enable;
@@ -23,7 +23,7 @@ SETUP=r"""async()=>{
  window.__aim=(selector,pressed=false)=>{const r=document.querySelector(selector).getBoundingClientRect();__aimPoint(r.x+r.width/2,r.y+r.height/2,pressed);};
 }"""
 def main():
- OUT.mkdir(parents=True,exist_ok=True);checks=[];errors=[];report={'mode':'Real tracking processor and DOM; synthetic inference/camera, WebGL stub','checks':checks,'errors':errors}
+ OUT.mkdir(parents=True,exist_ok=True);checks=[];errors=[];report={'mode':'Real tracking processor and DOM; synthetic inference/camera, WebGL stub','motion':os.environ.get('HAND_MENU_MOTION_MODE','reduce'),'checks':checks,'errors':errors}
  def check(name,ok=True):assert ok,name;checks.append(name);print('PASS',name,flush=True)
  def phase(page,value):page.wait_for_function('(p)=>document.getElementById("app").dataset.phase===p',arg=value)
  def aim(page,selector,pressed=False):page.evaluate('([s,p])=>__aim(s,p)',[selector,pressed])
@@ -34,8 +34,12 @@ def main():
  try:
   with sync_playwright() as p:
    browser=p.chromium.launch(executable_path=os.environ.get('CHROMIUM_PATH','/usr/bin/chromium'),headless=True,args=['--disable-gpu','--disable-software-rasterizer'])
-   page=browser.new_page(viewport={'width':1100,'height':800},reduced_motion='reduce');page.on('pageerror',lambda e:errors.append(str(e)))
-   load_page(page,True);phase(page,'menu');page.evaluate(INSTRUMENT);page.evaluate(SETUP)
+   page=browser.new_page(viewport={'width':1100,'height':800},reduced_motion=os.environ.get('HAND_MENU_MOTION_MODE','reduce'));page.on('pageerror',lambda e:errors.append(str(e)))
+   url=os.environ.get('PORTAL_TEST_URL')
+   if url:
+    page.add_init_script(STUB+'\nwindow.Worker=undefined;');page.goto(url)
+   else:load_page(page,True)
+   phase(page,'menu');page.evaluate(INSTRUMENT.replace('portal/','/src/') if url else INSTRUMENT);page.evaluate(SETUP.replace('portal/','/src/') if url else SETUP)
    page.locator('#startHandsBtn').click();phase(page,'playing');page.wait_for_function('Boolean(window.__engine)');page.evaluate('__tracker.baseline={scale:.14,y:.69}')
    page.keyboard.press('Escape');phase(page,'paused');aim(page,'#resumeBtn');page.wait_for_timeout(500)
    check('hand cursor remains visible over the native pause dialog',page.locator('#handMenuCursor').is_visible())

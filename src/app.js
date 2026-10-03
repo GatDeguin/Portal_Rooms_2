@@ -22,7 +22,7 @@ const store=new SaveStore(adapter,LEVELS.length,motion.matches,()=>{storageProbl
 const engine=new HandGameEngine(LEVELS,store.settings);engine.reset(store.progress.current);
 const audio=new AudioFeedback(()=>store.settings);
 handMenu.onTarget=target=>{if(target)audio.event({type:'hover'});};
-function visualPreferences(){app.classList.toggle('reduced-effects',motion.matches||store.settings.effects===false);}
+function visualPreferences(){app.classList.toggle('reduced-effects',motion.matches||store.settings.effects===false);ui.motion.configure({reduced:motion.matches,enabled:store.settings.effects!==false});}
 visualPreferences();
 const startupController=new AbortController();
 let phase='loading',renderer=null,input=null,hands=null,raf=0,last=0,panelStack=[],dirty=true,sceneDrawn=false,qualityRequest=null;
@@ -219,13 +219,13 @@ document.addEventListener('keydown',e=>{
   const next=e.key==='ArrowRight'?(index+1)%tabs.length:e.key==='ArrowLeft'?(index+tabs.length-1)%tabs.length:e.key==='Home'?0:e.key==='End'?tabs.length-1:-1;
   if(next>=0){e.preventDefault();e.stopPropagation();ui.settingsTab(tabs[next].dataset.settingsTab,true);}
 });
-window.addEventListener('resize',()=>{if(renderer&&!renderer.lost){renderer.resize();invalidate();}});
+window.addEventListener('resize',()=>{ui.motion.cancelAll();if(renderer&&!renderer.lost){renderer.resize();invalidate();}});
 window.addEventListener('blur',()=>{handMenu.clear();input.clear();pauseGame();audio.suspend();});
 document.addEventListener('visibilitychange',()=>{
-  if(document.hidden){handMenu.clear();cancelQuality();renderer?.pause?.();pauseGame();engine.pause();input.clear();audio.suspend();if(raf)cancelAnimationFrame(raf);raf=0;}
+  if(document.hidden){ui.motion.cancelAll();handMenu.clear();cancelQuality();renderer?.pause?.();pauseGame();engine.pause();input.clear();audio.suspend();if(raf)cancelAnimationFrame(raf);raf=0;}
   else{last=performance.now();renderer?.quality.resetSamples();invalidate();}
 });
-window.addEventListener('pagehide',event=>{if(phase==='loading')startupController.abort();hands?.disable();if(!event.persisted)renderer?.destroy();cancelQuality();renderer?.pause?.();pauseGame();if(raf)cancelAnimationFrame(raf);raf=0;if(event.persisted)audio.suspend();else{audio.destroy();handView.destroy();clothView.destroy();}});
+window.addEventListener('pagehide',event=>{ui.motion.cancelAll();if(phase==='loading')startupController.abort();hands?.disable();if(!event.persisted)renderer?.destroy();cancelQuality();renderer?.pause?.();pauseGame();if(raf)cancelAnimationFrame(raf);raf=0;if(event.persisted)audio.suspend();else{audio.destroy();handView.destroy();clothView.destroy();}});
 window.addEventListener('pageshow',event=>{if(event.persisted&&phase==='loading'&&startupController.signal.aborted){location.reload();return;}if(phase!=='loading')invalidate();});
 motion.addEventListener?.('change',e=>{if(e.matches){store.setSettings({dynamicCamera:false});engine.settings=store.settings;}visualPreferences();ui.settings(store.settings,renderer);invalidate();});
 canvas.addEventListener('contextmenu',e=>e.preventDefault());

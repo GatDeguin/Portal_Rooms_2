@@ -1,0 +1,31 @@
+{
+  "mode": "Real tracking processor and DOM; synthetic inference/camera, WebGL stub",
+  "motion": "no-preference",
+  "checks": [
+    "hand cursor remains visible over the native pause dialog",
+    "hand target is highlighted",
+    "the cursor is in the top layer above the modal",
+    "menus keep tracking without advancing physics or redrawing the room",
+    "pinch resumes gameplay and removes menu cursor",
+    "a held gameplay pinch cannot dismiss level completion",
+    "pinch on Next starts exactly the next level",
+    "holding the pinch does not skip another level",
+    "cursor follows the newly opened dialog",
+    "pinch toggles a setting exactly once",
+    "held pinch does not toggle it back",
+    "holding a pinch drags a range setting",
+    "pinch can choose the next graphics setting",
+    "fullscreen explains its physical-click requirement instead of dispatching a failing gesture",
+    "lost tracking removes the pointer and button highlight",
+    "a returning closed pinch cannot resume by itself",
+    "regaining focus with a held pinch cannot click a menu",
+    "held pinch cannot confirm destructive reset in a new dialog",
+    "all chapter filters fit horizontally for hand navigation",
+    "a pinch can select the last chapter on mobile",
+    "edge scrolling continues past controls in a tall mobile menu",
+    "disabling the camera removes gesture controls",
+    "no uncaught browser errors"
+  ],
+  "errors": [],
+  "status": "passed"
+}
