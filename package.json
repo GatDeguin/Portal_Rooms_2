@@ -29,9 +29,15 @@
     "test:hand-menu": "python3 tests/hand-menu-browser.py",
     "test:living-materials": "node tests/living-materials-browser.mjs",
     "test:motion": "node tests/motion-browser.mjs",
-    "test:motion-visual": "node tests/motion-visual.mjs"
+    "test:motion-visual": "node tests/motion-visual.mjs",
+    "build:shaders": "node scripts/build-webgpu.mjs",
+    "test:photoreal": "node tests/photoreal-browser.mjs",
+    "test:photo-journey": "node tests/photo-journey-browser.mjs"
   },
   "engines": {
     "node": ">=22"
+  },
+  "devDependencies": {
+    "naga-wasi-cli": "0.1.0"
   }
 }

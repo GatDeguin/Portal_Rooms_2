@@ -35,6 +35,6 @@ test('the output has stable grain, filtered detail and physically inspired shadi
   assert.match(s,/aces\(/);assert.doesNotMatch(s,/#version 300/);
 });
 test('the cinematic option is presented honestly',()=>{
-  const html=readFileSync(new URL('../index.html',import.meta.url),'utf8');assert.match(html,/<option value="cinematic">Cinemática<\/option>/);
+  const html=readFileSync(new URL('../index.html',import.meta.url),'utf8');assert.match(html,/<option value="cinematic">Ultra<\/option>/);
   assert.doesNotMatch(html,/DLSS.*activad/i);
 });

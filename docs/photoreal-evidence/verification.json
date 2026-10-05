@@ -1,0 +1,45 @@
+{
+  "base": "da3384b2a50453bc5cecb2eca41a3ae35aad4a87",
+  "shaderSource": "71466ed473653419ae978e5ea661394fcc4a68c8147fdf8150bc21ec3277b938",
+  "unit": {
+    "command": "npm test",
+    "passed": 819,
+    "failed": 0,
+    "cancelled": 0,
+    "skipped": 0
+  },
+  "static": {
+    "command": "npm run check",
+    "modules": 47,
+    "uniqueIds": 161
+  },
+  "http": {
+    "command": "python scripts/verify-static.py",
+    "files": 56,
+    "byteEquality": true
+  },
+  "build": {
+    "command": "npm run build:shaders",
+    "variants": 6,
+    "bytes": 1645044,
+    "compilerWasmBytes": 2186871,
+    "format": "Naga output trailing attribute spaces stripped; shader tokens unchanged."
+  },
+  "motionDOM": {
+    "chrome": {
+      "browser": "154.0.8037.95",
+      "mode": "DOM with declared WebGL stub",
+      "passed": 22,
+      "failed": 0,
+      "errors": []
+    },
+    "edge": {
+      "browser": "154.0.4258.53",
+      "mode": "DOM with declared WebGL stub",
+      "passed": 22,
+      "failed": 0,
+      "errors": []
+    }
+  },
+  "scope": "CPU and static checks are distinct from real renderer benchmarks and journeys. Earlier Edge DOM runs had intermittent startup timeouts; the final full 22-check repeat passed. Startup diagnostics were added without raising the deadline."
+}

@@ -13,7 +13,13 @@ class WorkerSession {
     this.disposed=false;this.ready=false;this.busy=false;this.serial=0;
     this.worker.onmessage=({data})=>{
       if(this.disposed){data.bitmap?.close();return;}
+      if(data.type==='photo-frame'){
+        const photo=this.photoRequest;if(!photo||data.photoId!==photo.id){data.bitmap?.close();return;}
+        photo.arm();try{this.onFrame(this,data);photo.onProgress?.(data.photoCount);if(data.photoDone)photo.finish();}catch(error){photo.finish(error);}return;
+      }
+      if(data.type==='photo-cancelled'){if(this.photoRequest?.id===data.photoId)this.photoRequest.finish(abortError());return;}
       if(data.type==='promotion'){this.proposedTier=data.tier;if(this.ready)this.onPromotion?.(this,data.tier);return;}
+      if(data.type==='backend-fallback'){if(!this.ready&&!this.fallbackSeen){this.fallbackSeen=true;this.prepared=false;clearTimeout(this.timer);this.timer=setTimeout(()=>this.fail(new Error('La preparación de compatibilidad tardó demasiado.')),this.prepareTimeoutMs);}return;}
       if(data.type==='preparing'){this.preparing=true;return;}
       if(data.type==='prepared'){
         if(!this.ready&&!this.prepared){this.prepared=true;clearTimeout(this.timer);this.timer=setTimeout(()=>this.fail(new Error('La primera imagen tardó demasiado. Se conserva la calidad anterior.')),this.timeoutMs);}
@@ -29,7 +35,7 @@ class WorkerSession {
       }
       if(data.type==='frame'){
         if(!this.busy||data.id!==this.inFlight){data.bitmap?.close();return;}
-        clearTimeout(this.frameTimer);this.frameTimer=null;this.busy=false;this.status=data;try{this.onFrame(this,data);}catch(error){this.fail(error);}
+        clearTimeout(this.frameTimer);this.frameTimer=null;this.busy=false;this.status=data;try{this.onFrame(this,data);this.photoKick?.();}catch(error){this.fail(error);}
       }
     };
     this.worker.onerror=event=>{event.preventDefault?.();this.fail(new Error(event.message||'El proceso gráfico se interrumpió.'));};
@@ -49,6 +55,18 @@ class WorkerSession {
   watch(){
     if(!this.frameTimer)this.frameTimer=setTimeout(()=>this.fail(new Error('El render dejó de responder. Reintentá en calidad baja; tu progreso no se borra.')),this.timeoutMs);
   }
+  photo(packet,{signal,onProgress}={}){
+    if(this.disposed||signal?.aborted)return Promise.reject(abortError());
+    this.photoRequest?.finish(abortError());
+    return new Promise((resolve,reject)=>{
+      const photo={id:++this.serial,onProgress,arm:()=>{clearTimeout(photo.timer);photo.timer=setTimeout(()=>photo.finish(new Error('La captura dejó de responder.')),this.timeoutMs);},finish:error=>{
+        if(this.photoRequest!==photo)return;clearTimeout(photo.timer);signal?.removeEventListener('abort',cancel);this.photoRequest=null;this.photoKick=null;if(error){if(!this.disposed)this.worker.postMessage({type:'photo-cancel'});reject(error);}else resolve();
+      }};
+      const cancel=()=>photo.finish(abortError());
+      this.photoRequest=photo;signal?.addEventListener('abort',cancel,{once:true});photo.arm();
+      this.photoKick=()=>{if(this.busy||this.photoRequest!==photo)return;this.photoKick=null;this.worker.postMessage({type:'photo',photoId:photo.id,...packet});};this.photoKick();
+    });
+  }
   frame(packet){
     if(this.disposed||this.busy)return false;
     this.busy=true;this.inFlight=++this.serial;this.watch();
@@ -57,6 +75,7 @@ class WorkerSession {
   }
   fail(error){error.preparing=this.preparing===true;const wasReady=this.ready;this.dispose(error);if(wasReady)this.onFailure(this,error);}
   dispose(reason=abortError()){
+    this.photoRequest?.finish(reason);
     if(this.disposed)return;this.disposed=true;clearTimeout(this.timer);clearTimeout(this.frameTimer);this.removeAbort?.();
     this.status?.bitmap?.close();if(this.status)this.status.bitmap=null;
     this.worker.terminate();if(!this.ready)this.reject?.(reason);
@@ -79,13 +98,14 @@ export class WorkerRenderer {
       renderer.current=session;renderer.pending=null;renderer.present(session,session.status);return renderer;
     }catch(error){renderer.destroy();throw error;}
   }
-  constructor(canvas,{workerFactory=defaultWorker,timeoutMs,prepareTimeoutMs,onContextLost=()=>{},onWarning=()=>{},onPresent=()=>{},engine=null,settings={}}={}){
+  constructor(canvas,{workerFactory=defaultWorker,timeoutMs,prepareTimeoutMs,onContextLost=()=>{},onWarning=()=>{},onPresent=()=>{},engine=null,settings={},backend='auto'}={}){
+    this.backendPreference=backend;
     Object.assign(this,{canvas,workerFactory,timeoutMs:timeoutMs??RENDER_TIMEOUTS.frame,prepareTimeoutMs:prepareTimeoutMs??timeoutMs,onContextLost,onWarning,onPresent});
     this.lastScene=snapshot(engine);this.lastSettings=settings;this.pending=null;this.current=null;this.epoch=0;this.lost=false;this.queued=null;this.recoveries=0;this.failedAutoTiers=new Set();
     this.resize();
   }
   resize(){this.size={width:this.canvas.clientWidth||globalThis.innerWidth||2,height:this.canvas.clientHeight||globalThis.innerHeight||2,dpr:globalThis.devicePixelRatio||1};}
-  packet(){return {size:this.size,scene:this.lastScene,settings:this.lastSettings,reduced:globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches===true};}
+  packet(){return {backend:this.backendPreference,size:this.size,scene:this.lastScene,settings:this.lastSettings,reduced:globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches===true};}
   async makeSession(quality,signal,tier){
     const session=new WorkerSession(this.workerFactory,{timeoutMs:this.timeoutMs,prepareTimeoutMs:this.prepareTimeoutMs??preparationTimeout(tier??quality),onFrame:(s,data)=>this.present(s,data),onFailure:(s,error)=>this.failed(s,error),onPromotion:(s,tier)=>this.promote(s,tier)});
     this.pending=session;return session.start({quality,tier,...this.packet()},signal);
@@ -120,9 +140,10 @@ export class WorkerRenderer {
   }
   readStatus(data){
     this.quality={...data.quality,resetSamples:()=>{if(!this.lost&&!this.recovering)this.current?.worker.postMessage({type:'reset'});}};
-    this.descriptionValue=data.description;
+    this.descriptionValue=data.description;this.supportsPhoto=data.supportsPhoto===true;this.backend=data.backend;
   }
   async requestQuality(mode,{signal,tier,automatic=false}={}){
+    this.cancelPhoto();
     if(this.lost||this.recovering)throw new Error('El render no está disponible.');
     if(!automatic){this.autoPromotion?.controller.abort();this.autoPromotion=null;}
     const epoch=++this.epoch;this.pending?.dispose();this.pending=null;
@@ -141,7 +162,7 @@ export class WorkerRenderer {
   // RAF cadence is simulation cadence, not worker rendering duration.
   sample(){}
   draw(engine,settings){
-    if(this.lost)return;this.lastScene=snapshot(engine);this.lastSettings=settings;this.resize();
+    if(this.lost||this.photoHold)return;this.lastScene=snapshot(engine);this.lastSettings=settings;this.resize();
     if(this.recovering)return;
     const packet=this.packet();
     if(this.current.busy){this.queued=packet;return;}
@@ -168,9 +189,18 @@ export class WorkerRenderer {
     // after this session is current and its first bitmap has been presented.
     if(session.proposedTier)queueMicrotask(()=>{if(session.proposedTier&&!session.disposed)this.promote(session,session.proposedTier);});
   }
+  async capturePhoto({signal,onProgress}={}){
+    if(!this.supportsPhoto||!this.presentation)throw new Error('La ruta actual no admite captura HDR.');
+    this.photoHold=true;this.queued=null;this.autoPromotion?.controller.abort();this.autoPromotion=null;
+    const controller=new AbortController();this.photoController?.abort();this.photoController=controller;
+    const cancel=()=>controller.abort();signal?.addEventListener('abort',cancel,{once:true});if(signal?.aborted)cancel();
+    try{const scene={state:this.presentation.state,room:this.presentation.room,target:this.presentation.target,transition:this.presentation.transition};await this.current.photo({...this.packet(),scene,settings:this.presentation.settings},{signal:controller.signal,onProgress});}
+    catch(error){this.photoHold=false;throw error;}finally{signal?.removeEventListener('abort',cancel);if(this.photoController===controller)this.photoController=null;}
+  }
+  cancelPhoto(){this.photoController?.abort();this.photoController=null;this.photoHold=false;}
   pause(){this.queued=null;}
   description(){return this.descriptionValue??'Preparando';}
-  destroy(){if(this.destroyed)return;this.destroyed=true;this.lost=true;++this.epoch;this.queued=null;this.pending?.dispose();this.current?.dispose();}
+  destroy(){this.cancelPhoto();if(this.destroyed)return;this.destroyed=true;this.lost=true;++this.epoch;this.queued=null;this.pending?.dispose();this.current?.dispose();}
 }
 
 /** Detect worker presentation before claiming the visible canvas. */

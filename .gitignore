@@ -1,3 +1,4 @@
 test-results/
 .superpowers/
 __pycache__/
+node_modules/

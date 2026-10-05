@@ -1,0 +1,38 @@
+{
+  "date": "2026-10-05T03:13:04.294Z",
+  "browser": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/154.0.0.0 Safari/537.36",
+  "webgl2": true,
+  "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Ti (0x00002489) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+  "floatTargets": true,
+  "gpuTimer": true,
+  "maxDrawBuffers": 8,
+  "webgpu": true,
+  "webgpuInfo": {
+    "vendor": "nvidia",
+    "architecture": "ampere",
+    "device": "",
+    "description": "",
+    "isFallbackAdapter": false
+  },
+  "webgpuFeatures": [
+    "depth32float-stencil8",
+    "rg11b10ufloat-renderable",
+    "texture-formats-tier1",
+    "bgra8unorm-storage",
+    "texture-compression-bc",
+    "dual-source-blending",
+    "core-features-and-limits",
+    "float32-filterable",
+    "indirect-first-instance",
+    "float32-blendable",
+    "depth-clip-control",
+    "texture-compression-bc-sliced-3d",
+    "timestamp-query",
+    "texture-formats-tier2",
+    "shader-f16",
+    "clip-distances",
+    "primitive-index",
+    "texture-component-swizzle",
+    "subgroups"
+  ]
+}

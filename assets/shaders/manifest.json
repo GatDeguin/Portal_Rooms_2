@@ -1,0 +1,30 @@
+{
+  "compiler": "naga-wasi-cli@0.1.0",
+  "sourceSha256": "71466ed473653419ae978e5ea661394fcc4a68c8147fdf8150bc21ec3277b938",
+  "variants": {
+    "low-combined": {
+      "bytes": 254407,
+      "sha256": "9b42cfd9dee3ecc2e4cb8743cab27070cefd3ea2d35db52bf44826c79ccee71f"
+    },
+    "medium-combined": {
+      "bytes": 258953,
+      "sha256": "ea7000b42c2d25008c0aa993e0c8d5ad76f3b5d9b417f1450d1da83dc09c4d35"
+    },
+    "high-surface": {
+      "bytes": 279562,
+      "sha256": "3cef20575a1d1de08853e20ff535cdd970e3890962cf7f46baba9d78c25e3dea"
+    },
+    "high-shade": {
+      "bytes": 283962,
+      "sha256": "c9b02be5ce195b17a3226775677757def0e5ffb5aa04db55f5e83d56a32e7c59"
+    },
+    "cinematic-surface": {
+      "bytes": 281881,
+      "sha256": "9dcd0803aab7674eaeeaca171914ef107174d51ce5f526c788325a4bb4a4ee6b"
+    },
+    "cinematic-shade": {
+      "bytes": 286279,
+      "sha256": "2e24c8e680a039fba1e313a1517106eaf1c2838c55acd0bdb3a74fc0fce0e3ea"
+    }
+  }
+}
