@@ -10,6 +10,7 @@ export function fragmentShader(tier='medium',precision='highp',capabilities={}) 
 precision ${portable?'mediump':'highp'} float;
 varying vec2 vUv;
 uniform sampler2D uReliefNoise,uSurfaceHits;
+${capabilities.hdr?'uniform vec4 uSample;':''}
 uniform vec2 uRes,uCube,uGravity,uTarget,uBoost,uCubeVelocity,uStickyStretch;
 uniform float uTime,uCubeY,uCubeFoot,uShake,uTargetY,uTargetType,uHold,uMotion;
 uniform vec4 uCubeQ,uPulse,uTransition,uSurfaceContact; // wet film, slime film, floor contact, sliding intensity
@@ -31,7 +32,9 @@ ${uniforms('uPlatMeta',4)}
 ${uniforms('uBump',3)}
 ${uniforms('uBumpFx',3)} // compression, spring velocity, contact axis x/z
 ${uniforms('uBumpWarp',3)} // inverse affine xx/xz/zz/yy minus identity
-#define MAX_DIST 24.0
+#define MAX_DIST 24.
+#define WOOD_BOARD_WIDTH .22
+#define WOOD_BOARD_LENGTH 1.650
 #define SURF_DIST 0.0010
 #define STEPS ${q.steps}
 #define SHADOW_STEPS ${q.shadows}
@@ -351,10 +354,10 @@ float woodRingFilter(float phase,float frequency,float duty){
   return clamp((stripeIntegral(x+span*.5,duty)-stripeIntegral(x-span*.5,duty))/span,0.,1.);
 }
 void woodBoardCoordinates(vec2 uv,out vec2 local,out vec2 boardId){
-  float row=floor((uv.x+3.25)/.54),offset=hash(vec2(row,2.7));
-  float along=(uv.y+3.25)/1.8+offset;
+  float row=floor((uv.x+3.25)/WOOD_BOARD_WIDTH),offset=hash(vec2(row,2.7));
+  float along=(uv.y+3.25)/WOOD_BOARD_LENGTH+offset;
   boardId=vec2(row,floor(along));
-  local=vec2(fract((uv.x+3.25)/.54)*.54-.27,(fract(along)-.5)*1.8);
+  local=vec2((fract((uv.x+3.25)/WOOD_BOARD_WIDTH)-.5)*WOOD_BOARD_WIDTH,(fract(along)-.5)*WOOD_BOARD_LENGTH);
   // End-for-end orientation and a log offset vary at REAL board joints only.
   local.y*=mix(-1.,1.,step(.5,hash(boardId+vec2(7.,3.))));
 }
@@ -364,7 +367,7 @@ vec4 woodAnatomy(vec2 uv,float identity,out vec2 slope){
   float crossGrain=uv.x+(warp.x-.5)*.045+(identity-.5)*.36;
   float taper=.085+.16*identity+.13*(uv.y+.55-identity)*(uv.y+.55-identity);
   float radius=sqrt(crossGrain*crossGrain+taper*taper);
-  float frequency=24.+identity*12.;
+  float frequency=160.+identity*70.;
   float phase=radius*frequency+identity*7.+(warp.x-.5)*.35;
   float latewood=woodRingFilter(phase,frequency*1.6,.19);
   // Unequal early/late growth plus a slow cambium field, rather than parallel sine stripes.
@@ -433,7 +436,7 @@ float surfaceInset(float m,vec3 q,vec3 extent,float seed){
   if(m<1.5){
     vec2 local,id;woodBoardCoordinates(q.xz,local,id);
     float offset=hash(vec2(id.x,2.7));
-    float joint=max(stripeCoverage(q.x+3.25,.54,.006,gReliefFootprint),stripeCoverage(q.z+3.25+offset*1.8,1.8,.005,gReliefFootprint));
+    float joint=max(stripeCoverage(q.x+3.25,WOOD_BOARD_WIDTH,.002,gReliefFootprint),stripeCoverage(q.z+3.25+offset*WOOD_BOARD_LENGTH,WOOD_BOARD_LENGTH,.002,gReliefFootprint));
     float fibre=reliefNoise(local*vec2(65.,4.)+hash(id)*7.,65.);
     h=.12+.26*fibre+.62*joint;
   }else if(m<2.5){
@@ -637,7 +640,7 @@ void woodMaterial(MAT_ARGS){
   float identity=hash(id+vec2(11.,4.));
   vec2 slope;vec4 tissue=woodAnatomy(local,identity,slope);
   float row=id.x,offset=hash(vec2(row,2.7));
-  float joint=max(filteredStripe(uv.x+3.25,.54,.005),filteredStripe(uv.y+3.25+offset*1.8,1.8,.004));
+  float joint=max(filteredStripe(uv.x+3.25,WOOD_BOARD_WIDTH,.002),filteredStripe(uv.y+3.25+offset*WOOD_BOARD_LENGTH,WOOD_BOARD_LENGTH,.002));
   // Keep a warm, dry satin finish. Per-board hue is restrained, not checkerboard parquet.
   vec3 pigment=mix(vec3(.57,.383,.213),vec3(.66,.456,.267),identity);
   albedo=pigment*(1.-(tissue.x-.19)*.26+tissue.y*.085+tissue.w*.16-tissue.z*.20-joint*.25);
@@ -959,6 +962,16 @@ vec3 direct(vec3 p,vec3 n,vec3 v,vec3 lp,vec3 radiance,float power,float rough,v
 #endif
   return (diffuse+specular)*radiance*power*nl*visibility/(1.+.11*d2);
 }
+// Two deterministic Gauss samples integrate each visible strip. Visibility is
+// shared at its representative emitter: a bounded soft-shadow approximation.
+vec3 stripLighting(vec3 p,vec3 n,vec3 v,vec3 start,vec3 end,vec3 color,float power,float rough,vec3 f0,vec3 albedo,float metallic,float visibility,float coat,float coatRough,vec3 coatNormal){
+  vec3 radiance=vec3(0);
+  for(int i=0;i<2;i++){
+    float position=i==0?.211324865:.788675135;
+    radiance+=direct(p,n,v,mix(start,end,position),color,power*.5,rough,f0,albedo,metallic,visibility,coat,coatRough,coatNormal);
+  }
+  return radiance;
+}
 vec3 environment(vec3 rd,float rough){
   vec3 c=mix(vec3(.035,.043,.058),vec3(.16,.18,.20),rd.y*.5+.5);
   c+=vec3(.22,.16,.09)*pow(max(dot(rd,normalize(vec3(.1,1.,-.5))),0.),mix(90.,4.,rough));
@@ -1092,7 +1105,7 @@ vec3 zoneSpill(vec3 p,vec3 n,vec4 z){
   return lightSpill(p,n,vec3(z.x,.12,z.y),color,.25);
 }
 vec3 shade(vec3 p,vec3 geometric,float m,vec3 rd){
-  vec3 lp=vec3(0,3.045,-.70),ld=lp-p,rim=vec3(1.92,3.04,-1.15),rl=rim-p;
+  vec3 lp=vec3(0,3.045,-1.65),ld=lp-p,rim=vec3(1.95,3.04,-.40),rl=rim-p;
   ${pass==='shade'?`
   vec3 localPoint,extent,localNormal=geometric,keyLight=normalize(ld),rimLight=normalize(rl);float seed;
   materialCoordinates(m,p,localPoint,extent,seed);
@@ -1109,7 +1122,7 @@ vec3 shade(vec3 p,vec3 geometric,float m,vec3 rd){
   visibility*=${pass==='shade'?'reliefLightVisibility.x':'reliefVisibility(m,p,geometric,normalize(ld))'};
   vec3 col=albedo*(1.-metallic)*(1.-f)*roomBounce(p,geometric)*amb;
   col+=direct(p,n,v,lp,key,5.7,rough,f0,albedo,metallic,visibility,coat,coatRough,geometric);
-  col+=direct(p,n,v,vec3(-1.80,2.60,3.0),vec3(.72,.82,1.),2.2,rough,f0,albedo,metallic,.85,coat,coatRough,geometric);
+  col+=stripLighting(p,n,v,vec3(-1.95,3.04,-1.65),vec3(-1.95,3.04,.90),vec3(.92,.94,1.),2.6,rough,f0,albedo,metallic,.85,coat,coatRough,geometric);
   float rimShadow=1.;
 #if DETAIL_LEVEL >= 2
   rimShadow=softShadow(p+geometric*.009,normalize(rl),.014,length(rl)-.04);
@@ -1210,7 +1223,7 @@ vec3 aces(vec3 x){const float a=2.51,b=.03,c=2.43,d=.59,e=.14;return clamp((x*(a
 vec2 packSurfaceWord(float word){return vec2(floor(word/256.),mod(word,256.))/255.;}
 float unpackSurfaceWord(vec2 bytes){return dot(floor(bytes*255.+.5),vec2(256.,1.));}
 void main(){
-  vec3 ro,rd=cameraRay(gl_FragCoord.xy,ro);
+  vec3 ro,rd=cameraRay(gl_FragCoord.xy${capabilities.hdr?'+uSample.xy':''},ro);
   // Derivatives are evaluated in uniform control flow, never in a material branch.
   float rayCone=1.4/max(uRes.y,2.);
 #if HAS_DERIVATIVES
@@ -1249,10 +1262,10 @@ void main(){
   float lum=dot(col,vec3(.2126,.7152,.0722));
   col*=mix(vec3(.97,.99,1.035),vec3(1.025,1.,.975),smoothstep(.10,.80,lum));
   col*=max(uLook.x,.5);
-  vec3 outputColor=pow(aces(max(col,vec3(0))),vec3(.454545));
+  ${capabilities.hdr?'gl_FragColor=vec4(max(col,vec3(0)),1.);':`vec3 outputColor=pow(aces(max(col,vec3(0))),vec3(.454545));
   // Fine, static display-space dither: no time-dependent film-grain crawling.
   outputColor+=(hash(gl_FragCoord.xy)-.5)*${tier==='cinematic'?'.0007':'.0012'};
-  gl_FragColor=vec4(clamp(outputColor,0.,1.),1.);
+  gl_FragColor=vec4(clamp(outputColor,0.,1.),1.);`}
 }`}
 `;
 }

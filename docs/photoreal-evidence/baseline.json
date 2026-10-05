@@ -1,0 +1,397 @@
+{
+  "schema": 1,
+  "started_at": "2026-10-05T02:04:06.759Z",
+  "completed_at": "2026-10-05T02:05:48.020Z",
+  "environment": {
+    "browser": "C:/Program Files/Google/Chrome/Application/chrome.exe",
+    "requested_backend": "hardware"
+  },
+  "configuration": {
+    "warm_samples": 20,
+    "discarded_warmup_draws": 5,
+    "scene_rounds": 1,
+    "max_warm_ms": null,
+    "group_timeout_ms": 90000,
+    "profiles": [
+      "matrix"
+    ],
+    "tiers": [
+      "low",
+      "medium"
+    ],
+    "scenes": [
+      "simple",
+      "portal_final"
+    ],
+    "pass_timing": false,
+    "revisions": {
+      "baseline": "HEAD"
+    }
+  },
+  "groups": [
+    {
+      "revision": "baseline",
+      "revision_ref": "HEAD",
+      "profile": "matrix",
+      "tier": "low",
+      "diagnostic": null,
+      "size": [
+        640,
+        360
+      ],
+      "pixels": 230400,
+      "status": "passed",
+      "wall_ms": 41843,
+      "censored_lower_bound_ms": null,
+      "last_phase": "portal_final:round_1:warm_draws",
+      "backend": {
+        "type": "backend",
+        "vendor": "Google Inc. (NVIDIA)",
+        "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Ti (0x00002489) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)",
+        "shading_language": "WebGL GLSL ES 1.0 (OpenGL ES GLSL ES 1.0 Chromium)",
+        "precision": "highp",
+        "derivatives": true,
+        "extensions": [
+          "ANGLE_instanced_arrays",
+          "EXT_blend_minmax",
+          "EXT_clip_control",
+          "EXT_color_buffer_half_float",
+          "EXT_depth_clamp",
+          "EXT_disjoint_timer_query",
+          "EXT_float_blend",
+          "EXT_frag_depth",
+          "EXT_polygon_offset_clamp",
+          "EXT_shader_texture_lod",
+          "EXT_texture_compression_bptc",
+          "EXT_texture_compression_rgtc",
+          "EXT_texture_filter_anisotropic",
+          "EXT_texture_mirror_clamp_to_edge",
+          "EXT_sRGB",
+          "KHR_parallel_shader_compile",
+          "OES_element_index_uint",
+          "OES_fbo_render_mipmap",
+          "OES_standard_derivatives",
+          "OES_texture_float",
+          "OES_texture_float_linear",
+          "OES_texture_half_float",
+          "OES_texture_half_float_linear",
+          "OES_vertex_array_object",
+          "WEBGL_blend_func_extended",
+          "WEBGL_color_buffer_float",
+          "WEBGL_compressed_texture_s3tc",
+          "WEBGL_compressed_texture_s3tc_srgb",
+          "WEBGL_debug_renderer_info",
+          "WEBGL_debug_shaders",
+          "WEBGL_depth_texture",
+          "WEBGL_draw_buffers",
+          "WEBGL_lose_context",
+          "WEBGL_multi_draw",
+          "WEBGL_polygon_mode"
+        ],
+        "at": "2026-10-05T02:04:09.484Z"
+      },
+      "relief_noise_prepare": null,
+      "shader": {
+        "type": "shader",
+        "pass": "shade",
+        "diagnostic": "production",
+        "source_hash_fnv1a": "42406ca0",
+        "pom_steps": 0,
+        "fragment_bytes": 71786,
+        "at": "2026-10-05T02:04:09.516Z"
+      },
+      "shaders": [
+        {
+          "type": "shader",
+          "pass": "shade",
+          "diagnostic": "production",
+          "source_hash_fnv1a": "42406ca0",
+          "pom_steps": 0,
+          "fragment_bytes": 71786,
+          "at": "2026-10-05T02:04:09.516Z"
+        }
+      ],
+      "translation": {
+        "type": "translation",
+        "pass": "shade",
+        "translated_bytes": 99176,
+        "angle_uses_nested_break": false,
+        "loop_for_count": 0,
+        "flatten_count": 3,
+        "angle_enable_loop_flatten": true,
+        "at": "2026-10-05T02:04:09.555Z"
+      },
+      "translations": [
+        {
+          "type": "translation",
+          "pass": "shade",
+          "translated_bytes": 99176,
+          "angle_uses_nested_break": false,
+          "loop_for_count": 0,
+          "flatten_count": 3,
+          "angle_enable_loop_flatten": true,
+          "at": "2026-10-05T02:04:09.555Z"
+        }
+      ],
+      "program_prepares": [
+        {
+          "type": "program_prepare",
+          "pass": "shade",
+          "prepare_ms": 39953,
+          "at": "2026-10-05T02:04:49.472Z"
+        }
+      ],
+      "surface_target_prepares": [],
+      "warm_limit_violations": [],
+      "prepare": {
+        "type": "prepare",
+        "prepare_ms": 39960.59999990463,
+        "program_prepare_ms": 39960.59999990463,
+        "programs": 1,
+        "variant": "low-highp-derivatives",
+        "fragment_bytes": 71786,
+        "at": "2026-10-05T02:04:49.476Z"
+      },
+      "scenes": [
+        {
+          "type": "scene",
+          "scene": "simple",
+          "round": 1,
+          "size": [
+            640,
+            360
+          ],
+          "passes": 1,
+          "first_draw_ms": 21.300000190734863,
+          "first_usable_ms": 39987.200000047684,
+          "discarded_warmup_draws": 5,
+          "warm": {
+            "samples": 20,
+            "mean_ms": 8.739999985694885,
+            "p95_ms": 20.09999990463257,
+            "worst_ms": 21.199999809265137
+          },
+          "pass_timing": null,
+          "center_rgba": [
+            180,
+            119,
+            48,
+            255
+          ],
+          "at": "2026-10-05T02:04:49.782Z"
+        },
+        {
+          "type": "scene",
+          "scene": "portal_final",
+          "round": 1,
+          "size": [
+            640,
+            360
+          ],
+          "passes": 1,
+          "first_draw_ms": 2.799999952316284,
+          "first_usable_ms": 2.799999952316284,
+          "discarded_warmup_draws": 5,
+          "warm": {
+            "samples": 20,
+            "mean_ms": 2.7299999952316285,
+            "p95_ms": 3.5,
+            "worst_ms": 3.5
+          },
+          "pass_timing": null,
+          "center_rgba": [
+            139,
+            83,
+            44,
+            255
+          ],
+          "at": "2026-10-05T02:04:49.862Z"
+        }
+      ],
+      "error": null
+    },
+    {
+      "revision": "baseline",
+      "revision_ref": "HEAD",
+      "profile": "matrix",
+      "tier": "medium",
+      "diagnostic": null,
+      "size": [
+        640,
+        360
+      ],
+      "pixels": 230400,
+      "status": "passed",
+      "wall_ms": 58009,
+      "censored_lower_bound_ms": null,
+      "last_phase": "portal_final:round_1:warm_draws",
+      "backend": {
+        "type": "backend",
+        "vendor": "Google Inc. (NVIDIA)",
+        "renderer": "ANGLE (NVIDIA, NVIDIA GeForce RTX 3060 Ti (0x00002489) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)",
+        "shading_language": "WebGL GLSL ES 1.0 (OpenGL ES GLSL ES 1.0 Chromium)",
+        "precision": "highp",
+        "derivatives": true,
+        "extensions": [
+          "ANGLE_instanced_arrays",
+          "EXT_blend_minmax",
+          "EXT_clip_control",
+          "EXT_color_buffer_half_float",
+          "EXT_depth_clamp",
+          "EXT_disjoint_timer_query",
+          "EXT_float_blend",
+          "EXT_frag_depth",
+          "EXT_polygon_offset_clamp",
+          "EXT_shader_texture_lod",
+          "EXT_texture_compression_bptc",
+          "EXT_texture_compression_rgtc",
+          "EXT_texture_filter_anisotropic",
+          "EXT_texture_mirror_clamp_to_edge",
+          "EXT_sRGB",
+          "KHR_parallel_shader_compile",
+          "OES_element_index_uint",
+          "OES_fbo_render_mipmap",
+          "OES_standard_derivatives",
+          "OES_texture_float",
+          "OES_texture_float_linear",
+          "OES_texture_half_float",
+          "OES_texture_half_float_linear",
+          "OES_vertex_array_object",
+          "WEBGL_blend_func_extended",
+          "WEBGL_color_buffer_float",
+          "WEBGL_compressed_texture_s3tc",
+          "WEBGL_compressed_texture_s3tc_srgb",
+          "WEBGL_debug_renderer_info",
+          "WEBGL_debug_shaders",
+          "WEBGL_depth_texture",
+          "WEBGL_draw_buffers",
+          "WEBGL_lose_context",
+          "WEBGL_multi_draw",
+          "WEBGL_polygon_mode"
+        ],
+        "at": "2026-10-05T02:04:51.265Z"
+      },
+      "relief_noise_prepare": null,
+      "shader": {
+        "type": "shader",
+        "pass": "shade",
+        "diagnostic": "production",
+        "source_hash_fnv1a": "6c37da40",
+        "pom_steps": 0,
+        "fragment_bytes": 71787,
+        "at": "2026-10-05T02:04:51.297Z"
+      },
+      "shaders": [
+        {
+          "type": "shader",
+          "pass": "shade",
+          "diagnostic": "production",
+          "source_hash_fnv1a": "6c37da40",
+          "pom_steps": 0,
+          "fragment_bytes": 71787,
+          "at": "2026-10-05T02:04:51.297Z"
+        }
+      ],
+      "translation": {
+        "type": "translation",
+        "pass": "shade",
+        "translated_bytes": 102208,
+        "angle_uses_nested_break": false,
+        "loop_for_count": 0,
+        "flatten_count": 3,
+        "angle_enable_loop_flatten": true,
+        "at": "2026-10-05T02:04:51.338Z"
+      },
+      "translations": [
+        {
+          "type": "translation",
+          "pass": "shade",
+          "translated_bytes": 102208,
+          "angle_uses_nested_break": false,
+          "loop_for_count": 0,
+          "flatten_count": 3,
+          "angle_enable_loop_flatten": true,
+          "at": "2026-10-05T02:04:51.338Z"
+        }
+      ],
+      "program_prepares": [
+        {
+          "type": "program_prepare",
+          "pass": "shade",
+          "prepare_ms": 56170.60000014305,
+          "at": "2026-10-05T02:05:47.471Z"
+        }
+      ],
+      "surface_target_prepares": [],
+      "warm_limit_violations": [],
+      "prepare": {
+        "type": "prepare",
+        "prepare_ms": 56176.39999985695,
+        "program_prepare_ms": 56176.39999985695,
+        "programs": 1,
+        "variant": "medium-highp-derivatives",
+        "fragment_bytes": 71787,
+        "at": "2026-10-05T02:05:47.473Z"
+      },
+      "scenes": [
+        {
+          "type": "scene",
+          "scene": "simple",
+          "round": 1,
+          "size": [
+            640,
+            360
+          ],
+          "passes": 1,
+          "first_draw_ms": 25.09999990463257,
+          "first_usable_ms": 56207.699999809265,
+          "discarded_warmup_draws": 5,
+          "warm": {
+            "samples": 20,
+            "mean_ms": 7.710000014305114,
+            "p95_ms": 24.09999990463257,
+            "worst_ms": 24.5
+          },
+          "pass_timing": null,
+          "center_rgba": [
+            178,
+            119,
+            53,
+            255
+          ],
+          "at": "2026-10-05T02:05:47.782Z"
+        },
+        {
+          "type": "scene",
+          "scene": "portal_final",
+          "round": 1,
+          "size": [
+            640,
+            360
+          ],
+          "passes": 1,
+          "first_draw_ms": 3.5999999046325684,
+          "first_usable_ms": 3.5999999046325684,
+          "discarded_warmup_draws": 5,
+          "warm": {
+            "samples": 20,
+            "mean_ms": 3.425,
+            "p95_ms": 3.9000000953674316,
+            "worst_ms": 3.9000000953674316
+          },
+          "pass_timing": null,
+          "center_rgba": [
+            138,
+            85,
+            48,
+            255
+          ],
+          "at": "2026-10-05T02:05:47.881Z"
+        }
+      ],
+      "error": null
+    }
+  ]
+}

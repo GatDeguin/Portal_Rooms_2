@@ -16,8 +16,9 @@ async function preparations(mode,tier){
  try{
   let source=await readFile(new URL('../src/renderer-worker.js',import.meta.url),'utf8');
   source=source.replace("import {Renderer,preparationTimeout} from './renderer.js';",'const Renderer=globalThis.__PreparationRenderer,preparationTimeout=()=>90000;');
+  source=source.replace("import {WebGPURenderer} from './renderer-webgpu.js';",'');
   await import('data:text/javascript;base64,'+Buffer.from(source+'\n// '+mode+' '+tier).toString('base64'));
-  await self.onmessage({data:{type:'init',quality:mode,tier,size:{width:160,height:100,dpr:1},scene:{},settings:{},reduced:false}});
+  await self.onmessage({data:{type:'init',backend:'webgl',quality:mode,tier,size:{width:160,height:100,dpr:1},scene:{},settings:{},reduced:false}});
   assert.ok(messages.some(m=>m.type==='ready'),JSON.stringify(messages));
   assert.ok(!messages.some(m=>m.type==='error'),JSON.stringify(messages));
   return calls;

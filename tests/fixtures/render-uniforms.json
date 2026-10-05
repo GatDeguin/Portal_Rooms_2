@@ -1,0 +1,3917 @@
+[
+  {
+    "name": "room-01-low",
+    "tier": "low",
+    "width": 64,
+    "height": 64,
+    "uniforms": {
+      "uReliefNoise": {
+        "kind": "uniform1i",
+        "args": [
+          0
+        ]
+      },
+      "uTransition": {
+        "kind": "uniform4f",
+        "args": [
+          1,
+          0,
+          0,
+          0
+        ]
+      },
+      "uLook": {
+        "kind": "uniform4f",
+        "args": [
+          1.04,
+          0,
+          1,
+          1
+        ]
+      },
+      "uRes": {
+        "kind": "uniform2f",
+        "args": [
+          64,
+          64
+        ]
+      },
+      "uTime": {
+        "kind": "uniform1f",
+        "args": [
+          0
+        ]
+      },
+      "uCube": {
+        "kind": "uniform2f",
+        "args": [
+          -1.65,
+          1.55
+        ]
+      },
+      "uCubeY": {
+        "kind": "uniform1f",
+        "args": [
+          0
+        ]
+      },
+      "uCubeFoot": {
+        "kind": "uniform1f",
+        "args": [
+          0
+        ]
+      },
+      "uCubeQ": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      "uCubeVelocity": {
+        "kind": "uniform2f",
+        "args": [
+          0,
+          0
+        ]
+      },
+      "uSurfaceContact": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          1,
+          0
+        ]
+      },
+      "uStickyStretch": {
+        "kind": "uniform2f",
+        "args": [
+          0,
+          0
+        ]
+      },
+      "uGravity": {
+        "kind": "uniform2f",
+        "args": [
+          0,
+          0
+        ]
+      },
+      "uShake": {
+        "kind": "uniform1f",
+        "args": [
+          0
+        ]
+      },
+      "uMotion": {
+        "kind": "uniform1f",
+        "args": [
+          1
+        ]
+      },
+      "uTarget": {
+        "kind": "uniform2f",
+        "args": [
+          1.55,
+          -1.45
+        ]
+      },
+      "uTargetY": {
+        "kind": "uniform1f",
+        "args": [
+          0
+        ]
+      },
+      "uTargetType": {
+        "kind": "uniform1f",
+        "args": [
+          1
+        ]
+      },
+      "uHold": {
+        "kind": "uniform1f",
+        "args": [
+          0
+        ]
+      },
+      "uPulse": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      "uBoost": {
+        "kind": "uniform2f",
+        "args": [
+          1,
+          0
+        ]
+      },
+      "uObs0": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uObs1": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uObs2": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uObs3": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uObs4": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uObs5": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZone0": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZone1": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZone2": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZone3": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZone4": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZone5": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZone6": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZone7": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneShape0": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneShape1": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneShape2": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneShape3": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneShape4": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneShape5": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneShape6": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneShape7": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneBasis0": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneBasis1": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneBasis2": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneBasis3": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneBasis4": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneBasis5": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneBasis6": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneBasis7": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneMotion0": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneMotion1": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneMotion2": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneMotion3": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneMotion4": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneMotion5": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneMotion6": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneMotion7": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneFlow0": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneFlow1": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneFlow2": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneFlow3": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneFlow4": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneFlow5": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneFlow6": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneFlow7": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uRamp0": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uRamp1": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uRamp2": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uRampMeta0": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uRampMeta1": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uRampMeta2": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uPlat0": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uPlat1": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uPlat2": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uPlat3": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uPlatMeta0": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uPlatMeta1": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uPlatMeta2": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uPlatMeta3": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uBump0": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uBump1": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uBump2": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uBumpFx0": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uBumpFx1": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uBumpFx2": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uBumpWarp0": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uBumpWarp1": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uBumpWarp2": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uSurfaceHits": {
+        "kind": "uniform1i",
+        "args": [
+          1
+        ]
+      }
+    }
+  },
+  {
+    "name": "room-07-low",
+    "tier": "low",
+    "width": 64,
+    "height": 64,
+    "uniforms": {
+      "uReliefNoise": {
+        "kind": "uniform1i",
+        "args": [
+          0
+        ]
+      },
+      "uTransition": {
+        "kind": "uniform4f",
+        "args": [
+          1,
+          0,
+          0,
+          0
+        ]
+      },
+      "uLook": {
+        "kind": "uniform4f",
+        "args": [
+          1.02,
+          -0.025,
+          0.96,
+          1
+        ]
+      },
+      "uRes": {
+        "kind": "uniform2f",
+        "args": [
+          64,
+          64
+        ]
+      },
+      "uTime": {
+        "kind": "uniform1f",
+        "args": [
+          0
+        ]
+      },
+      "uCube": {
+        "kind": "uniform2f",
+        "args": [
+          -2.05,
+          1.7
+        ]
+      },
+      "uCubeY": {
+        "kind": "uniform1f",
+        "args": [
+          0
+        ]
+      },
+      "uCubeFoot": {
+        "kind": "uniform1f",
+        "args": [
+          0
+        ]
+      },
+      "uCubeQ": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      "uCubeVelocity": {
+        "kind": "uniform2f",
+        "args": [
+          0,
+          0
+        ]
+      },
+      "uSurfaceContact": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          1,
+          0
+        ]
+      },
+      "uStickyStretch": {
+        "kind": "uniform2f",
+        "args": [
+          0,
+          0
+        ]
+      },
+      "uGravity": {
+        "kind": "uniform2f",
+        "args": [
+          0,
+          0
+        ]
+      },
+      "uShake": {
+        "kind": "uniform1f",
+        "args": [
+          0
+        ]
+      },
+      "uMotion": {
+        "kind": "uniform1f",
+        "args": [
+          1
+        ]
+      },
+      "uTarget": {
+        "kind": "uniform2f",
+        "args": [
+          1.95,
+          -1.72
+        ]
+      },
+      "uTargetY": {
+        "kind": "uniform1f",
+        "args": [
+          0
+        ]
+      },
+      "uTargetType": {
+        "kind": "uniform1f",
+        "args": [
+          2
+        ]
+      },
+      "uHold": {
+        "kind": "uniform1f",
+        "args": [
+          0
+        ]
+      },
+      "uPulse": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      "uBoost": {
+        "kind": "uniform2f",
+        "args": [
+          1,
+          0
+        ]
+      },
+      "uObs0": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          -0.95,
+          2,
+          0.36
+        ]
+      },
+      "uObs1": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uObs2": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uObs3": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uObs4": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uObs5": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZone0": {
+        "kind": "uniform4f",
+        "args": [
+          0.15,
+          0.55,
+          1.5,
+          1
+        ]
+      },
+      "uZone1": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZone2": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZone3": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZone4": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZone5": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZone6": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZone7": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneShape0": {
+        "kind": "uniform4f",
+        "args": [
+          1.5,
+          0.75,
+          0.12,
+          0
+        ]
+      },
+      "uZoneShape1": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneShape2": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneShape3": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneShape4": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneShape5": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneShape6": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneShape7": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneBasis0": {
+        "kind": "uniform4f",
+        "args": [
+          1,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneBasis1": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneBasis2": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneBasis3": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneBasis4": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneBasis5": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneBasis6": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneBasis7": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneMotion0": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneMotion1": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneMotion2": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneMotion3": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneMotion4": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneMotion5": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneMotion6": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneMotion7": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneFlow0": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneFlow1": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneFlow2": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneFlow3": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneFlow4": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneFlow5": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneFlow6": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneFlow7": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uRamp0": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uRamp1": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uRamp2": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uRampMeta0": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uRampMeta1": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uRampMeta2": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uPlat0": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uPlat1": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uPlat2": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uPlat3": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uPlatMeta0": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uPlatMeta1": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uPlatMeta2": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uPlatMeta3": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uBump0": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uBump1": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uBump2": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uBumpFx0": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uBumpFx1": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uBumpFx2": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uBumpWarp0": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uBumpWarp1": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uBumpWarp2": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uSurfaceHits": {
+        "kind": "uniform1i",
+        "args": [
+          1
+        ]
+      }
+    }
+  },
+  {
+    "name": "room-15-low",
+    "tier": "low",
+    "width": 64,
+    "height": 64,
+    "uniforms": {
+      "uReliefNoise": {
+        "kind": "uniform1i",
+        "args": [
+          0
+        ]
+      },
+      "uTransition": {
+        "kind": "uniform4f",
+        "args": [
+          1,
+          0,
+          0,
+          0
+        ]
+      },
+      "uLook": {
+        "kind": "uniform4f",
+        "args": [
+          1.04,
+          0.018,
+          1.03,
+          1
+        ]
+      },
+      "uRes": {
+        "kind": "uniform2f",
+        "args": [
+          64,
+          64
+        ]
+      },
+      "uTime": {
+        "kind": "uniform1f",
+        "args": [
+          0
+        ]
+      },
+      "uCube": {
+        "kind": "uniform2f",
+        "args": [
+          -2.2,
+          1.95
+        ]
+      },
+      "uCubeY": {
+        "kind": "uniform1f",
+        "args": [
+          0
+        ]
+      },
+      "uCubeFoot": {
+        "kind": "uniform1f",
+        "args": [
+          0
+        ]
+      },
+      "uCubeQ": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      "uCubeVelocity": {
+        "kind": "uniform2f",
+        "args": [
+          0,
+          0
+        ]
+      },
+      "uSurfaceContact": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          1,
+          0
+        ]
+      },
+      "uStickyStretch": {
+        "kind": "uniform2f",
+        "args": [
+          0,
+          0
+        ]
+      },
+      "uGravity": {
+        "kind": "uniform2f",
+        "args": [
+          0,
+          0
+        ]
+      },
+      "uShake": {
+        "kind": "uniform1f",
+        "args": [
+          0
+        ]
+      },
+      "uMotion": {
+        "kind": "uniform1f",
+        "args": [
+          1
+        ]
+      },
+      "uTarget": {
+        "kind": "uniform2f",
+        "args": [
+          1.35,
+          -0.82
+        ]
+      },
+      "uTargetY": {
+        "kind": "uniform1f",
+        "args": [
+          0.62
+        ]
+      },
+      "uTargetType": {
+        "kind": "uniform1f",
+        "args": [
+          1
+        ]
+      },
+      "uHold": {
+        "kind": "uniform1f",
+        "args": [
+          0
+        ]
+      },
+      "uPulse": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      "uBoost": {
+        "kind": "uniform2f",
+        "args": [
+          1,
+          0
+        ]
+      },
+      "uObs0": {
+        "kind": "uniform4f",
+        "args": [
+          -0.2,
+          -1.65,
+          2,
+          0.34
+        ]
+      },
+      "uObs1": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uObs2": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uObs3": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uObs4": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uObs5": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZone0": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZone1": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZone2": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZone3": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZone4": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZone5": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZone6": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZone7": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneShape0": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneShape1": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneShape2": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneShape3": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneShape4": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneShape5": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneShape6": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneShape7": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneBasis0": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneBasis1": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneBasis2": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneBasis3": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneBasis4": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneBasis5": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneBasis6": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneBasis7": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneMotion0": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneMotion1": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneMotion2": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneMotion3": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneMotion4": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneMotion5": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneMotion6": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneMotion7": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneFlow0": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneFlow1": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneFlow2": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneFlow3": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneFlow4": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneFlow5": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneFlow6": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneFlow7": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uRamp0": {
+        "kind": "uniform4f",
+        "args": [
+          -0.3,
+          -0.82,
+          2.1,
+          1.05
+        ]
+      },
+      "uRamp1": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uRamp2": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uRampMeta0": {
+        "kind": "uniform4f",
+        "args": [
+          0.62,
+          1,
+          0,
+          0
+        ]
+      },
+      "uRampMeta1": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uRampMeta2": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uPlat0": {
+        "kind": "uniform4f",
+        "args": [
+          1.35,
+          -0.82,
+          1.2,
+          1.15
+        ]
+      },
+      "uPlat1": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uPlat2": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uPlat3": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uPlatMeta0": {
+        "kind": "uniform4f",
+        "args": [
+          0.62,
+          0,
+          0,
+          0
+        ]
+      },
+      "uPlatMeta1": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uPlatMeta2": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uPlatMeta3": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uBump0": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uBump1": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uBump2": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uBumpFx0": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uBumpFx1": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uBumpFx2": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uBumpWarp0": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uBumpWarp1": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uBumpWarp2": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uSurfaceHits": {
+        "kind": "uniform1i",
+        "args": [
+          1
+        ]
+      }
+    }
+  },
+  {
+    "name": "scene-22-portal",
+    "tier": "medium",
+    "width": 384,
+    "height": 240,
+    "uniforms": {
+      "uReliefNoise": {
+        "kind": "uniform1i",
+        "args": [
+          0
+        ]
+      },
+      "uTransition": {
+        "kind": "uniform4f",
+        "args": [
+          1,
+          0,
+          0,
+          0
+        ]
+      },
+      "uLook": {
+        "kind": "uniform4f",
+        "args": [
+          1.01,
+          -0.015,
+          1.08,
+          1
+        ]
+      },
+      "uRes": {
+        "kind": "uniform2f",
+        "args": [
+          384,
+          240
+        ]
+      },
+      "uTime": {
+        "kind": "uniform1f",
+        "args": [
+          0
+        ]
+      },
+      "uCube": {
+        "kind": "uniform2f",
+        "args": [
+          -2.35,
+          2.05
+        ]
+      },
+      "uCubeY": {
+        "kind": "uniform1f",
+        "args": [
+          0
+        ]
+      },
+      "uCubeFoot": {
+        "kind": "uniform1f",
+        "args": [
+          0
+        ]
+      },
+      "uCubeQ": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      "uCubeVelocity": {
+        "kind": "uniform2f",
+        "args": [
+          0,
+          0
+        ]
+      },
+      "uSurfaceContact": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          1,
+          0
+        ]
+      },
+      "uStickyStretch": {
+        "kind": "uniform2f",
+        "args": [
+          0,
+          0
+        ]
+      },
+      "uGravity": {
+        "kind": "uniform2f",
+        "args": [
+          0,
+          0
+        ]
+      },
+      "uShake": {
+        "kind": "uniform1f",
+        "args": [
+          0
+        ]
+      },
+      "uMotion": {
+        "kind": "uniform1f",
+        "args": [
+          1
+        ]
+      },
+      "uTarget": {
+        "kind": "uniform2f",
+        "args": [
+          0,
+          -2.42
+        ]
+      },
+      "uTargetY": {
+        "kind": "uniform1f",
+        "args": [
+          0.82
+        ]
+      },
+      "uTargetType": {
+        "kind": "uniform1f",
+        "args": [
+          4
+        ]
+      },
+      "uHold": {
+        "kind": "uniform1f",
+        "args": [
+          0
+        ]
+      },
+      "uPulse": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      "uBoost": {
+        "kind": "uniform2f",
+        "args": [
+          1,
+          0
+        ]
+      },
+      "uObs0": {
+        "kind": "uniform4f",
+        "args": [
+          0.1,
+          1.15,
+          1.85,
+          0.32
+        ]
+      },
+      "uObs1": {
+        "kind": "uniform4f",
+        "args": [
+          0.6445458499947376,
+          -0.85,
+          1.65,
+          0.32
+        ]
+      },
+      "uObs2": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uObs3": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uObs4": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uObs5": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZone0": {
+        "kind": "uniform4f",
+        "args": [
+          0.75,
+          0.05,
+          0.78,
+          1
+        ]
+      },
+      "uZone1": {
+        "kind": "uniform4f",
+        "args": [
+          -0.75,
+          -0.72,
+          0.42,
+          5
+        ]
+      },
+      "uZone2": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZone3": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZone4": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZone5": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZone6": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZone7": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneShape0": {
+        "kind": "uniform4f",
+        "args": [
+          0.78,
+          0.78,
+          0.78,
+          0
+        ]
+      },
+      "uZoneShape1": {
+        "kind": "uniform4f",
+        "args": [
+          0.42,
+          0.42,
+          0.42,
+          0
+        ]
+      },
+      "uZoneShape2": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneShape3": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneShape4": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneShape5": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneShape6": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneShape7": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneBasis0": {
+        "kind": "uniform4f",
+        "args": [
+          1,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneBasis1": {
+        "kind": "uniform4f",
+        "args": [
+          1,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneBasis2": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneBasis3": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneBasis4": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneBasis5": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneBasis6": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneBasis7": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneMotion0": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneMotion1": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0.6999999999999998,
+          -0.5479999999999998
+        ]
+      },
+      "uZoneMotion2": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneMotion3": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneMotion4": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneMotion5": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneMotion6": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneMotion7": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneFlow0": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneFlow1": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneFlow2": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneFlow3": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneFlow4": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneFlow5": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneFlow6": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneFlow7": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uRamp0": {
+        "kind": "uniform4f",
+        "args": [
+          -1.35,
+          1.55,
+          1,
+          1.05
+        ]
+      },
+      "uRamp1": {
+        "kind": "uniform4f",
+        "args": [
+          0.075,
+          0.15,
+          1.55,
+          0.95
+        ]
+      },
+      "uRamp2": {
+        "kind": "uniform4f",
+        "args": [
+          -2.25,
+          0.075,
+          0.85,
+          1.3
+        ]
+      },
+      "uRampMeta0": {
+        "kind": "uniform4f",
+        "args": [
+          0.35,
+          0,
+          -1,
+          0
+        ]
+      },
+      "uRampMeta1": {
+        "kind": "uniform4f",
+        "args": [
+          0.58,
+          1,
+          0,
+          0
+        ]
+      },
+      "uRampMeta2": {
+        "kind": "uniform4f",
+        "args": [
+          0.72,
+          0,
+          -1,
+          0
+        ]
+      },
+      "uPlat0": {
+        "kind": "uniform4f",
+        "args": [
+          -1.35,
+          0.55,
+          1,
+          0.95
+        ]
+      },
+      "uPlat1": {
+        "kind": "uniform4f",
+        "args": [
+          1.35,
+          0.15,
+          1,
+          0.95
+        ]
+      },
+      "uPlat2": {
+        "kind": "uniform4f",
+        "args": [
+          -2.25,
+          -1.25,
+          0.85,
+          1.35
+        ]
+      },
+      "uPlat3": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          -2.35,
+          1.15,
+          0.7
+        ]
+      },
+      "uPlatMeta0": {
+        "kind": "uniform4f",
+        "args": [
+          0.35,
+          0,
+          0,
+          0
+        ]
+      },
+      "uPlatMeta1": {
+        "kind": "uniform4f",
+        "args": [
+          0.58,
+          0,
+          0,
+          0
+        ]
+      },
+      "uPlatMeta2": {
+        "kind": "uniform4f",
+        "args": [
+          0.72,
+          0,
+          0,
+          0
+        ]
+      },
+      "uPlatMeta3": {
+        "kind": "uniform4f",
+        "args": [
+          0.82,
+          0,
+          0,
+          0
+        ]
+      },
+      "uBump0": {
+        "kind": "uniform4f",
+        "args": [
+          1.95,
+          -0.85,
+          0.3,
+          0.34
+        ]
+      },
+      "uBump1": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uBump2": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uBumpFx0": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          1,
+          0
+        ]
+      },
+      "uBumpFx1": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uBumpFx2": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uBumpWarp0": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uBumpWarp1": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uBumpWarp2": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uSurfaceHits": {
+        "kind": "uniform1i",
+        "args": [
+          1
+        ]
+      }
+    }
+  },
+  {
+    "name": "showcase-31-high",
+    "tier": "high",
+    "width": 512,
+    "height": 320,
+    "uniforms": {
+      "uReliefNoise": {
+        "kind": "uniform1i",
+        "args": [
+          0
+        ]
+      },
+      "uTransition": {
+        "kind": "uniform4f",
+        "args": [
+          1,
+          0,
+          0,
+          0
+        ]
+      },
+      "uLook": {
+        "kind": "uniform4f",
+        "args": [
+          1.02,
+          -0.025,
+          0.96,
+          1
+        ]
+      },
+      "uRes": {
+        "kind": "uniform2f",
+        "args": [
+          512,
+          320
+        ]
+      },
+      "uTime": {
+        "kind": "uniform1f",
+        "args": [
+          0
+        ]
+      },
+      "uCube": {
+        "kind": "uniform2f",
+        "args": [
+          -2.15,
+          2.25
+        ]
+      },
+      "uCubeY": {
+        "kind": "uniform1f",
+        "args": [
+          0
+        ]
+      },
+      "uCubeFoot": {
+        "kind": "uniform1f",
+        "args": [
+          0
+        ]
+      },
+      "uCubeQ": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      "uCubeVelocity": {
+        "kind": "uniform2f",
+        "args": [
+          0,
+          0
+        ]
+      },
+      "uSurfaceContact": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          1,
+          0
+        ]
+      },
+      "uStickyStretch": {
+        "kind": "uniform2f",
+        "args": [
+          0,
+          0
+        ]
+      },
+      "uGravity": {
+        "kind": "uniform2f",
+        "args": [
+          0,
+          0
+        ]
+      },
+      "uShake": {
+        "kind": "uniform1f",
+        "args": [
+          0
+        ]
+      },
+      "uMotion": {
+        "kind": "uniform1f",
+        "args": [
+          1
+        ]
+      },
+      "uTarget": {
+        "kind": "uniform2f",
+        "args": [
+          -0.65,
+          -0.4
+        ]
+      },
+      "uTargetY": {
+        "kind": "uniform1f",
+        "args": [
+          0.58
+        ]
+      },
+      "uTargetType": {
+        "kind": "uniform1f",
+        "args": [
+          1
+        ]
+      },
+      "uHold": {
+        "kind": "uniform1f",
+        "args": [
+          0
+        ]
+      },
+      "uPulse": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      "uBoost": {
+        "kind": "uniform2f",
+        "args": [
+          1,
+          0
+        ]
+      },
+      "uObs0": {
+        "kind": "uniform4f",
+        "args": [
+          1.4,
+          1.2,
+          0.35,
+          0.45
+        ]
+      },
+      "uObs1": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uObs2": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uObs3": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uObs4": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uObs5": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZone0": {
+        "kind": "uniform4f",
+        "args": [
+          0.2,
+          2,
+          0.4,
+          2
+        ]
+      },
+      "uZone1": {
+        "kind": "uniform4f",
+        "args": [
+          2.15,
+          1.3,
+          0.36,
+          5
+        ]
+      },
+      "uZone2": {
+        "kind": "uniform4f",
+        "args": [
+          2.6,
+          -2,
+          0.34,
+          5
+        ]
+      },
+      "uZone3": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZone4": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZone5": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZone6": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZone7": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneShape0": {
+        "kind": "uniform4f",
+        "args": [
+          0.4,
+          0.4,
+          0.4,
+          0
+        ]
+      },
+      "uZoneShape1": {
+        "kind": "uniform4f",
+        "args": [
+          0.36,
+          0.36,
+          0.36,
+          0
+        ]
+      },
+      "uZoneShape2": {
+        "kind": "uniform4f",
+        "args": [
+          0.34,
+          0.34,
+          0.34,
+          0
+        ]
+      },
+      "uZoneShape3": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneShape4": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneShape5": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneShape6": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneShape7": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneBasis0": {
+        "kind": "uniform4f",
+        "args": [
+          1,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneBasis1": {
+        "kind": "uniform4f",
+        "args": [
+          1,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneBasis2": {
+        "kind": "uniform4f",
+        "args": [
+          1,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneBasis3": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneBasis4": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneBasis5": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneBasis6": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneBasis7": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneMotion0": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneMotion1": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0.5328571428571428,
+          -0.3808571428571428
+        ]
+      },
+      "uZoneMotion2": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0.4828571428571429,
+          -0.33085714285714285
+        ]
+      },
+      "uZoneMotion3": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneMotion4": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneMotion5": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneMotion6": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneMotion7": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneFlow0": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneFlow1": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneFlow2": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneFlow3": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneFlow4": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneFlow5": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneFlow6": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uZoneFlow7": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uRamp0": {
+        "kind": "uniform4f",
+        "args": [
+          -2.1,
+          1.1,
+          1.1,
+          1.6
+        ]
+      },
+      "uRamp1": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uRamp2": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uRampMeta0": {
+        "kind": "uniform4f",
+        "args": [
+          0.58,
+          0,
+          -1,
+          0
+        ]
+      },
+      "uRampMeta1": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uRampMeta2": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uPlat0": {
+        "kind": "uniform4f",
+        "args": [
+          -2.1,
+          -0.4,
+          1.5,
+          1.4
+        ]
+      },
+      "uPlat1": {
+        "kind": "uniform4f",
+        "args": [
+          -0.65,
+          -0.4,
+          1.4,
+          1.4
+        ]
+      },
+      "uPlat2": {
+        "kind": "uniform4f",
+        "args": [
+          0.65,
+          -0.39999999999999997,
+          1.4,
+          1.4
+        ]
+      },
+      "uPlat3": {
+        "kind": "uniform4f",
+        "args": [
+          2.1,
+          -0.4,
+          1.5,
+          1.4
+        ]
+      },
+      "uPlatMeta0": {
+        "kind": "uniform4f",
+        "args": [
+          0.58,
+          0,
+          0,
+          0
+        ]
+      },
+      "uPlatMeta1": {
+        "kind": "uniform4f",
+        "args": [
+          0.58,
+          0,
+          0,
+          0
+        ]
+      },
+      "uPlatMeta2": {
+        "kind": "uniform4f",
+        "args": [
+          0.58,
+          0,
+          0,
+          0
+        ]
+      },
+      "uPlatMeta3": {
+        "kind": "uniform4f",
+        "args": [
+          0.58,
+          0,
+          0,
+          0
+        ]
+      },
+      "uBump0": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uBump1": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uBump2": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uBumpFx0": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uBumpFx1": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uBumpFx2": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uBumpWarp0": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uBumpWarp1": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uBumpWarp2": {
+        "kind": "uniform4f",
+        "args": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "uSurfaceHits": {
+        "kind": "uniform1i",
+        "args": [
+          1
+        ]
+      }
+    }
+  }
+]

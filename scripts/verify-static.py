@@ -12,7 +12,7 @@ class Handler(SimpleHTTPRequestHandler):
     def log_message(self,*args): pass
 server=ThreadingHTTPServer(('127.0.0.1',0),partial(Handler,directory=str(ROOT)))
 Thread(target=server.serve_forever,daemon=True).start()
-base=f'http://127.0.0.1:{server.server_port}/';pending=['index.html'];seen=set()
+base=f'http://127.0.0.1:{server.server_port}/';manifest=json.loads((ROOT/'assets/shaders/manifest.json').read_text());pending=['index.html','assets/shaders/manifest.json']+[f'assets/shaders/{name}.wgsl' for name in manifest['variants']];seen=set()
 try:
     while pending:
         path=pending.pop()

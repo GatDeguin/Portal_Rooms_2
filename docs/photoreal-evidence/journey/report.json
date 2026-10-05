@@ -1,0 +1,121 @@
+{
+  "date": "2026-10-05T03:27:39.473Z",
+  "browser": "C:/Program Files/Google/Chrome/Application/chrome.exe",
+  "viewport": [
+    960,
+    540
+  ],
+  "motionCostMethod": "Worker renderMs: WebGPU includes queue/readback; WebGL may measure submission only. Synchronized GL costs are in the profile benchmark.",
+  "checks": [
+    {
+      "name": "20 cancellations at start, middle, end preserve pause and save",
+      "status": "passed"
+    },
+    {
+      "name": "32 sample PNG and completion",
+      "status": "passed"
+    },
+    {
+      "name": "cancel via keyboard resume with draw pending",
+      "status": "passed"
+    },
+    {
+      "name": "resize cancels photo and paused viewport remains usable",
+      "status": "passed"
+    },
+    {
+      "name": "real keyboard movement with dynamic camera and normal motion, intermediate screenshots",
+      "status": "passed"
+    },
+    {
+      "name": "paused rests without RAF; no unhandled rejection",
+      "status": "passed"
+    }
+  ],
+  "errors": [],
+  "bootMs": 26293,
+  "backend": "WebGPU",
+  "motion": {
+    "frames": 48,
+    "workerCosts": [
+      6.200000047683716,
+      5.299999952316284,
+      5.400000095367432,
+      5.599999904632568,
+      4.599999904632568,
+      4.5,
+      5.299999952316284,
+      5.099999904632568,
+      3.799999952316284,
+      4.800000190734863,
+      4.6000001430511475,
+      4.3999998569488525,
+      5,
+      5.299999952316284,
+      4.200000047683716,
+      4.700000047683716,
+      4.299999952316284,
+      5,
+      4.900000095367432,
+      4,
+      4.5,
+      4.799999952316284,
+      4.200000047683716,
+      4.3999998569488525,
+      4.299999952316284,
+      5.099999904632568,
+      4.099999904632568,
+      3.700000047683716,
+      4.599999904632568,
+      4.299999952316284,
+      4.200000047683716,
+      4.5,
+      4.5,
+      4.199999809265137,
+      5.200000047683716,
+      4.799999952316284,
+      5.299999952316284,
+      5.300000190734863,
+      4.200000047683716,
+      4.799999952316284,
+      5,
+      4.800000190734863,
+      5.1000001430511475,
+      4.200000047683716,
+      4.099999904632568,
+      4.1000001430511475,
+      3.6000001430511475,
+      3.8999998569488525
+    ],
+    "longTasks": [],
+    "settings": {
+      "strongGravity": true,
+      "dynamicCamera": true,
+      "sound": false,
+      "volume": 0.65,
+      "musicVolume": 0.48,
+      "ambienceVolume": 0.5,
+      "effectsVolume": 0.85,
+      "audioMix": "full",
+      "audioMono": false,
+      "haptic": false,
+      "smoothing": 0.09,
+      "deadZone": 0.055,
+      "sensitivity": 1,
+      "invertX": false,
+      "invertZ": false,
+      "quality": "low",
+      "compactHUD": true,
+      "effects": true
+    },
+    "before": {
+      "x": -0.8992600093170129,
+      "time": 0.6833333333333333
+    },
+    "after": {
+      "x": 0.736672390844466,
+      "time": 1.4749999999999972
+    }
+  },
+  "externalRequests": []
+}

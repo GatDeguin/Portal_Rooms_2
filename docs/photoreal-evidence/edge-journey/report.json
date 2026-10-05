@@ -1,0 +1,120 @@
+{
+  "date": "2026-10-05T03:19:01.396Z",
+  "browser": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
+  "viewport": [
+    960,
+    540
+  ],
+  "checks": [
+    {
+      "name": "20 cancellations at start, middle, end preserve pause and save",
+      "status": "passed"
+    },
+    {
+      "name": "32 sample PNG and completion",
+      "status": "passed"
+    },
+    {
+      "name": "cancel via keyboard resume with draw pending",
+      "status": "passed"
+    },
+    {
+      "name": "resize cancels photo and paused viewport remains usable",
+      "status": "passed"
+    },
+    {
+      "name": "real keyboard movement with dynamic camera and normal motion, intermediate screenshots",
+      "status": "passed"
+    },
+    {
+      "name": "paused rests without RAF; no unhandled rejection",
+      "status": "passed"
+    }
+  ],
+  "errors": [],
+  "bootMs": 27010,
+  "backend": "WebGPU",
+  "motion": {
+    "frames": 47,
+    "workerCosts": [
+      6.1000001430511475,
+      5.799999952316284,
+      6,
+      4.8999998569488525,
+      4.300000190734863,
+      4.900000095367432,
+      5.1000001430511475,
+      6.400000095367432,
+      6.6000001430511475,
+      4,
+      4.799999952316284,
+      4.099999904632568,
+      4.700000047683716,
+      5.199999809265137,
+      4.900000095367432,
+      5.099999904632568,
+      5.699999809265137,
+      4.299999952316284,
+      4.599999904632568,
+      8.700000047683716,
+      5.900000095367432,
+      5.1000001430511475,
+      5,
+      5,
+      4,
+      4.200000047683716,
+      4.299999952316284,
+      4.1000001430511475,
+      5.299999952316284,
+      5.200000047683716,
+      6.5,
+      5.299999952316284,
+      4.8999998569488525,
+      5.200000047683716,
+      4.8999998569488525,
+      4.900000095367432,
+      4.799999952316284,
+      4.099999904632568,
+      5.099999904632568,
+      5.699999809265137,
+      4.099999904632568,
+      6.299999952316284,
+      5.3999998569488525,
+      5.1000001430511475,
+      4.700000047683716,
+      4.700000047683716,
+      5.1000001430511475
+    ],
+    "longTasks": [],
+    "settings": {
+      "strongGravity": true,
+      "dynamicCamera": true,
+      "sound": false,
+      "volume": 0.65,
+      "musicVolume": 0.48,
+      "ambienceVolume": 0.5,
+      "effectsVolume": 0.85,
+      "audioMix": "full",
+      "audioMono": false,
+      "haptic": false,
+      "smoothing": 0.09,
+      "deadZone": 0.055,
+      "sensitivity": 1,
+      "invertX": false,
+      "invertZ": false,
+      "quality": "low",
+      "compactHUD": true,
+      "effects": true
+    },
+    "before": {
+      "x": -0.8887682421691402,
+      "time": 0.6916666666666667
+    },
+    "after": {
+      "x": 0.6894840921893163,
+      "time": 1.466666666666664
+    }
+  },
+  "externalRequests": [],
+  "motionCostMethod": "Worker renderMs: WebGPU includes queue/readback; WebGL may measure submission only. Synchronized GL costs are in the profile benchmark."
+}

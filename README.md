@@ -1,6 +1,6 @@
 # Portal Room — Dominio de la gravedad, V.05
 
-**62 salas: 22 originales, 20 de expansión y 20 nuevos desafíos de materiales y dominio.** Un cubo rojo, una habitación y control de gravedad mediante teclado, arrastre, stick o inclinación. Render procedural WebGL 1 con perfiles Baja, Media, Alta y Cinemática; Automática adapta solo los tres primeros.
+**62 salas: 22 originales, 20 de expansión y 20 nuevos desafíos de materiales y dominio.** Un cubo rojo, una habitación y control de gravedad mediante teclado, arrastre, stick o inclinación. Render procedural con WebGPU en la ruta Worker compatible y fallback WebGL2/WebGL1. Perfiles Rendimiento, Equilibrada, Calidad y Ultra; Automática adapta solo los tres primeros.
 
 La aplicación activa usa `index.html`, `src/`, `styles/` y `assets/`. Los archivos homónimos de la raíz pertenecen a revisiones anteriores y no se deben mezclar con este catálogo.
 
@@ -40,7 +40,13 @@ Los diálogos y el selector incorporan movimiento semántico, retorno de foco y 
 
 ## Relieve y color de materiales
 
-Alta y Cinemática incorporan relieve con silueta, intersección de mapas de profundidad procedurales y autooclusión local. Todos los perfiles incorporan variación de color interpolada en el espacio de cada objeto, equivalente a vertex paint para este renderer sin mallas. Configuración, límites y prueba WebGL: [docs/RELIEF.md](docs/RELIEF.md).
+Calidad (`high`) y Ultra (`cinematic`) incorporan relieve con silueta, intersección de mapas de profundidad procedurales y autooclusión local. Todos los perfiles incorporan variación de color interpolada en el espacio de cada objeto, equivalente a vertex paint para este renderer sin mallas. Configuración, límites y prueba WebGL: [docs/RELIEF.md](docs/RELIEF.md).
+
+## Renderer HDR y foto de la sala
+
+La ruta WebGPU dibuja el SDF en WGSL local. WebGL2 conserva el juego y habilita HDR cuando sus framebuffers float son válidos; WebGL1 mantiene salida directa. No cambian cámara, física, input, salas ni guardado. Desde pausa, **Guardar foto de la sala** acumula 32 muestras y permite cancelar/reanudar; el PNG excluye controles, manos y telas superpuestas.
+
+Los shaders publicados ya están generados. Sólo para regenerarlos después de modificar `src/shaders.js`, ejecutar `npm ci` y `npm run build:shaders`. Naga es una dependencia de desarrollo; no se descarga en el navegador. Mediciones, capturas, contratos, requisitos y límites de compilación: [renderer HDR verificado](docs/PHOTOREAL-RENDERER.md). No se promete equivalencia AAA ni rendimiento universal.
 
 ## Pruebas
 

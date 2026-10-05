@@ -34,7 +34,7 @@ STUB=r"""
   if(key===key.toUpperCase()){if(!constants.has(key))constants.set(key,next++);return constants.get(key);}
   return ()=>{};
  }});
- HTMLCanvasElement.prototype.getContext=function(type,options){return type==='webgl'?gl:original.call(this,type,options);};
+ HTMLCanvasElement.prototype.getContext=function(type,options){return type==='webgl'?gl:type==='webgl2'?null:original.call(this,type,options);};
  window.__addTestBadge=()=>{
   for(const dialog of document.querySelectorAll('dialog')){const badge=document.createElement('p');badge.textContent='PRUEBA DE INTERFAZ · WebGL simulado';badge.style.cssText='font:9px monospace;color:#ffd28a;margin:0 0 12px;letter-spacing:.03em';dialog.prepend(badge);}
   const badge=document.createElement('div');badge.textContent='PRUEBA DE INTERFAZ · WebGL simulado';badge.style.cssText='position:fixed;top:50%;left:8px;z-index:99;pointer-events:none;font:9px monospace;color:#ffd28a;background:#111c;padding:6px;border-radius:5px';document.body.append(badge);

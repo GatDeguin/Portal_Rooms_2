@@ -21,7 +21,7 @@ async function fresh(mode='normal',options={}){
     window.cancelAnimationFrame=id=>{window.__rafPending.delete(id);cancel(id);};
   },{mode});
   const page=await context.newPage();page.setDefaultTimeout(8000);page.on('pageerror',e=>errors.push(e.message));
-  await page.goto(BASE);await page.waitForSelector('#startDialog[open]',{timeout:30000});
+  await page.goto(BASE);try{await page.waitForSelector('#startDialog[open]',{timeout:30000});}catch(error){const diagnostic=await page.evaluate(()=>({phase:document.querySelector('#app')?.dataset.phase,graphicsError:document.querySelector('#graphicsError')?.textContent,visibility:document.visibilityState,ready:document.readyState,glCalls:window.__glCalls,requests:performance.getEntriesByType('resource').map(x=>({name:x.name,duration:x.duration}))}));await fs.writeFile(`${OUT}/startup-${Date.now()}.json`,JSON.stringify(diagnostic,null,2));await context.close();throw new Error(error.message+' '+JSON.stringify(diagnostic));}
   await page.evaluate(async()=>{
     const {UI}=await import('/src/ui.js');
     const original=UI.prototype.dialog;
@@ -195,6 +195,12 @@ try {
     await page.locator('#startBtn').scrollIntoViewIfNeeded();await page.tap('#startBtn');await phase(page,'playing');await page.tap('#pauseBtn');await phase(page,'paused');
     return {viewport:{width:390,height:844},cssZoom:1.25,longContent:'Preview briefing expanded to twelve sentences',...geometry};
   },{viewport:{width:390,height:844},touch:true}));
+  await check('photo action keeps focus outline clear of the room briefing on a narrow screen',()=>withPage('reduced',async page=>{
+    await click(page,'#startBtn');await phase(page,'playing');await page.keyboard.press('Escape');await phase(page,'paused');
+    await page.locator('#photoBtn').evaluate(el=>{el.disabled=false;el.focus();});
+    const spacing=await page.evaluate(()=>{const a=document.querySelector('#photoBtn').getBoundingClientRect(),b=document.querySelector('#pauseBriefing').getBoundingClientRect();return {gap:a.top-b.bottom,width:a.width,available:document.querySelector('#pauseDialog').clientWidth};});
+    assert(spacing.gap>=12,JSON.stringify(spacing));assert(spacing.width<=spacing.available);return spacing;
+  },{viewport:{width:360,height:640},touch:true}));
   await check('victory is persisted before check animation; reduced change leaves a full check',()=>withPage('normal',async page=>{
     await page.evaluate(async()=>{const {GameEngine}=await import('/src/physics.js');const reset=GameEngine.prototype.reset;GameEngine.prototype.reset=function(...args){window.__engine=this;return reset.apply(this,args);};});
     await click(page,'#startBtn');await phase(page,'playing');

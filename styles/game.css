@@ -80,3 +80,6 @@ dialog{width:min(540px,calc(100% - 28px));max-height:calc(100% - 28px);margin:au
 /* Selection is immediate. WAAPI owns card translations; controls stay operable. */
 .level-card,.chapter-tabs button{transition:none}
 .victory-mark svg{width:34px;height:34px;fill:none;stroke:currentColor;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}.victory-mark circle{opacity:.25}.victory-mark path{stroke-dasharray:1;stroke-dashoffset:0}
+
+/* Photo actions preserve room context and the native focus outline on small screens. */
+.photo-actions{margin-top:16px;grid-template-columns:repeat(auto-fit,minmax(130px,1fr))}

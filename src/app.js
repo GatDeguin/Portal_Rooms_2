@@ -26,6 +26,7 @@ function visualPreferences(){app.classList.toggle('reduced-effects',motion.match
 visualPreferences();
 const startupController=new AbortController();
 let phase='loading',renderer=null,input=null,hands=null,raf=0,last=0,panelStack=[],dirty=true,sceneDrawn=false,qualityRequest=null;
+let photoRequest=null,photoURL=null,photoURLTimer=null;
 const levelTransition=new LevelTransition();
 let pausedAnimation=null,completionPhase='victory';
 const animating=()=>phase==='transition'||phase==='completing';
@@ -39,12 +40,14 @@ function fail(error){
 function requestFrame(){if(!raf&&!document.hidden&&phase!=='error')raf=requestAnimationFrame(frame);}
 function invalidate(){dirty=true;requestFrame();}
 function showPhase(next){
+  if(next!=='paused')cancelPhoto();
   if(next!=='settings'&&(!qualityRequest?.startup||phase==='settings'))cancelQuality();
   if(next!=='playing')renderer?.pause?.();
   handMenu.clear();phase=next;audio.setScene(next,engine);app.dataset.phase=next;if(next!=='playing')handView.clear();
   if(next!=='playing'){engine.pause();input?.clear();}
   if(next==='selector')ui.levelsGrid(store);
   if(next==='settings')ui.settings(store.settings,renderer);
+  if(next==='paused'){ui.el('photoBtn').disabled=!renderer?.supportsPhoto;ui.text('photoStatus',renderer?.supportsPhoto?'Captura la sala sin controles, manos ni telas superpuestas. La partida queda en pausa.':'La captura HDR requiere una ruta gráfica compatible.');}
   ui.update(engine,store);renderer?.resize();ui.dialog(DIALOGS[next]??null);invalidate();
 }
 function pauseGame(){
@@ -121,6 +124,24 @@ function frame(now){
     else if(hands?.enabled&&DIALOGS[phase]){handMenu.update(hands.sample(),ui.el(DIALOGS[phase]),now);requestFrame();}
   }catch(error){fail(error);}
 }
+function releasePhotoURL(){clearTimeout(photoURLTimer);photoURLTimer=null;if(photoURL)URL.revokeObjectURL(photoURL);photoURL=null;}
+function cancelPhoto(){
+  const pending=!!photoRequest,restoreFocus=document.activeElement===ui.el('cancelPhotoBtn');photoRequest?.abort();photoRequest=null;renderer?.cancelPhoto?.();
+  if(phase==='paused'){ui.el('photoBtn').disabled=!renderer?.supportsPhoto;if(pending)ui.text('photoStatus','Captura cancelada. La partida sigue en pausa.');if(restoreFocus)ui.el('photoBtn').focus({preventScroll:true});}
+  ui.el('cancelPhotoBtn').hidden=true;
+}
+async function capturePhoto(){
+  if(phase!=='paused'||photoRequest||!renderer?.supportsPhoto)return;
+  const fromControl=document.activeElement===ui.el('photoBtn'),controller=new AbortController();photoRequest=controller;ui.el('photoBtn').disabled=true;ui.el('cancelPhotoBtn').hidden=false;ui.text('photoStatus','Preparando la foto…');if(fromControl)ui.el('cancelPhotoBtn').focus({preventScroll:true});
+  try{
+    await renderer.capturePhoto({signal:controller.signal,onProgress:count=>{if(photoRequest===controller&&(count%8===0||count===32))ui.text('photoStatus',`Preparando la foto · ${Math.round(count/32*100)}%`);}});
+    if(photoRequest!==controller||controller.signal.aborted)return;
+    const blob=await new Promise((resolve,reject)=>canvas.toBlob(value=>value?resolve(value):reject(new Error('No se pudo guardar la foto.')),'image/png'));
+    if(photoRequest!==controller||controller.signal.aborted)return;
+    releasePhotoURL();photoURL=URL.createObjectURL(blob);const link=document.createElement('a');link.href=photoURL;link.download=`portal-room-${String(engine.state.level+1).padStart(2,'0')}.png`;link.click();photoURLTimer=setTimeout(releasePhotoURL,1000);ui.text('photoStatus','Foto guardada. Podés seguir jugando.');
+  }catch(error){if(photoRequest===controller)ui.text('photoStatus',error.name==='AbortError'?'Captura cancelada. La partida sigue en pausa.':error.message);}
+  finally{if(photoRequest===controller){photoRequest=null;ui.el('photoBtn').disabled=false;if(document.activeElement===ui.el('cancelPhotoBtn'))ui.el('photoBtn').focus({preventScroll:true});ui.el('cancelPhotoBtn').hidden=true;}}
+}
 async function action(name){
   switch(name){
     case 'start':if(phase==='menu')begin(store.progress.current);break;
@@ -131,6 +152,8 @@ async function action(name){
     case 'start-hands':if(phase==='menu'&&await hands.enable()&&phase==='menu'&&!document.hidden)begin(store.progress.current);break;
     case 'pause':if(phase==='playing'||animating())pauseGame();else if(phase==='paused')resume();else back();break;
     case 'resume':resume();break;
+    case 'photo':await capturePhoto();break;
+    case 'cancel-photo':cancelPhoto();ui.text('photoStatus','Captura cancelada. La partida sigue en pausa.');break;
     case 'restart':if(['playing','paused'].includes(phase))begin(engine.state.level,true);break;
     case 'retry':if(['victory','final'].includes(phase))begin(engine.state.level);break;
     case 'next':if(phase==='victory'&&engine.state.solved&&engine.state.level<LEVELS.length-1)begin(engine.state.level+1);break;
@@ -186,8 +209,8 @@ function cancelQuality(){
 async function applyQuality(value,{startup=false}={}){
   if(!renderer||(!startup&&phase!=='settings'))return;
   cancelQuality();const controller=new AbortController();controller.startup=startup;qualityRequest=controller;
-  const label={medium:'Media',high:'Alta',cinematic:'Cinemática'}[value]??value;
-  ui.qualityStatus(value,startup?`Preparando ${label}. Mientras tanto, render en Baja. Tu preferencia guardada se conserva.`:'Preparando la calidad gráfica… Podés cancelar o volver sin esperar.');
+  const label={low:'Rendimiento',medium:'Equilibrada',high:'Calidad',cinematic:'Ultra'}[value]??value;
+  ui.qualityStatus(value,startup?`Preparando ${label}. Mientras tanto, render en Rendimiento. Tu preferencia guardada se conserva.`:'Preparando la calidad gráfica… Podés cancelar o volver sin esperar.');
   ui.settings(store.settings,renderer);
   try{
     await renderer.requestQuality(value,{signal:controller.signal});
@@ -219,13 +242,13 @@ document.addEventListener('keydown',e=>{
   const next=e.key==='ArrowRight'?(index+1)%tabs.length:e.key==='ArrowLeft'?(index+tabs.length-1)%tabs.length:e.key==='Home'?0:e.key==='End'?tabs.length-1:-1;
   if(next>=0){e.preventDefault();e.stopPropagation();ui.settingsTab(tabs[next].dataset.settingsTab,true);}
 });
-window.addEventListener('resize',()=>{ui.motion.cancelAll();if(renderer&&!renderer.lost){renderer.resize();invalidate();}});
+window.addEventListener('resize',()=>{cancelPhoto();sceneDrawn=false;ui.motion.cancelAll();if(renderer&&!renderer.lost){renderer.resize();invalidate();}});
 window.addEventListener('blur',()=>{handMenu.clear();input.clear();pauseGame();audio.suspend();});
-document.addEventListener('visibilitychange',()=>{
+document.addEventListener('visibilitychange',()=>{if(document.hidden)cancelPhoto();
   if(document.hidden){ui.motion.cancelAll();handMenu.clear();cancelQuality();renderer?.pause?.();pauseGame();engine.pause();input.clear();audio.suspend();if(raf)cancelAnimationFrame(raf);raf=0;}
   else{last=performance.now();renderer?.quality.resetSamples();invalidate();}
 });
-window.addEventListener('pagehide',event=>{ui.motion.cancelAll();if(phase==='loading')startupController.abort();hands?.disable();if(!event.persisted)renderer?.destroy();cancelQuality();renderer?.pause?.();pauseGame();if(raf)cancelAnimationFrame(raf);raf=0;if(event.persisted)audio.suspend();else{audio.destroy();handView.destroy();clothView.destroy();}});
+window.addEventListener('pagehide',event=>{cancelPhoto();releasePhotoURL();ui.motion.cancelAll();if(phase==='loading')startupController.abort();hands?.disable();if(!event.persisted)renderer?.destroy();cancelQuality();renderer?.pause?.();pauseGame();if(raf)cancelAnimationFrame(raf);raf=0;if(event.persisted)audio.suspend();else{audio.destroy();handView.destroy();clothView.destroy();}});
 window.addEventListener('pageshow',event=>{if(event.persisted&&phase==='loading'&&startupController.signal.aborted){location.reload();return;}if(phase!=='loading')invalidate();});
 motion.addEventListener?.('change',e=>{if(e.matches){store.setSettings({dynamicCamera:false});engine.settings=store.settings;}visualPreferences();ui.settings(store.settings,renderer);invalidate();});
 canvas.addEventListener('contextmenu',e=>e.preventDefault());
